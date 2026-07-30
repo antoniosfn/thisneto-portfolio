@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useContent } from "@/hooks/use-language";
 
 export const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const { ui } = useContent();
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -36,7 +38,7 @@ export const ScrollToTop = () => {
           transition={{ duration: 0.2 }}
           onClick={scrollToTop}
           className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
-          aria-label="Voltar ao Topo"
+          aria-label={ui.scrollToTop}
         >
           <ArrowUp className="w-5 h-5" />
         </motion.button>
