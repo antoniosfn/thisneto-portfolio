@@ -9,5 +9,10 @@ export const LINKS = {
     dijkstra: "https://github.com/antoniosfn/City-Map-Shortest-Path-Dijkstra-in-C",
     anomalies:
       "https://github.com/antoniosfn/California-Housing-Anomaly-Detection-with-K-Means-and-PCA",
+    currency: "https://github.com/antoniosfn/Currency-quotation",
+    weather: "https://github.com/antoniosfn/Weather-with-APIrest",
+    descubraSeuPc: "https://github.com/antoniosfn/descubraseupc",
+    consultoria: "https://github.com/antoniosfn/consultoria-juridica",
+    calculadora: "https://github.com/antoniosfn/Calculadora-NetBeans",
   },
 } as const;
