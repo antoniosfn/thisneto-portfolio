@@ -25,7 +25,7 @@ export const EducationItem = ({
         </p>
       )}
       {completed && (
-        <span className="inline-block mt-2 bg-green-500/10 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-sm text-[13px]">
+        <span className="inline-block mt-2 bg-accent/10 text-accent px-2 py-0.5 rounded-sm text-[13px]">
           ✓ Concluído
         </span>
       )}

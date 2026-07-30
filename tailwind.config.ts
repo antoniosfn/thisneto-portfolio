@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        mono: ['"Fira Code"', "monospace"],
+        display: ['"Fira Code"', "monospace"],
+        antic: ["Antic", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
