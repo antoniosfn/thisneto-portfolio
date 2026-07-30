@@ -157,7 +157,7 @@ export const pt: SiteContent = {
     heading: "PROJETOS",
     ariaLabel: "Projetos",
     featuredHeading: "Projetos em destaque",
-    academicHeading: "Projetos acadêmicos",
+    academicHeading: "Projetos acadêmicos e de estudo",
     labels: {
       privateCode: "Código privado",
       github: "Ver no GitHub",
@@ -235,12 +235,49 @@ export const pt: SiteContent = {
         skills: ["Python", "Machine Learning", "K-Means", "PCA", "Clustering"],
       },
       {
+        id: "currency",
+        title: "Currency Quotation",
+        period: "2023",
+        githubUrl: LINKS.repos.currency,
+        description:
+          "Script que consome uma API pública para obter cotações de moedas em tempo real.",
+        skills: ["Python", "API REST", "JSON"],
+      },
+      {
+        id: "weather",
+        title: "Weather with API REST",
+        period: "2023",
+        githubUrl: LINKS.repos.weather,
+        description:
+          "Consulta de dados meteorológicos por localização, consumindo a API REST gratuita do OpenWeatherMap.",
+        skills: ["Python", "API REST", "OpenWeatherMap"],
+      },
+      {
         id: "descubra-seu-pc",
         title: "Descubra seu PC",
         period: "2020",
+        githubUrl: LINKS.repos.descubraSeuPc,
         description:
           "Sistema web de recomendação de hardware, otimizando a seleção de componentes e notebooks com base no perfil de uso do usuário.",
         skills: ["HTML", "CSS", "PHP", "Sistemas de Recomendação"],
+      },
+      {
+        id: "consultoria",
+        title: "Consultoria Jurídica",
+        period: "2020",
+        githubUrl: LINKS.repos.consultoria,
+        description:
+          "Site institucional para escritório de advocacia, desenvolvido durante meus estudos de desenvolvimento web.",
+        skills: ["HTML", "CSS", "PHP", "JavaScript"],
+      },
+      {
+        id: "calculadora",
+        title: "Calculadora (NetBeans)",
+        period: "2019",
+        githubUrl: LINKS.repos.calculadora,
+        description:
+          "Calculadora desktop em Java com as quatro operações básicas. Requisito parcial da disciplina de Linguagem de Programação no Curso Técnico em Manutenção e Suporte em Informática do IFPA.",
+        skills: ["Java", "NetBeans", "POO"],
       },
     ],
   },

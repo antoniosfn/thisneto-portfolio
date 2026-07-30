@@ -156,7 +156,7 @@ export const en: SiteContent = {
     heading: "PROJECTS",
     ariaLabel: "Projects",
     featuredHeading: "Featured projects",
-    academicHeading: "Academic projects",
+    academicHeading: "Academic & learning projects",
     labels: {
       privateCode: "Private codebase",
       github: "View on GitHub",
@@ -234,12 +234,49 @@ export const en: SiteContent = {
         skills: ["Python", "Machine Learning", "K-Means", "PCA", "Clustering"],
       },
       {
+        id: "currency",
+        title: "Currency Quotation",
+        period: "2023",
+        githubUrl: LINKS.repos.currency,
+        description:
+          "Script that consumes a public API to fetch real-time currency exchange rates.",
+        skills: ["Python", "REST API", "JSON"],
+      },
+      {
+        id: "weather",
+        title: "Weather with API REST",
+        period: "2023",
+        githubUrl: LINKS.repos.weather,
+        description:
+          "Weather lookup by location, consuming OpenWeatherMap's free REST API.",
+        skills: ["Python", "REST API", "OpenWeatherMap"],
+      },
+      {
         id: "descubra-seu-pc",
         title: "Descubra seu PC",
         period: "2020",
+        githubUrl: LINKS.repos.descubraSeuPc,
         description:
           "Web-based hardware recommendation system that optimizes the selection of components and laptops based on the user's usage profile.",
         skills: ["HTML", "CSS", "PHP", "Recommender Systems"],
+      },
+      {
+        id: "consultoria",
+        title: "Legal Consultancy Website",
+        period: "2020",
+        githubUrl: LINKS.repos.consultoria,
+        description:
+          "Institutional website for a law firm, built while studying web development.",
+        skills: ["HTML", "CSS", "PHP", "JavaScript"],
+      },
+      {
+        id: "calculadora",
+        title: "Calculator (NetBeans)",
+        period: "2019",
+        githubUrl: LINKS.repos.calculadora,
+        description:
+          "Java desktop calculator with the four basic operations. Partial requirement for the Programming Language course in the IT Maintenance and Support Technical Course at IFPA.",
+        skills: ["Java", "NetBeans", "OOP"],
       },
     ],
   },
