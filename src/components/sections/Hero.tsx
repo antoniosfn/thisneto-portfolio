@@ -190,12 +190,16 @@ export const Hero = () => {
         />
       )}
 
-      {/* Topbar: menu + assinatura */}
+      {/*
+        Topbar acima do backdrop (z-90): o header cria um stacking context, então o
+        z-index do painel do menu é resolvido DENTRO dele — se o header ficasse abaixo
+        do backdrop, o menu seria coberto pelo blur, sem z-index de filho que resolva.
+      */}
       <header
         data-hero="topbar"
-        className="absolute top-0 left-0 right-0 z-40 px-6 py-6 flex items-center justify-between"
+        className="absolute top-0 left-0 right-0 z-[100] px-6 py-6 flex items-center justify-between"
       >
-        <div className="relative z-[100]">
+        <div className="relative">
           <button
             ref={menuButtonRef}
             type="button"
