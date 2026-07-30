@@ -188,7 +188,7 @@ export const pt: SiteContent = {
       {
         id: "vibecrawl",
         title: "Vibecrawl - Crawler & Scraper Agents",
-        period: "2025 - Presente",
+        period: "2026 - Presente",
         isPrivateCode: true,
         description:
           "Motor de web scraping assistido por LLM: o modelo é chamado uma única vez por fonte para construir uma recipe de extração; execuções seguintes são replay determinístico, sem custo de LLM, com auto-recuperação quando o layout do site muda. Pipeline em produção alimentando um observatório de editais de fomento (CNPq, CAPES, FINEP, FAPESP, FAPERJ, BNDES), com anti-bot em camadas, retry com backoff e telemetria; API pública com autenticação por chave e rate limiting.",
@@ -206,7 +206,62 @@ export const pt: SiteContent = {
         ],
       },
     ],
+    // Ordem cronológica crescente (mais antigo primeiro).
     academic: [
+      {
+        id: "calculadora",
+        title: "Calculadora (NetBeans)",
+        period: "2019",
+        githubUrl: LINKS.repos.calculadora,
+        description:
+          "Calculadora desktop em Java com as quatro operações básicas. Requisito parcial da disciplina de Linguagem de Programação no Curso Técnico em Manutenção e Suporte em Informática do IFPA.",
+        skills: ["Java", "NetBeans", "POO"],
+      },
+      {
+        id: "consultoria",
+        title: "Consultoria Jurídica",
+        period: "2020",
+        githubUrl: LINKS.repos.consultoria,
+        description:
+          "Site institucional para escritório de advocacia, desenvolvido durante meus estudos de desenvolvimento web.",
+        skills: ["HTML", "CSS", "PHP", "JavaScript"],
+      },
+      {
+        id: "descubra-seu-pc",
+        title: "Descubra seu PC",
+        period: "2020",
+        githubUrl: LINKS.repos.descubraSeuPc,
+        description:
+          "Sistema web de recomendação de hardware, otimizando a seleção de componentes e notebooks com base no perfil de uso do usuário.",
+        skills: ["HTML", "CSS", "PHP", "Sistemas de Recomendação"],
+      },
+      {
+        id: "weather",
+        title: "Weather with API REST",
+        period: "2023",
+        githubUrl: LINKS.repos.weather,
+        description:
+          "Consulta de dados meteorológicos por localização, consumindo a API REST gratuita do OpenWeatherMap.",
+        skills: ["Python", "API REST", "OpenWeatherMap"],
+      },
+      {
+        id: "currency",
+        title: "Currency Quotation",
+        period: "2023",
+        githubUrl: LINKS.repos.currency,
+        description:
+          "Script que consome uma API pública para obter cotações de moedas em tempo real.",
+        skills: ["Python", "API REST", "JSON"],
+      },
+      {
+        id: "kmeans",
+        title: "Detecção de Anomalias com K-Means e PCA",
+        period: "2024",
+        githubUrl: LINKS.repos.anomalies,
+        description:
+          "Aplicação de clustering K-Means e PCA no dataset California Housing para identificar agrupamentos naturais e detectar anomalias através do erro de reconstrução e redução dimensional.",
+        skills: ["Python", "Machine Learning", "K-Means", "PCA", "Clustering"],
+      },
       {
         id: "no2",
         title: "Previsão da Qualidade do Ar (NO₂)",
@@ -224,60 +279,6 @@ export const pt: SiteContent = {
         description:
           "Modelagem de mapa urbano como grafo e cálculo do menor caminho entre origem e destino com o algoritmo de Dijkstra, usando listas de adjacência e fila de prioridade (min-heap).",
         skills: ["C", "Algoritmos", "Estruturas de Dados", "Grafos", "Dijkstra"],
-      },
-      {
-        id: "kmeans",
-        title: "Detecção de Anomalias com K-Means e PCA",
-        period: "2024",
-        githubUrl: LINKS.repos.anomalies,
-        description:
-          "Aplicação de clustering K-Means e PCA no dataset California Housing para identificar agrupamentos naturais e detectar anomalias através do erro de reconstrução e redução dimensional.",
-        skills: ["Python", "Machine Learning", "K-Means", "PCA", "Clustering"],
-      },
-      {
-        id: "currency",
-        title: "Currency Quotation",
-        period: "2023",
-        githubUrl: LINKS.repos.currency,
-        description:
-          "Script que consome uma API pública para obter cotações de moedas em tempo real.",
-        skills: ["Python", "API REST", "JSON"],
-      },
-      {
-        id: "weather",
-        title: "Weather with API REST",
-        period: "2023",
-        githubUrl: LINKS.repos.weather,
-        description:
-          "Consulta de dados meteorológicos por localização, consumindo a API REST gratuita do OpenWeatherMap.",
-        skills: ["Python", "API REST", "OpenWeatherMap"],
-      },
-      {
-        id: "descubra-seu-pc",
-        title: "Descubra seu PC",
-        period: "2020",
-        githubUrl: LINKS.repos.descubraSeuPc,
-        description:
-          "Sistema web de recomendação de hardware, otimizando a seleção de componentes e notebooks com base no perfil de uso do usuário.",
-        skills: ["HTML", "CSS", "PHP", "Sistemas de Recomendação"],
-      },
-      {
-        id: "consultoria",
-        title: "Consultoria Jurídica",
-        period: "2020",
-        githubUrl: LINKS.repos.consultoria,
-        description:
-          "Site institucional para escritório de advocacia, desenvolvido durante meus estudos de desenvolvimento web.",
-        skills: ["HTML", "CSS", "PHP", "JavaScript"],
-      },
-      {
-        id: "calculadora",
-        title: "Calculadora (NetBeans)",
-        period: "2019",
-        githubUrl: LINKS.repos.calculadora,
-        description:
-          "Calculadora desktop em Java com as quatro operações básicas. Requisito parcial da disciplina de Linguagem de Programação no Curso Técnico em Manutenção e Suporte em Informática do IFPA.",
-        skills: ["Java", "NetBeans", "POO"],
       },
     ],
   },
