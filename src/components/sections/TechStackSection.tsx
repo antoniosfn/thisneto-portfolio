@@ -60,14 +60,31 @@ export const TechStackSection = () => {
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from("[data-tech='grid'] > *", {
-          scale: 0.8,
-          opacity: 0,
-          y: 12,
-          duration: 0.5,
-          ease: "back.out(1.4)",
-          stagger: { each: 0.04, grid: "auto", from: "start" },
-          scrollTrigger: { trigger: ref.current, start: "top 75%" },
+        // Tweens individuais por item (com `delay` escalonado) em vez de um único
+        // `gsap.from()` com `stagger` — combinar `stagger` num tween/timeline com
+        // muitos alvos e um ScrollTrigger compartilhado deixa os itens presos em
+        // opacity 0 mesmo após a animação reportar progress 1 (bug observado nesta
+        // versão do GSAP). Tweens separados por item, como já feito para os cards
+        // de projeto em ProjectsSection, não têm esse problema.
+        gsap.utils.toArray<HTMLElement>("[data-tech='grid'] > *").forEach((item, i) => {
+          gsap.from(item, {
+            scale: 0.8,
+            opacity: 0,
+            y: 12,
+            duration: 0.5,
+            delay: i * 0.04,
+            ease: "back.out(1.4)",
+            scrollTrigger: { trigger: ref.current, start: "top 75%" },
+          });
+        });
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set("[data-tech='grid'] > *", {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          clearProps: "all",
         });
       });
     },
