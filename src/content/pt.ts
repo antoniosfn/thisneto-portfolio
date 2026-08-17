@@ -170,7 +170,7 @@ export const pt: SiteContent = {
         period: "2025 - Presente",
         isPrivateCode: true,
         description:
-          "Portal de busca semântica que unificou ~90,4 mil registros dispersos entre produções Lattes/CNPq, publicações OpenAlex, registros Scopus, patentes e projetos, com 1.485 competências catalogadas em 42 áreas estratégicas e 3.617 vínculos pesquisador-competência, atendendo 6 escolas e 36 programas de pós-graduação da PUCPR. Pipeline de desambiguação publicação-professor (9.949 vínculos validados em 5 níveis de confiança) e otimização de leitura via réplica local, ~18x mais rápida que o acesso direto ao banco na nuvem.",
+          "Portal de busca semântica que unificou ~90,4 mil registros dispersos entre produções Lattes/CNPq, publicações OpenAlex, registros Scopus, patentes e projetos, com 1.485 competências catalogadas em 42 áreas estratégicas e 3.617 vínculos pesquisador-competência, atendendo 8 escolas e 36 programas de pós-graduação da PUCPR. Pipeline de desambiguação publicação-professor (9.949 vínculos validados em 5 níveis de confiança) e otimização de leitura via réplica local, ~18x mais rápida que o acesso direto ao banco na nuvem.",
         skills: [
           "RAG",
           "LangChain",

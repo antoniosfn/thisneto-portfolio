@@ -169,7 +169,7 @@ export const en: SiteContent = {
         period: "2025 - Present",
         isPrivateCode: true,
         description:
-          "Semantic search portal that unified ~90.4k records scattered across Lattes/CNPq production data, OpenAlex publications, Scopus records, patents and projects — cataloguing 1,485 skills across 42 strategic areas and 3,617 researcher-skill links, serving 6 schools and 36 graduate programs at PUCPR. Includes a publication-to-professor disambiguation pipeline (9,949 links validated across 5 confidence levels) and read-path optimization via a local replica, ~18x faster than querying the cloud database directly.",
+          "Semantic search portal that unified ~90.4k records scattered across Lattes/CNPq production data, OpenAlex publications, Scopus records, patents and projects — cataloguing 1,485 skills across 42 strategic areas and 3,617 researcher-skill links, serving 8 schools and 36 graduate programs at PUCPR. Includes a publication-to-professor disambiguation pipeline (9,949 links validated across 5 confidence levels) and read-path optimization via a local replica, ~18x faster than querying the cloud database directly.",
         skills: [
           "RAG",
           "LangChain",
