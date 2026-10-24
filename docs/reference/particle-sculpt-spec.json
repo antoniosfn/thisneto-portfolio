@@ -1,0 +1,80 @@
+{
+  "source": "dala-measurements.json",
+  "authority": "Measured values are authoritative; source geometry and texture contents were not supplied.",
+  "suitability": "conditional: reconstruct a described procedural particle experience, not image-to-mesh extraction",
+  "qualityContract": {
+    "silhouette": [
+      "profile cortex",
+      "two frontal hemispheres separated by a fissure",
+      "cerebellum",
+      "descending brainstem"
+    ],
+    "motion": [
+      "GPU semi-implicit spring at fixed 60 Hz",
+      "radial staggered explosion",
+      "circular local hover",
+      "zero hover at full explosion",
+      "reversible scroll"
+    ],
+    "appearance": [
+      "hollow triangles rotating in 3D",
+      "spatially baked palette",
+      "depth fade",
+      "vignette"
+    ],
+    "limits": [
+      "original particle quad is probable, not certain",
+      "original anatomy and atlas pixels unavailable",
+      "camera reconstructed",
+      "responsive scroll mapped to actual portfolio sections"
+    ]
+  },
+  "hierarchy": {
+    "scene": {
+      "camera": {
+        "kind": "PerspectiveCamera",
+        "fov": 40,
+        "z": 14
+      },
+      "particles": {
+        "kind": "InstancedMesh",
+        "count": 10000,
+        "geometry": "quad with analytic hollow triangle",
+        "mobileDrawCount": 4200
+      },
+      "simulation": {
+        "position": "100x100 RGBA float ping-pong",
+        "velocity": "100x100 RGBA float ping-pong"
+      },
+      "atlas": {
+        "size": [
+          200,
+          200
+        ],
+        "quadrants": [
+          "brain",
+          "bulb",
+          "globe",
+          "portfolio mark"
+        ]
+      }
+    }
+  },
+  "passes": [
+    "velocity",
+    "position",
+    "instanced triangles",
+    "vignette"
+  ],
+  "proceduralDecisions": {
+    "brain": "bilateral ellipsoidal cortex with continuous warped sulci, cerebellar surface and brainstem; atlas starts in profile",
+    "bulb": "surface of revolution with tapered neck and threaded base",
+    "globe": "sphere with original simplified continent polygons",
+    "mark": "three extruded triangles from existing portfolio identity",
+    "explosionMultiplier": "3.4 + 16 * seededRandom^0.9; source texture unknown; calibrated under Dala's literal camera (50 deg vertical FOV at z=10) to ~150 visible triangles at explode=1",
+    "explosionRank": "0.6 * normalized brain height + 0.4 * seededRandom (x L); reproduces the top crest observed at explode~0.53 and its absence at explode=1",
+    "particleQuad": "replaced: particles are wireframe pyramids (6 edge prisms of a tetrahedron, like Dala's py-lod1.glb), extent 0.06 world units, bar circumradius 0.06 of the edge",
+    "randomness": "deterministic indexed sine hash; no per-frame random positions",
+    "brainFit": "scale 0.896, offset (+0.8, +0.665) world units at factor 4.35, lateral axis x1.6; fitted to Dala's hero at f=0.12"
+  }
+}
