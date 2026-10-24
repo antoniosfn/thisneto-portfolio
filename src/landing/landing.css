@@ -89,25 +89,6 @@ img {
   background: #000;
 }
 
-.motion-toggle {
-  position: fixed;
-  z-index: 40;
-  right: 16px;
-  bottom: 16px;
-  padding: 12px 16px;
-  border: 1px solid rgb(255 255 255 / 24%);
-  border-radius: 24px;
-  background: #000;
-  color: var(--mist);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.motion-toggle:hover {
-  border-color: var(--violet);
-  color: var(--white);
-}
-
 .grain {
   z-index: -2;
   opacity: 0.12;
@@ -990,17 +971,6 @@ html.lenis body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  .button,
-  .challenge-option,
-  .faq-list summary i {
-    transition: none;
-  }
-}
-
 @media print {
   .particle-field,
   .grain,
@@ -1124,13 +1094,6 @@ html.lenis body {
   }
   .challenge-layout {
     min-height: auto;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dala-site:not(.motion-full) .reveal {
-    transform: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
   }
 }
 @media (min-width: 981px) {

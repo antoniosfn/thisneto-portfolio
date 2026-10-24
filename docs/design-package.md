@@ -78,6 +78,8 @@ Refero retornou a referência Dala com o ID `ba81bf2a-a5ad-4234-92a4-1d6d4774278
 
 O controle de movimento fica no canto inferior e persiste a escolha localmente. Sem escolha explícita, a preferência do sistema prevalece. O modo reduzido congela a composição; o modo ativo interpola cérebro, dispersão, lâmpada, esfera, órbitas e onda ao longo das seções.
 
+> Atualização (24/10/2026): por decisão do autor, o controle de movimento e todo o suporte a `prefers-reduced-motion` foram removidos. A experiência roda sempre com movimento completo. As menções a movimento reduzido acima descrevem a versão anterior.
+
 Os testes de regressão congelam o relógio do renderer e isolam o canvas, verificando que a geometria muda pelo scroll, retorna à mesma imagem no sentido inverso e responde à roda do mouse mesmo quando o visitante ativa a animação sobre a preferência reduzida do sistema. Também cobrem persistência da escolha e progresso após expansão do conteúdo.
 
 Validação final: TypeScript e build estático aprovados; 26 testes Playwright aprovados na exportação de produção, em desktop e mobile. Na aba do usuário, a preferência reduzida foi identificada e o efeito foi ativado pelo controle visível; a transformação e seu retorno foram conferidos com rolagem real. Nenhum deploy ou recurso Cloudflare foi alterado.

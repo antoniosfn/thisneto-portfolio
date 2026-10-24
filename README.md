@@ -19,6 +19,14 @@ npm run dev:vite
 
 Vite: http://127.0.0.1:5173. Os dois caminhos renderizam o mesmo componente `src/landing/LandingPage.tsx`. Next.js usa seu próprio compilador; Vite é uma entrada alternativa, não um plugin do Next.js.
 
+## Formas das partículas
+
+```sh
+npm run particles
+```
+
+Gera `public/particles/forms.bin` a partir das malhas em `src/landing/particle-shapes.ts`. O arquivo é determinístico e versionado; rode o comando sempre que alterar uma forma. Detalhes em `docs/particle-experience.md`.
+
 ## Builds
 
 ```sh
@@ -53,7 +61,7 @@ Arquivos estáticos antigos na raiz permanecem preservados, mas não participam 
 
 GSAP com `@gsap/react` e ScrollTrigger. O canvas WebGL interpola seis formações pela posição real da rolagem, nos dois sentidos, incluindo saltos por âncoras. Mudanças na altura do conteúdo recalculam os pontos de transição. As animações têm escopo e limpeza no desmontar; a rolagem permanece nativa.
 
-A preferência de movimento reduzido do sistema é respeitada ao vivo. O controle fixo no canto inferior permite **Ativar animação** ou **Reduzir animação**, salvando a escolha neste navegador. Assim, quem usa movimento reduzido no sistema pode ativar explicitamente o efeito de scroll. No modo reduzido, o campo fica estático e não mantém um loop de desenho.
+A experiência roda sempre com movimento completo: a preferência de movimento reduzido do sistema não é consultada e não há controle para desativar a animação.
 
 Capítulos e links permanecem legíveis sem JavaScript na exportação Next. FAQ e detalhes usam elementos nativos. Controles dependentes de React ficam desativados até a hidratação.
 
@@ -81,6 +89,6 @@ $env:PLAYWRIGHT_CHANNEL='msedge'
 npm run test:e2e
 ```
 
-Os testes cobrem seleção de desafios, roteiro de contato, FAQ por teclado, movimento reduzido, leitura sem JavaScript, recursos locais e larguras de 320 a 1440 px. Capturas ficam em `test-results/`. Para testar a prévia Vite, defina `TEST_BASE_URL` com seu endereço e `TEST_VITE=1`; o teste sem JavaScript se aplica somente ao Next.
+Os testes cobrem seleção de desafios, roteiro de contato, FAQ por teclado, leitura sem JavaScript, recursos locais e larguras de 320 a 1440 px. Capturas ficam em `test-results/`. Para testar a prévia Vite, defina `TEST_BASE_URL` com seu endereço e `TEST_VITE=1`; o teste sem JavaScript se aplica somente ao Next.
 
 Referências técnicas: [Next.js static export](https://nextjs.org/docs/app/guides/static-exports), [Vite build](https://vite.dev/guide/build), [GSAP matchMedia](<https://gsap.com/docs/v3/GSAP/gsap.matchMedia()>).

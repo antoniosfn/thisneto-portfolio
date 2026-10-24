@@ -129,22 +129,6 @@ test("primary contact jump preserves keyboard focus", async ({ page }) => {
   ).toHaveAttribute("href", "https://www.linkedin.com/in/antoniosfn");
 });
 
-test("reduced motion keeps the experience readable and interactive", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-
-  await expect(page.locator(".particle-field")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  const before = await page.locator(".particle-field").screenshot();
-  await page.waitForTimeout(700);
-  const after = await page.locator(".particle-field").screenshot();
-  expect(before.equals(after)).toBe(true);
-  await page.getByRole("radio", { name: /Rotinas repetitivas/ }).check();
-  await expect(page.locator(".approach strong")).toContainText("Python");
-});
-
 test("static export keeps essential content without JavaScript", async ({
   browser,
   baseURL,

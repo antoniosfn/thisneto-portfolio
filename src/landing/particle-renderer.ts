@@ -25,7 +25,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import type { MotionPreference, ParticleController } from "./ParticleField";
+import type { ParticleController } from "./ParticleField";
 import { createBackdrop } from "./particle-backdrop";
 import {
   createParticleCamera,
@@ -35,6 +35,7 @@ import {
 } from "./particle-camera";
 import { COUNT, SIDE, createParticleData } from "./particle-data";
 import { createPyramidGeometry } from "./particle-geometry";
+import type { SampledForm } from "./particle-shapes";
 import { PointerMotion, STEP, createPose, easePose } from "./particle-motion";
 import { desktopPose, mobilePose } from "./particle-timeline";
 import {
@@ -52,7 +53,7 @@ const MOBILE_WIDTH = 760;
 const DRAWN = { desktop: COUNT, mobile: 7000 } as const;
 const SCALE = { desktop: 1.55, mobile: 1.2 } as const;
 // Dala's UnrealBloomPass after construction: strength 0.4, radius 1, threshold 0.159.
-const BLOOM = { strength: 0.4, radius: 1, threshold: 0.159 } as const;
+const BLOOM = { strength: 0.2, radius: 1, threshold: 0.159 } as const;
 // Pyramid extent in world units, calibrated to Dala's 10–14 px particles.
 const PARTICLE_SIZE = 0.06;
 // Thin solid edges need multisampling; the old outline antialiased itself.
@@ -62,7 +63,7 @@ const CENTER = new Vector2();
 export function createParticleRenderer(
   canvas: HTMLCanvasElement,
   read: () => ParticleController,
-  preference: MotionPreference = "system",
+  forms: SampledForm[],
 ): (() => void) | undefined {
   // Everything renders into composer targets, so a multisampled backbuffer
   // would never be used.
@@ -82,10 +83,7 @@ export function createParticleRenderer(
   renderer.setPixelRatio(1);
   // Display-space pipeline: no sRGB encoding on output, as in Dala's renderer.
   renderer.outputColorSpace = LinearSRGBColorSpace;
-  const { textures, uv } = createParticleData();
-  const media = matchMedia("(prefers-reduced-motion: reduce)");
-  const reduced = () =>
-    preference === "reduced" || (preference === "system" && media.matches);
+  const { textures, uv } = createParticleData(forms);
   const shared = {
     t_position: { value: textures.position },
     t_params: { value: textures.params },
@@ -96,7 +94,6 @@ export function createParticleRenderer(
     u_explode: { value: 0 },
     u_factor: { value: 4.35 },
     u_show: { value: 0 },
-    u_delay: { value: 0 },
   };
   const makeTarget = () =>
     new WebGLRenderTarget(SIDE, SIDE, {
@@ -171,10 +168,8 @@ export function createParticleRenderer(
       u_resolution: { value: new Vector2() },
       u_resolution2: { value: new Vector2() },
       u_time: { value: 0 },
-      u_motion: { value: 1 },
       u_pointer: { value: 0 },
       u_scale: { value: SCALE.desktop },
-      u_direct: { value: 0 },
     },
     transparent: true,
     depthWrite: true,
@@ -246,13 +241,13 @@ export function createParticleRenderer(
     current = next;
   }
   function applyPose(frames: number) {
-    const progress = reduced() ? 0 : read().progress;
+    const progress = read().progress;
     const target = (mobile ? mobilePose : desktopPose)(progress);
     if (!mobile) {
       target.offset[1] += OBJECT_Y;
     }
-    // The first frame and reduced motion jump straight to the pose.
-    easePose(pose, target, posed && !reduced() ? frames : Infinity);
+    // The first frame jumps straight to the pose.
+    easePose(pose, target, posed ? frames : Infinity);
     posed = true;
     shared.u_progress.value = pose.progress;
     shared.u_progress2.value = pose.progress2;
@@ -268,11 +263,11 @@ export function createParticleRenderer(
     const text = value.toFixed(3);
     if (canvas.dataset[key] !== text) canvas.dataset[key] = text;
   }
-  function applyPointer(frames: number, quiet: boolean) {
+  function applyPointer(frames: number) {
     pointer.step(frames);
     material.uniforms.u_mouse.value.copy(pointer.mouse);
     material.uniforms.u_delta.value.copy(pointer.delta);
-    material.uniforms.u_pointer.value = pointer.isActive && !quiet ? 1 : 0;
+    material.uniforms.u_pointer.value = pointer.isActive ? 1 : 0;
     // Same term the shader adds to the hover radius: abs(max(Δx, Δy)).
     publish(
       "pointerSpeed",
@@ -283,12 +278,7 @@ export function createParticleRenderer(
       "hoverGain",
       material.uniforms.u_pointer.value * Math.abs(shared.u_explode.value - 1),
     );
-    if (!quiet)
-      parallaxCamera(
-        camera,
-        pointer.isActive ? pointer.target : CENTER,
-        frames,
-      );
+    parallaxCamera(camera, pointer.isActive ? pointer.target : CENTER, frames);
   }
   function draw(time: number) {
     pendingFrame = 0;
@@ -300,34 +290,24 @@ export function createParticleRenderer(
         : Math.min((now - previousTime) / 1000, 0.1);
     previousTime = now;
     const frames = Math.max(0, delta) / STEP;
-    const quiet = reduced();
     applyPose(frames);
-    show = quiet ? 1 : Math.min(1, show + Math.max(0, delta) / 1.2);
+    show = Math.min(1, show + Math.max(0, delta) / 1.2);
     shared.u_show.value = show;
     if (show === 1) canvas.dataset.entered = "true";
-    const seconds = quiet ? 0 : time / 1000;
+    const seconds = time / 1000;
     material.uniforms.u_time.value = seconds;
-    material.uniforms.u_motion.value = quiet ? 0 : 1;
-    material.uniforms.u_direct.value = quiet ? 1 : 0;
-    applyPointer(frames, quiet);
-    backdrop.update(
-      seconds,
-      pointer.target,
-      pointer.isActive && !quiet,
-      frames,
-    );
-    if (!quiet) {
-      accumulator += Math.max(0, delta);
-      let iterations = 0;
-      while (accumulator >= STEP && iterations < 6) {
-        simulate();
-        accumulator -= STEP;
-        iterations++;
-      }
+    applyPointer(frames);
+    backdrop.update(seconds, pointer.target, pointer.isActive, frames);
+    accumulator += Math.max(0, delta);
+    let iterations = 0;
+    while (accumulator >= STEP && iterations < 6) {
+      simulate();
+      accumulator -= STEP;
+      iterations++;
     }
     material.uniforms.t_simulation.value = positions[current].texture;
     composer.render(delta);
-    if (!quiet) requestDraw();
+    requestDraw();
   }
   function requestDraw() {
     if (!pendingFrame && !disposed && !lost && !document.hidden)
@@ -368,10 +348,6 @@ export function createParticleRenderer(
     resize();
     canvas.dataset.renderer = "three-gpgpu";
   }
-  function preferenceChanged() {
-    previousTime = undefined;
-    requestDraw();
-  }
   reset();
   resize();
   canvas.dataset.renderer = "three-gpgpu";
@@ -380,7 +356,6 @@ export function createParticleRenderer(
   window.addEventListener("blur", leave);
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", visibility);
-  media.addEventListener("change", preferenceChanged);
   canvas.addEventListener("webglcontextlost", contextLost);
   canvas.addEventListener("webglcontextrestored", contextRestored);
   return () => {
@@ -391,7 +366,6 @@ export function createParticleRenderer(
     window.removeEventListener("blur", leave);
     window.removeEventListener("resize", resize);
     document.removeEventListener("visibilitychange", visibility);
-    media.removeEventListener("change", preferenceChanged);
     canvas.removeEventListener("webglcontextlost", contextLost);
     canvas.removeEventListener("webglcontextrestored", contextRestored);
     particles.dispose();

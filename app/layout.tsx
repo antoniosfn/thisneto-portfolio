@@ -18,7 +18,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    // Browser extensions (e.g. Grabit) inject attributes on <html> before React
+    // hydrates; this ignores mismatches on this element's own attributes only.
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#000000" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

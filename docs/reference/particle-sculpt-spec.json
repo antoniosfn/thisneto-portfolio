@@ -67,14 +67,12 @@
     "vignette"
   ],
   "proceduralDecisions": {
-    "brain": "bilateral ellipsoidal cortex with continuous warped sulci, cerebellar surface and brainstem; atlas starts in profile",
-    "bulb": "surface of revolution with tapered neck and threaded base",
-    "globe": "sphere with original simplified continent polygons",
-    "mark": "three extruded triangles from existing portfolio identity",
+    "mark": "three right-pointing triangles of .brand-mark (24-unit box) extruded",
     "explosionMultiplier": "3.4 + 16 * seededRandom^0.9; source texture unknown; calibrated under Dala's literal camera (50 deg vertical FOV at z=10) to ~150 visible triangles at explode=1",
     "explosionRank": "0.6 * normalized brain height + 0.4 * seededRandom (x L); reproduces the top crest observed at explode~0.53 and its absence at explode=1",
     "particleQuad": "replaced: particles are wireframe pyramids (6 edge prisms of a tetrahedron, like Dala's py-lod1.glb), extent 0.06 world units, bar circumradius 0.06 of the edge",
     "randomness": "deterministic indexed sine hash; no per-frame random positions",
-    "brainFit": "scale 0.896, offset (+0.8, +0.665) world units at factor 4.35, lateral axis x1.6; fitted to Dala's hero at f=0.12"
+    "forms": "six exact meshes, atlas 3x3: trefoil knot (TorusKnot 2,3), Lorenz attractor tube, geodesic truss (icosphere f2 struts+joints), 4-7-7-3 neural network, 3x3x3 cube edges with displaced corners, portfolio mark extrusion",
+    "sampling": "MeshSurfaceSampler area-weighted, 40000 candidates, Poisson-disk thinning to 10000 points (hex-packing spacing, -8% per pass), fixed seeds; precomputed to public/particles/forms.bin by npm run particles"
   }
 }

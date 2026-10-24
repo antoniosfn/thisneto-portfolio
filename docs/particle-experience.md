@@ -2,6 +2,83 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Revisão 5 — brilho e paleta
+
+O brilho estava intenso e o branco dominava. Medimos isso nas capturas: fração quase branca dos pixels acesos (mínimo dos canais > 0.78), saturação média, brilho médio e área acesa, no recorte de cada forma.
+
+| | Dala (hero e introdução) | Antes | Agora |
+| --- | --- | --- | --- |
+| Pixels quase brancos | 0.7–0.9% | 25–49% | 0.1–0.5% |
+| Saturação média | 0.38–0.41 | 0.13–0.37 | 0.45–0.67 |
+| Brilho médio dos pixels acesos | 0.46–0.50 | 0.76–0.80 | 0.64–0.67 |
+| Área acesa, com halo | 0.24–0.39 | 0.50–0.77 | 0.29–0.38 |
+
+O branco agora vem só da marca, onde é a cor do triângulo central e por isso é intencional (18% no recorte do contato). Três mudanças levaram a esses números:
+
+1. **Paleta:** o branco saiu das rampas. Entraram o azul #3F6BFF e o magenta #D94DE0, as outras duas cores da paleta observada na Dala. Ficaram assim:
+   - nó em violeta → magenta → azul → teal, com borda dourada;
+   - asas do Lorenz se encontrando em magenta;
+   - treliça e cubo em teal → azul → violeta;
+   - camadas da rede em teal, azul, violeta e dourado.
+
+   O branco volta como faísca em 7% das partículas, como no interior do cérebro da Dala; a marca fica de fora.
+2. **Fator de cor:** caiu de 1.3 para 0.8 (`COLOR_FACTOR`). O 1.3 da Dala estourava os canais das nossas cores saturadas em direção ao branco, porque nossas formas têm mais sobreposição que o cérebro dela.
+3. **Bloom:** a intensidade caiu de 0.4 para 0.2; raio 1 e limiar 0.159 continuam iguais aos da Dala.
+
+São desvios conscientes dos valores da Dala, escolhidos para reproduzir o resultado medido dela e não o parâmetro. A primeira nuvem mostra 188 triângulos visíveis. A nuvem das seções de leitura mostra 65, rarefeita de propósito.
+
+## Revisão 4 — novas formas (substitui cérebro, lâmpada e globo)
+
+A comparação visual deu 4/10 contra a Dala. O movimento já era o dela (linha do tempo, mola, câmera, scroll e bloom), mas as formas, não. A Dala amostra de modo uniforme modelos 3D esculpidos. As nossas eram fórmulas com pontos aleatórios, e o cérebro procedural era o pior caso. Esta revisão troca as formas por geometria que dá para construir com exatidão em código, sem animais.
+
+### Fluxo
+
+| f | Seção | Forma | Lado da copy | Movimento |
+| --- | --- | --- | --- | --- |
+| 0 | Hero | Nó trefoil (2, 3) | esquerda | quase frontal (−1.15 rad) |
+| 1 | Manifesto | Nó trefoil | direita | gira até ficar frontal e cresce 1 unidade de fator |
+| 2 | Contexto → clareza → aplicação | Nuvem | centro | explode, com a crista no topo |
+| 3 | Trajetória · Matemática | Atrator de Lorenz (σ 10, ρ 28, β 8/3) | direita | condensa, com 0.35 rad de yaw |
+| 4 | Trajetória · Engenharia | Treliça geodésica (icosfera de frequência 2) | direita | transição escalonada |
+| 5 | Trajetória · IA | Rede neural 4–7–7–3 | direita | transição escalonada |
+| 6 | Desafios | Cubo 3×3×3 no meio de um movimento (camada superior girada 30°) | esquerda | vista de canto (π/4, 0.5 rad) |
+| 7–10 | Projetos até FAQ | Nuvem esparsa | — | explode e dá meia volta |
+| 11 | Contato | Marca do portfólio | abaixo | recompõe e volta a ficar frontal |
+
+Cada capítulo da Trajetória virou um estágio próprio (`data-particle-stage` 3–5), e o resto da página foi renumerado. A linha do tempo continua usando a gramática da Dala: mapas lineares limitados do progresso de seção, uniforms suavizados por frame, transições escalonadas por rank (atraso de 0.0005) e o objeto do lado oposto ao da copy.
+
+### Construção das formas
+
+`particle-shapes.ts` monta malhas exatas com geometria do Three.js:
+
+| Forma | Geometria |
+| --- | --- |
+| Nó | `TorusKnotGeometry(1, 0.2, 720, 24, 2, 3)` |
+| Lorenz | Tubo ao longo da trajetória integrada (5 600 passos, dt 0.004) |
+| Treliça | Barras nas 120 arestas e juntas nos 42 vértices |
+| Rede | Esferas nos nós e fibras de 0.008 entre camadas |
+| Cubo | Arestas dos cubinhos na superfície externa (180 no total), com a camada superior girada 30° em torno de y e folga uniforme de 0.14 entre cubinhos |
+| Marca | Extrusão dos três triângulos de `.brand-mark` |
+
+Cada malha recebe 40 000 amostras ponderadas por área (`MeshSurfaceSampler`, semente fixa). Um afinamento de Poisson mantém 10 000 delas com distância mínima: começa na distância de empacotamento hexagonal para a área e reduz 8% por passada. É isso que produz os vãos regulares da Dala. As cores vêm da geometria:
+
+- **Nó:** degradê violeta → branco → teal ao longo da linha, com dourado onde o tubo aponta para fora.
+- **Lorenz:** uma asa dourada e outra violeta, que se encontram no branco.
+- **Treliça:** juntas douradas.
+- **Rede:** cores por camada.
+- **Cubo:** a camada girada em dourado; o resto vai de teal a violeta.
+- **Marca:** violeta, branco e âmbar, como no CSS.
+
+Formas de linha (treliça, rede, Lorenz curto, cubo em arestas) leem nítidas. Superfícies densas acumulavam brilho no bloom, por isso o cubo deixou de ter faces e o Lorenz ficou com menos órbitas. O cubo também teve duas versões descartadas. Cantos girados em eixos aleatórios pareciam um defeito. Desenhar as faces expostas pelo giro empilhava três grades no topo. A versão final mostra só a grade externa; a contagem de 180 arestas foi conferida contra o cálculo à mão: 68 na camada de cima, 44 na do meio e 68 na de baixo.
+
+### Pré-cálculo
+
+A amostragem leva cerca de 2 s de CPU, um custo alto demais para a carga da página. `npm run particles` executa `scripts/build-particle-forms.mts`, que é determinístico, e grava `public/particles/forms.bin` com 527 KB. As posições ficam em 16 bits sobre [−1, 1], com passo de 3·10⁻⁵, e as cores em 8 bits. No navegador, `ParticleField` busca o arquivo e só então inicia o renderer. Se a busca falhar, o conteúdo continua disponível. **Depois de alterar uma forma, rode `npm run particles`.**
+
+O atlas passou a 3×3 (300×300 RGBA float), com espaço para nove formas, e `morph` percorre as seis ativas. `FORM_SCALE` em `particle-data.ts` define quanto do raio do fator cada forma ocupa. A calibração foi visual, em 1440×900, 1280×720 e 390×844, com capturas em `artifacts/review/forms*/`.
+
+As seções abaixo descrevem o cérebro, a lâmpada e o globo das revisões anteriores. Valem como histórico das medições da Dala, que continuam valendo para movimento, câmera, ponteiro e pós-processamento.
+
 ## Revisão 2 — comparação com o site ao vivo
 
 A segunda revisão comparou três fontes:
@@ -107,7 +184,7 @@ Desvios conscientes das fórmulas do relatório:
 - A órbita do hover usa a frequência `0.7 + 2·random`. O intervalo de `a_random.y` não foi lido, e com valores em [0, 1) a órbita ficaria quase parada.
 - O giro `mod(n + u_time, 2π)` mantém a faixa de fase de `n`, de cerca de 2 rad. Por isso, regiões grandes ficam de perfil ao mesmo tempo, no ciclo triângulo → linha → triângulo descrito no relatório.
 
-A animação respeita a preferência de movimento, pausa com a página oculta, limita DPR a 1.5 e reconstrói os render targets após restauração de contexto. Sem WebGL2 ou render targets float, o conteúdo e as ações permanecem disponíveis.
+A animação roda sempre com movimento completo: `prefers-reduced-motion` não é consultado e não há controle para desativá-la. Ela pausa com a página oculta, limita DPR a 1.5 e reconstrói os render targets após restauração de contexto. Sem WebGL2 ou render targets float, o conteúdo e as ações permanecem disponíveis.
 
 ## Geometria e aproximações
 

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-} from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -21,10 +15,7 @@ import {
   projects,
   steps,
 } from "./content";
-import ParticleField, {
-  type MotionPreference,
-  type ParticleController,
-} from "./ParticleField";
+import ParticleField, { type ParticleController } from "./ParticleField";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -58,40 +49,6 @@ export default function LandingPage() {
   const lenis = useRef<Lenis | null>(null);
   const headerBackdrop = useRef<HTMLDivElement>(null);
   const [challengeId, setChallengeId] = useState(challenges[0].id);
-  const [motionPreference, setMotionPreference] =
-    useState<MotionPreference>("system");
-  const [systemReduced, setSystemReduced] = useState(false);
-  // Motion effects wait for the stored and OS preferences, read after mount.
-  const [motionResolved, setMotionResolved] = useState(false);
-  const reducedMotion =
-    motionPreference === "reduced" ||
-    (motionPreference === "system" && systemReduced);
-  // A layout effect resolves the preference before the first paint, so the
-  // reveal hides the hero copy before it is ever shown unsplit.
-  useLayoutEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setSystemReduced(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    try {
-      const saved = localStorage.getItem("portfolio-motion");
-      if (saved === "full" || saved === "reduced") setMotionPreference(saved);
-    } catch {
-      /* The current visit still supports the control when storage is unavailable. */
-    }
-    setMotionResolved(true);
-    return () => media.removeEventListener("change", sync);
-  }, []);
-
-  function toggleMotion() {
-    const next = reducedMotion ? "full" : "reduced";
-    setMotionPreference(next);
-    try {
-      localStorage.setItem("portfolio-motion", next);
-    } catch {
-      /* Keep the in-memory preference. */
-    }
-  }
   const selectedChallenge =
     challenges.find((challenge) => challenge.id === challengeId) ??
     challenges[0];
@@ -145,7 +102,7 @@ export default function LandingPage() {
         compact = next;
         gsap.to(headerBackdrop.current, {
           scaleY: next ? 1 : 0,
-          duration: reducedMotion ? 0 : 1,
+          duration: 1,
           ease: "expo.out",
           overwrite: true,
         });
@@ -163,13 +120,11 @@ export default function LandingPage() {
         },
       });
 
-      const revertText =
-        reducedMotion || !motionResolved
-          ? undefined
-          : revealText(
-              gsap.utils.toArray<HTMLElement>(".reveal"),
-              document.getElementById("inicio"),
-            );
+      // useGSAP runs as a layout effect: lines are hidden before first paint.
+      const revertText = revealText(
+        gsap.utils.toArray<HTMLElement>(".reveal"),
+        document.getElementById("inicio"),
+      );
 
       const refresh = () => {
         if (disposed || refreshFrame) return;
@@ -186,27 +141,22 @@ export default function LandingPage() {
         disposed = true;
         cancelAnimationFrame(refreshFrame);
         observer.disconnect();
-        revertText?.();
+        revertText();
       };
     },
-    {
-      scope: root,
-      dependencies: [reducedMotion, motionResolved],
-      revertOnUpdate: true,
-    },
+    { scope: root },
   );
 
   useEffect(() => {
     // Dala's ASScroll leaves touch screens native (touchScrollType "none").
     const touch = window.matchMedia("(hover: none) and (pointer: coarse)");
-    if (reducedMotion || !motionResolved || touch.matches) return;
+    if (touch.matches) return;
     const instance = new Lenis({
       lerp: SCROLL_LERP,
       smoothWheel: true,
       syncTouch: false,
       autoRaf: false,
-      // The page already gates Lenis on its own preference, including the
-      // visitor's explicit opt-in over the OS setting.
+      // The experience always runs in full motion, whatever the OS setting.
       respectReducedMotion: false,
     });
     lenis.current = instance;
@@ -220,7 +170,7 @@ export default function LandingPage() {
       instance.destroy();
       lenis.current = null;
     };
-  }, [reducedMotion, motionResolved]);
+  }, []);
 
   function handleJump(event: MouseEvent<HTMLAnchorElement>, selector: string) {
     event.preventDefault();
@@ -228,35 +178,17 @@ export default function LandingPage() {
     if (!target) return;
     // Jumps travel on the same 7.5%-per-frame curve as the wheel.
     if (lenis.current) lenis.current.scrollTo(target);
-    else
-      target.scrollIntoView({
-        behavior: reducedMotion ? "instant" : "smooth",
-        block: "start",
-      });
+    else target.scrollIntoView({ behavior: "smooth", block: "start" });
     window.setTimeout(() => target.focus({ preventScroll: true }), 500);
   }
 
   return (
-    <div
-      className={`dala-site${motionPreference === "full" ? " motion-full" : ""}`}
-      ref={root}
-    >
+    <div className="dala-site" ref={root}>
       <a className="skip-link" href="#conteudo">
         Ir para o conteúdo
       </a>
       <div className="reading-progress" ref={progress} aria-hidden="true" />
-      <ParticleField
-        controller={particleController}
-        motionPreference={motionPreference}
-      />
-      <button
-        className="motion-toggle"
-        type="button"
-        onClick={toggleMotion}
-        aria-pressed={!reducedMotion}
-      >
-        {reducedMotion ? "Ativar animação" : "Reduzir animação"}
-      </button>
+      <ParticleField controller={particleController} />
 
       <div className="header-backdrop" ref={headerBackdrop} aria-hidden="true">
         <div />
@@ -346,18 +278,18 @@ export default function LandingPage() {
           </p>
         </section>
 
-        <section
-          className="journey scene"
-          id="trajetoria"
-          data-particle-stage="3"
-        >
+        <section className="journey scene" id="trajetoria">
           <header className="section-heading reveal">
             <p className="eyebrow">02 / TRAJETÓRIA</p>
             <h2>Três perspectivas. Um mesmo raciocínio.</h2>
           </header>
           <div className="chapter-list">
             {chapters.map((chapter) => (
-              <article className="chapter reveal" key={chapter.number}>
+              <article
+                className="chapter reveal"
+                key={chapter.number}
+                data-particle-stage={2 + Number(chapter.number)}
+              >
                 <span className="chapter-number">{chapter.number}</span>
                 <div className="chapter-copy">
                   <p className="eyebrow">{chapter.label}</p>
@@ -376,7 +308,7 @@ export default function LandingPage() {
         <section
           className="business scene"
           id="solucoes"
-          data-particle-stage="4"
+          data-particle-stage="6"
         >
           <header className="section-heading reveal">
             <p className="eyebrow">03 / DESAFIOS</p>
@@ -415,7 +347,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="work scene" id="projetos" data-particle-stage="5">
+        <section className="work scene" id="projetos" data-particle-stage="7">
           <header className="section-heading reveal">
             <p className="eyebrow">04 / TRABALHO SELECIONADO</p>
             <h2>Conhecimento que encontra uma forma útil.</h2>
@@ -454,7 +386,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="method scene" id="processo" data-particle-stage="6">
+        <section className="method scene" id="processo" data-particle-stage="8">
           <header className="section-heading reveal">
             <p className="eyebrow">05 / PROCESSO</p>
             <h2>Do contexto à entrega.</h2>
@@ -471,7 +403,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="profile scene" id="sobre" data-particle-stage="7">
+        <section className="profile scene" id="sobre" data-particle-stage="9">
           <figure className="profile-portrait reveal">
             <img src="/images/antonio-neto.jpg" alt="Retrato de Antonio Neto" />
             <figcaption>Antonio Neto · IA & Software</figcaption>
@@ -495,7 +427,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="faq scene" id="perguntas" data-particle-stage="8">
+        <section className="faq scene" id="perguntas" data-particle-stage="10">
           <header className="section-heading reveal">
             <p className="eyebrow">07 / PERGUNTAS</p>
             <h2>Clareza antes do compromisso.</h2>
@@ -517,7 +449,7 @@ export default function LandingPage() {
         <section
           className="contact scene"
           id="contato"
-          data-particle-stage="9"
+          data-particle-stage="11"
           // Dala's footer copy starts just below the reformed logo (≈0.54 H).
           data-particle-align="0.56"
           tabIndex={-1}

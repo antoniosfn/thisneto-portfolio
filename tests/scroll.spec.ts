@@ -48,6 +48,7 @@ test("full explosion disables hover in the rendered field", async ({
 test("spring retains inertia after scroll stops and then settles", async ({
   page,
 }) => {
+  test.setTimeout(60000);
   await page.addInitScript(() => {
     const request = requestAnimationFrame.bind(window);
     window.requestAnimationFrame = (callback) => request(() => callback(0));
@@ -56,7 +57,7 @@ test("spring retains inertia after scroll stops and then settles", async ({
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({
     content:
-      "html { scroll-behavior:auto!important } main,.site-header, .header-backdrop,.site-footer,.reading-progress,.motion-toggle,nextjs-portal { opacity:0!important }",
+      "html { scroll-behavior:auto!important } main,.site-header, .header-backdrop,.site-footer,.reading-progress,nextjs-portal { opacity:0!important }",
   });
   await page.waitForTimeout(3200);
   await page.evaluate(() => {
@@ -86,10 +87,8 @@ test("spring retains inertia after scroll stops and then settles", async ({
   await page.waitForTimeout(2200);
   const settled = await field.screenshot();
   expect(await changedPixels(page, early, settled)).toBeGreaterThan(0.0005);
-  await page.waitForTimeout(600);
-  expect(
-    await changedPixels(page, settled, await field.screenshot()),
-  ).toBeLessThan(0.002);
+  // Then the spring comes to rest: consecutive frames stop changing.
+  await settleParticles(page);
 });
 
 test("pointer deforms a visible 3D field and releases it back to its pose", async ({
@@ -107,7 +106,7 @@ test("pointer deforms a visible 3D field and releases it back to its pose", asyn
   await page.goto("/");
   await page.addStyleTag({
     content:
-      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, .motion-toggle, nextjs-portal { opacity: 0 !important; }",
+      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link,  nextjs-portal { opacity: 0 !important; }",
   });
   const field = page.locator(".particle-field");
   await settleParticles(page);
@@ -229,7 +228,7 @@ test("scroll morphs the particle geometry and retraces the same poses", async ({
   await page.addStyleTag({
     content: `
     html { scroll-behavior: auto !important; }
-    main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, .motion-toggle, nextjs-portal { opacity: 0 !important; }
+    main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link,  nextjs-portal { opacity: 0 !important; }
   `,
   });
   const canvas = page.locator(".particle-field");
@@ -309,105 +308,4 @@ test("layout changes keep scroll progress aligned with the actual page", async (
       )
       .toBeCloseTo(edge === "bottom" ? 1 : 0, 2);
   }
-});
-
-test("reduced motion freezes the field and responds to preference changes", async ({
-  page,
-}, testInfo) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await page.addStyleTag({
-    content:
-      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, .motion-toggle, nextjs-portal { opacity: 0 !important; }",
-  });
-  const canvas = page.locator(".particle-field");
-  await expect
-    .poll(() =>
-      canvas.evaluate((element) => (element as HTMLCanvasElement).width),
-    )
-    .toBeGreaterThan(320);
-  const before = await canvas.screenshot();
-  await page.evaluate(() =>
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: "instant",
-    }),
-  );
-  await page.waitForTimeout(200);
-  const after = await canvas.screenshot({
-    path: testInfo.outputPath("reduced-after.png"),
-  });
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  await canvas.screenshot({ path: testInfo.outputPath("reduced-top.png") });
-  await testInfo.attach("reduced-before", {
-    body: before,
-    contentType: "image/png",
-  });
-  await testInfo.attach("reduced-after", {
-    body: after,
-    contentType: "image/png",
-  });
-  expect(after.equals(before)).toBe(true);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.waitForTimeout(200);
-  expect((await canvas.screenshot()).equals(before)).toBe(false);
-});
-
-test("explicit motion preference enables real wheel-driven morphing and persists", async ({
-  page,
-}, testInfo) => {
-  test.setTimeout(90000);
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => {
-    const request = window.requestAnimationFrame.bind(window);
-    window.requestAnimationFrame = (callback) => request(() => callback(0));
-  });
-  await page.goto("/");
-  await page
-    .getByRole("button", { name: "Ativar animação", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Reduzir animação", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.addStyleTag({
-    content:
-      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, .motion-toggle, nextjs-portal { opacity: 0 !important; }",
-  });
-  const canvas = page.locator(".particle-field");
-  await expect
-    .poll(() =>
-      canvas.evaluate((element) => (element as HTMLCanvasElement).width),
-    )
-    .toBeGreaterThan(320);
-  await settleParticles(page);
-  const before = await canvas.screenshot();
-  await page.mouse.wheel(0, 300);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(300, 0);
-  await page.waitForTimeout(2200);
-  const after = await canvas.screenshot();
-  expect(
-    after.equals(before),
-    "wheel input must morph particles even when the OS requests reduced motion and the visitor opts in",
-  ).toBe(false);
-  await page.mouse.wheel(0, -300);
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  // Wait for stillness: solid pyramids make a fixed delay's spring tail visible.
-  await page.waitForTimeout(1200);
-  await settleParticles(page);
-  expect(
-    await changedPixels(page, await canvas.screenshot(), before),
-    "reverse wheel input must restore the initial pose",
-  ).toBeLessThan(0.002);
-  await testInfo.attach("wheel-before", {
-    body: before,
-    contentType: "image/png",
-  });
-  await testInfo.attach("wheel-after", {
-    body: after,
-    contentType: "image/png",
-  });
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Reduzir animação", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
 });

@@ -12,15 +12,25 @@ uniform float u_progress;
 uniform float u_explode;
 uniform float u_factor;
 uniform float u_show;
-uniform float u_delay;
 const float L=10000.;
+const float GRID=3.;
+const int FORMS=6;
+// Dala's staggered delay (d·(L−1) = 5): each particle departs by its rank.
+const float MORPH_DELAY=.0005;
 float stagger(float t,float d,float rank) { return clamp(t*(1.+d*(L-1.))-d*rank,0.,1.); }
+vec3 slot(sampler2D atlas,vec2 coord,float k) {
+  return texture2D(atlas,(coord+vec2(mod(k,GRID),floor(k/GRID)))/GRID).xyz;
+}
+// Form k is reached at progress k; each transition uses its own rank channel.
 vec3 morph(sampler2D atlas,vec2 coord,vec4 rank) {
-  vec2 q=coord*.5;
-  vec3 value=texture2D(atlas,q).xyz;
-  value=mix(value,texture2D(atlas,q+vec2(.5,0.)).xyz,stagger(u_progress,u_delay,rank.x));
-  value=mix(value,texture2D(atlas,q+vec2(0.,.5)).xyz,stagger(max(0.,u_progress-1.),.0005,rank.y));
-  return mix(value,texture2D(atlas,q+vec2(.5,.5)).xyz,stagger(max(0.,u_progress-2.),u_delay,rank.z));
+  vec3 value=slot(atlas,coord,0.);
+  for(int k=1;k<FORMS;k++) {
+    float t=clamp(u_progress-float(k-1),0.,1.);
+    if(t<=0.) break;
+    float r=rank[(k-1)-((k-1)/3)*3];
+    value=mix(value,slot(atlas,coord,float(k)),stagger(t,MORPH_DELAY,r));
+  }
+  return value;
 }
 vec3 target(vec2 coord) {
   vec4 param=texture2D(t_params,coord), rank=texture2D(t_ranks,coord);
@@ -114,28 +124,27 @@ uniform vec2 u_resolution;
 uniform vec2 u_resolution2;
 uniform float u_progress2;
 uniform float u_time;
-uniform float u_motion;
 uniform float u_pointer;
 uniform float u_scale;
-uniform float u_direct;
 varying vec3 vColor;
 varying float vDepth;
 varying float vAlpha;
 const float CAMERA_Z=10.;
+const float COLOR_FACTOR=.8;
 ${atlasFunctions}
 ${simplex}
 ${rotation}
 void main() {
   vec2 coord=aSimulationUv;
   vec4 rnd=texture2D(t_params,coord), rank=texture2D(t_ranks,coord);
-  vec3 p=mix(texture2D(t_simulation,coord).xyz,target(coord),u_direct);
+  vec3 p=texture2D(t_simulation,coord).xyz;
   mat3 rotation=axisAngle(vec3(0,0,1),u_rotation.z)*axisAngle(vec3(0,1,0),u_rotation.y)*axisAngle(vec3(1,0,0),u_rotation.x);
   vec3 world=rotation*p+u_offset;
   vec2 res=mix(u_resolution*.5,u_resolution2*.5,clamp(u_progress2,0.,1.));
   // Cursor and particle compared on the z = 0 plane, in world units.
   vec2 projected=world.xy*CAMERA_Z/max(.1,CAMERA_Z-world.z);
   float radius=1.25+abs(max(u_delta.x,u_delta.y));
-  float dist=(1.-smoothstep(0.,radius,distance(projected,u_mouse*res)))*u_pointer*u_motion;
+  float dist=(1.-smoothstep(0.,radius,distance(projected,u_mouse*res)))*u_pointer;
   float gain=abs(u_explode-1.);
   world.x+=dist*sin(u_time*(.7+rnd.y*2.))*(rnd.x*.35+u_delta.x)*gain;
   world.y+=dist*cos(u_time*(.7+rnd.y*2.))*(rnd.x*.35+u_delta.y)*gain;
@@ -144,7 +153,7 @@ void main() {
   float n=snoise(p*.619);
   vec3 corner=axisAngle(vec3(1,0,1),n)*axisAngle(vec3(0,1,1),mod(n+u_time,6.283185))*position;
   gl_Position=projectionMatrix*viewMatrix*vec4(billboard(world,corner*size),1.);
-  vColor=morph(t_color,coord,rank)*1.3;
+  vColor=morph(t_color,coord,rank)*COLOR_FACTOR;
   vColor=mix(vColor,vec3(.45),max(0.,dist-u_explode)*gain);
   vDepth=world.z;
   vAlpha=1.;
