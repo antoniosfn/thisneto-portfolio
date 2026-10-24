@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "fonte": "https://dala.craftedbygc.com/",
+    "escopo": "Hero -> Introduction ('Make decisions') -> Manifesto até 'This is your workplace today… countless fragments' (explosão do cérebro)",
+    "metodo": "30 hovers (10 por seção) com leitura dos uniforms WebGL em tempo real + leitura estrutural dos shaders compilados + amostragem de uniforms a cada 250px de scroll (0–4600).",
+    "legenda": "[Certo]=lido do shader/uniform vivo | [Provável]=derivado matematicamente ou visualmente | [Chutando]=lacuna",
+    "correcaoDoRelatorioAnterior": [
+      "[Certo] O fundo NÃO é 'atração do mouse' na nuvem. O efeito do mouse é multiplicado por |u_explode − 1|: vale 1 no cérebro/lâmpada/globo e 0 quando explodido. Na explosão total o hover some.",
+      "[Certo] A biblioteca é Three.js (ShaderMaterial/InstancedMesh, GLSL ES 3.00) + simulação GPGPU; não é 'wireframe' de arestas: provavelmente um sprite/mapa de triângulo vazado aplicado a quads/instâncias girando em 3D (ver nota em particula)."
+    ]
+  },
+
+  "arquitetura": {
+    "stack": {
+      "certo": ["Three.js (ShaderMaterial, #version 300 es)", "WebGL2", "GSAP", "post-process com vinheta (uniforms offset=0.3, darkness=4, tDiffuse)", "18 programas GL no total (3 de simulação/render + passes de pós-processamento)"],
+      "provavel": ["scroll-linked timeline (GSAP scrub) escreve uniforms", "GPUComputationRenderer próprio com 3 passes: (A) velocidade, (B) posição, (C) render instanciado"],
+      "chutando": ["os ~15 programas restantes são bloom/blur/FXAA/copy; não inspecionei"]
+    },
+    "pipelinePorFrame": [
+      "PASSE A — shader de VELOCIDADE (frag): lê alvo (t_position, atlas 2×2 de 4 formas), posição atual (t_oTarget) e velocidade anterior (t_oVelocity); escreve nova velocidade.",
+      "PASSE B — shader de POSIÇÃO (frag): pos_nova = pos_atual + velocidade.",
+      "PASSE C — render instanciado: lê t_simulation (posição), t_scale, t_color (todos atlas 2×2), aplica mouse/ruído/rotação, desenha cada partícula.",
+      "PASSE D — pós-processamento: vinheta (+ possíveis outros)."
+    ],
+    "numeroDeParticulas": "[Provável] u_length = 10000 (uniform lido ao vivo) -> ~10 000 partículas, texturas de dados ≈ 100×100 por forma, atlas ≈ 200×200."
+  },
+
+  "formasAlvo": {
+    "atlas": "[Certo] t_position é um atlas 2×2. Cada instância tem UV (u,v) ∈ [0,.5]². Os 4 quadrantes são lidos em: (u*.5, v*.5) = forma 1, (u*.5+.5, v*.5) = forma 2, (u*.5, v*.5+.5) = forma 3, (u*.5+.5, v*.5+.5) = forma 4.",
+    "mapeamentoComProgress": {
+      "u_progress = 0": "forma 1 = CÉREBRO",
+      "u_progress = 1": "forma 2 = LÂMPADA",
+      "u_progress = 2": "forma 3 = GLOBO",
+      "u_progress = 3": "forma 4 = LOGO (footer) [Provável: não amostrei y≥4600 com progress]"
+    },
+    "normalizacao": "[Certo] cada componente do atlas está em [0,1]; é expandido para o mundo por pos = (p − 0.5) · 2 · radius, i.e. cubo [−radius, +radius]³ centrado na origem.",
+    "radius": {
+      "formula": "radius = mix(u_factor + tParams.x · 3, u_factor, showVal)   (entrada: partículas começam até +3 unidades afastadas e convergem)",
+      "u_factor_valoresMedidos": { "scroll0": 4.35, "scroll500": 4.967, "scroll750": 5.25, "scroll1000": 4.859, "scroll>=1250": 4.35, "scroll3250": 4.37, "scroll>=3500": 4.62 },
+      "efeito": "[Certo] o cérebro 'respira': cresce de 4.35 para 5.25 (+21%) ao virar de frente na Introdução e volta a 4.35 na explosão."
+    },
+    "showVal": "showVal = qinticInOut( clamp( u_show · (1 + d·(u_length−1)) − d · tParams.z, 0, 1) ); u_show medido = 1 (estado final); a entrada na carga da página faz u_show 0→1 com stagger por partícula (tParams.z)."
+  },
+
+  "simulacaoFisica": {
+    "tipo": "Mola amortecida discreta por partícula, resolvida em GPU (Euler semi-implícito).",
+    "equacoes": [
+      "alvo T  = f(formas, u_progress, u_explode)   // ver 'morph' e 'explosao'",
+      "e      = T − p_atual",
+      "k      = u_spring + tParams.w                 // rigidez individual (jitter por partícula)",
+      "v'     = (v + e · k) · u_friction",
+      "p'     = p + v'"
+    ],
+    "constantesMedidas": { "u_spring": 0.006, "u_friction": 0.892, "tParams.w": "textura (variação individual de rigidez) [Chutando: pequena, ~0–0.003]" },
+    "analise": {
+      "frequenciaNatural_rad_por_frame": "ω = sqrt(k) ≈ 0.0775",
+      "razaoDeAmortecimento": "ζ ≈ (1 − friction) / (2ω) ≈ 0.108 / 0.155 ≈ 0.70  [Provável: levemente sub-amortecido -> pequeno overshoot elástico]",
+      "tempoDeAcomodacao_aprox": "t ≈ 4/(ζ·ω) ≈ 74 frames ≈ 1.2 s a 60fps",
+      "consequencia": "[Certo] as partículas nunca 'teleportam': perseguem o alvo com inércia, por isso o scroll rápido deixa a nuvem 'esticada' e a mudança parece líquida."
+    },
+    "dependenteDeFrameRate": "[Certo] não usa delta-time: friction e spring são por frame (há comentário no shader sobre valores diferentes para mobile vs desktop). Para clonar, fixe o passo em 60Hz ou normalize por dt."
+  },
+
+  "morph": {
+    "formulaGeral": "T = p1; T = mix(T, p2, S(u_progress, d4, tParams2.x)); T = mix(T, p3, S(max(0,u_progress−1), d2, tParams2.y)); T = mix(T, p4, S(max(0,u_progress−2), d4, tParams2.z))",
+    "S": "S(t, d, r) = clamp( t · (1 + d·(L−1)) − d · r , 0, 1 ),  L = u_length = 10000",
+    "constantes": { "d2": 0.0005, "d3": 0.00015, "d4": "u_delay (medido 0 em repouso -> sem stagger em 1→2 e 3→4 quando u_delay=0)" },
+    "interpretacao": [
+      "[Certo] tParams2.xyzw são 'ranks' por partícula (provavelmente índice ou aleatório em [0,L)). Com d·(L−1)=5 (d2) o fator vira 1+5=6: a partícula de rank r só começa a viajar quando 6t > d·r; todas terminam exatamente em t=1. Resultado: onda de chegada escalonada (efeito 'poeira que se condensa').",
+      "[Certo] a transição lâmpada→globo (d2) tem stagger forte; cérebro→lâmpada e globo→logo dependem de u_delay.",
+      "[Certo] scale e color usam o MESMO esquema de mix com u_progress (t_scale e t_color também são atlas 2×2), então forma, tamanho e cor mudam em sincronia."
+    ]
+  },
+
+  "explosao": {
+    "formula": "T = mix(T, T · tParams3.x, E),   E = clamp( u_explode · (1 + d3·(L−1)) − d3 · tParams2.w , 0, 1 ),   d3 = 0.00015 -> d3·(L−1)=1.5 -> fator 2.5",
+    "significado": [
+      "[Certo] u_explode ∈ [0,1] escala as posições radialmente a partir da origem por um fator INDIVIDUAL tParams3.x (textura). Partículas com fator ≈1 ficam no lugar; com fator grande voam para longe (inclusive em direção à câmera -> viram as 'bokeh' grandes por perspectiva).",
+      "[Certo] stagger por tParams2.w: com 2.5×u_explode − 1.5·rank, as primeiras começam em u_explode≈0, as últimas só em ≈0.6; todas completam em 1.",
+      "[Provável] o 'monte' em arco que sobra no topo (crista do cérebro) são as partículas com tParams3.x ≈ 1 que quase não se movem: por isso, na explosão parcial, aparece uma crista densa de poeira fina com nuvem espalhada embaixo.",
+      "[Certo] comentário no shader mostra versão alternativa: radius += E·6 (explosão também pelo raio) — desativada."
+    ],
+    "linhaDoTempoMedida": {
+      "scroll1000": 0.235, "scroll1250": 0.534, "scroll1500": 0.828, "scroll1750": 1.0, "scroll1900": 0.999, "scroll2250": 1.0,
+      "scroll2500": "0.568 (descendo de 1 para 0 enquanto u_progress sobe 0→0.62)", "scroll2750": 0.0
+    },
+    "observacao": "O texto 'This is your workplace today…' começa em scrollY≈1488: a explosão já está em ~0.8 aí e completa em 1.0 antes do segundo parágrafo."
+  },
+
+  "camera_e_transformacoes_por_scroll": {
+    "uniformsAmostrados": "u_offset(x,y), u_rotation(x,y,z), u_progress, u_progress2, u_explode, u_factor; u_scale=1.55, u_amplitude=0.619, u_colorFactor=1.3 constantes.",
+    "tabela": [
+      { "scrollY": 0,    "progress": 0,     "progress2": 0,     "explode": 0,     "offset": [3, 0, 0],            "rot": [0, 0, 0],            "u_factor": 4.35,  "cena": "Hero: cérebro de lado à direita" },
+      { "scrollY": 250,  "progress": 0,     "progress2": 0,     "explode": 0,     "offset": [3, 0, 0],            "rot": [0, 0, 0],            "u_factor": 4.35,  "cena": "ainda hero" },
+      { "scrollY": 500,  "progress": 0,     "progress2": 0.686, "explode": 0,     "offset": [-2.143, 0, 0],       "rot": [0, -1.073, 0],       "u_factor": 4.967, "cena": "meio da virada" },
+      { "scrollY": 750,  "progress": 0,     "progress2": 1,     "explode": 0,     "offset": [-4.5, 0, 0],         "rot": [0, -1.571, 0],       "u_factor": 5.25,  "cena": "Introdução: cérebro de FRENTE à esquerda, maior" },
+      { "scrollY": 1000, "progress": 0,     "progress2": 1,     "explode": 0.235, "offset": [-2.722, 0, 0],       "rot": [0, -1.571, 0],       "u_factor": 4.859, "cena": "começa a explodir enquanto centraliza" },
+      { "scrollY": 1250, "progress": 0,     "progress2": 1,     "explode": 0.534, "offset": [-0.405, 0, 0],       "rot": [0, -1.571, 0],       "u_factor": 4.35,  "cena": "metade explodido, crista visível" },
+      { "scrollY": 1500, "progress": 0,     "progress2": 1,     "explode": 0.828, "offset": [-0.405, 0, 0],       "rot": [0, -1.571, 0],       "u_factor": 4.35,  "cena": "quase nuvem total (início do texto)" },
+      { "scrollY": 1750, "progress": 0,     "progress2": 1,     "explode": 1,     "offset": [-0.405, 0, 0],       "rot": [0, -1.571, 0],       "u_factor": 4.35,  "cena": "nuvem total (hover desativado)" },
+      { "scrollY": 2250, "progress": 0,     "progress2": 1,     "explode": 1,     "offset": [-0.405, 0, 0],       "rot": [0, -1.571, 0],       "u_factor": 4.35,  "cena": "nuvem estável" },
+      { "scrollY": 2500, "progress": 0.622, "progress2": 0.378, "explode": 0.568, "offset": [-1.311, 0.311, 0],   "rot": [0, -0.595, -0.304], "u_factor": 4.35,  "cena": "condensando em lâmpada" },
+      { "scrollY": 2750, "progress": 1,     "progress2": 0.01,  "explode": 0,     "offset": [-2.5, 0.5, 0],       "rot": [0, 0, -0.489],      "u_factor": 4.35,  "cena": "LÂMPADA" },
+      { "scrollY": 3250, "progress": 1.075, "progress2": 0.63,  "explode": 0,     "offset": [-2.12, 0.463, 0],    "rot": [0, 0.058, -0.445],  "u_factor": 4.37,  "cena": "lâmpada -> globo" },
+      { "scrollY": 3500, "progress": 2,     "progress2": 1,     "explode": 0,     "offset": [2.595, 0, 0],        "rot": [0, 0.785, 0.111],   "u_factor": 4.62,  "cena": "GLOBO (Y=π/4, inclinado)" },
+      { "scrollY": 4300, "progress": 2,     "progress2": 1,     "explode": 0.389, "offset": [1, 0, 0],            "rot": [0, -0.742, 0.111],  "u_factor": 4.62,  "cena": "globo explodindo (Team)" },
+      { "scrollY": 4600, "progress": 2,     "progress2": 1,     "explode": 1,     "offset": [-0.5, 0, 0],         "rot": [0, -3.141, 0.111],  "u_factor": 4.62,  "cena": "nuvem esparsa (Team/Investors); rotY = −π" }
+    ],
+    "padroes": [
+      "[Certo] offset.x é o 'lado do texto': +3 (objeto à direita) no hero, −4.5 (esquerda) na Introdução, ~−0.4 (centro) na explosão, −2.5 (esquerda) na lâmpada, +2.6 (direita) no globo.",
+      "[Certo] rotação do cérebro: Y de 0 a −π/2 (−1.571) entre scroll 250 e 750 (perfil -> frente). Fica travada em −π/2 durante toda a explosão.",
+      "[Certo] u_progress2 é um parâmetro auxiliar 0→1 que interpola a resolução usada pelo hover (mix(u_resolution, u_resolution2)) para compensar o deslocamento do objeto; NÃO muda a forma.",
+      "[Provável] curvas eased: em scrollY=500 (50% do trajeto 250→750) u_progress2 já está em 0.686 -> ease-out ≈ sine/power; offset.x está em ≈ −2.14 (≈ 61% do caminho).",
+      "[Certo] valores medidos foram lidos com smooth-scroll ainda assentando; valores em 'estado de repouso' (ex.: 750, 1750, 2750, 3500) são confiáveis."
+    ],
+    "camera": "[Chutando] PerspectiveCamera fixa; a 'câmera' do scroll é na verdade o transform do grupo (offset/rotação) passado por uniform; cameraPosition só é usado para o look-at."
+  },
+
+  "particula": {
+    "instanciamento": "[Certo] InstancedMesh (attribute instanceMatrix) com 1 draw por forma. Cada instância: posição = instanceMatrix.translation + pos_simulada.",
+    "escala": {
+      "formula": "scale = mix chain( t_scale[q1..q4].x · u_scale ) via u_progress;  scale += dist · 0.75 · |u_explode − 1|",
+      "u_scale": 1.55,
+      "observacao": "[Certo] t_scale é atlas 2×2 (um tamanho por partícula por forma): é daí que vem a mistura de poeira fina e triângulos médios; as GRANDES do caos são perspectiva (z grande) e o stagger de tParams3.x."
+    },
+    "orientacao": [
+      "n = snoise(pos · u_amplitude)    // u_amplitude = 0.619; simplex noise 3D da posição simulada",
+      "rotMat  = rotate(eixo (1,0,1), n)",
+      "rotMat2 = rotate(eixo (0,1,1), mod(n + u_time, 2π))",
+      "rotMat3 = lookAt(posição da instância → cameraPosition, roll 0)",
+      "[Certo] a matriz final combina as rotações; consequência visual: partículas vizinhas giram em fase (n varia suavemente no espaço) -> manchas coerentes de brilho que 'passam' pela superfície; o giro temporal é u_time (+ fase n) em torno de (0,1,1)."
+    ],
+    "geometria": "[Provável] quad/low-poly com mapa (diffuse × texelColor) de triângulo vazado de traço fino; ao girar em 3D vira triângulo -> linha -> triângulo, dando a impressão de tetraedro wireframe. [Chutando] a textura é 1 PNG com o contorno de triângulo.",
+    "cor": {
+      "formula": "col = mix chain( t_color[q1..q4] ) via u_progress   (atlas 2×2 de RGB por partícula por forma)",
+      "hover": "col = mix(col, vec3(0.45), max(0, v_hover − u_explode) · |u_explode − 1|)   // cinza-claro 0.45",
+      "u_colorFactor": "1.3 (constante; [Provável] ganho de brilho/saturação)",
+      "paletaObservada_approx": { "ouro": "#F5B820", "roxo": "#8B4DFF", "branco_rosado": "#F4E6F5", "teal": "#2FBF9B", "azul": "#3F6BFF", "magenta": "#D94DE0" },
+      "regra": "[Certo] cores são BAKED por posição em cada forma (cérebro: contorno ouro, faixas roxas, miolo branco/teal). Não são aleatórias."
+    },
+    "transparencia": "alpha = diffuseColor.a · smoothstep(−4.5, 4.0, v_pos.z)   [Certo]  -> partículas com z < −4.5 (fundo) somem; z > 4 totalmente opacas: fade por profundidade, sem depth write necessário.",
+    "pos-processamento": "vinheta: offset 0.3, darkness 4.0 (tDiffuse) [Certo]; escurece bordas e dá o 'preto profundo'."
+  },
+
+  "interacaoMouse": {
+    "uniforms": { "u_mouse": "vec2 ≈ NDC [−1,1], y para cima, suavizado/tweenado", "u_delta": "vec2 ≈ velocidade do mouse (|v| típico 0.1–1.0 nas medições)" },
+    "formulas": [
+      "mPos = posição da instância; mPos *= Rx(−rot.x), Ry(−rot.y), Rz(−rot.z)   // volta ao espaço 'sem rotação'",
+      "mPos.y −= 1;  mPos.xy += u_offset.xy",
+      "res  = mix( u_resolution·0.5, u_resolution2·0.5, clamp(u_progress2,0,1) )",
+      "dist = smoothstep( 1.25 + |max(u_delta.x, u_delta.y)|, 0, distance(mPos.xy, u_mouse · res) )",
+      "pos.x += dist · sin(u_time · a_random.y) · (a_random.z · 0.35 + u_delta.x) · |u_explode − 1|",
+      "pos.y += dist · cos(u_time · a_random.y) · (a_random.z · 0.35 + u_delta.y) · |u_explode − 1|",
+      "scale += dist · 0.75 · |u_explode − 1|",
+      "cor   -> mistura com cinza 0.45 conforme dist"
+    ],
+    "efeitoVisual": [
+      "[Certo] região circular (raio base 1.25 unidades de mundo no plano da tela, cresce com a velocidade do mouse) ao redor do cursor: partículas ficam ~+75% maiores, cinza-claras e se movem em ÓRBITA CIRCULAR (sin/cos com frequência a_random.y e amplitude 0.35·a_random.z + velocidade).",
+      "[Certo] NÃO é atração nem repulsão radial: é deslocamento circular no plano XY (uma 'agitação' local). Quanto mais rápido o mouse, maior o raio e a amplitude.",
+      "[Certo] a máscara é calculada no espaço desrotacionado -> o 'buraco' segue o mouse mesmo com o cérebro girado (Introdução)."
+    ],
+    "pesoPorEstado": { "cerebro_lampada_globo": "1.0", "explosao_parcial(0.5)": "0.5", "explosao_total": "0.0 (hover desligado)" }
+  },
+
+  "hovers_10x_por_secao": {
+    "nota": "Cada linha: coordenada do cursor (px), u_mouse, u_delta, offset.x/rotY lidos e observação visual. Os valores de u_mouse aparecem defasados porque o hover sintético gera 1 evento só e o shader recebe valor suavizado.",
+    "hero_scrollY0": [
+      { "n": 1,  "cursor": [700, 150],  "u_mouse": [0.861, -0.089], "u_delta": [-0.246, 0.246], "offsetX": 0.722, "rotY": -0.638, "obs": "Captura durante o retorno do scroll: nuvem (explode alto) reconvergindo; cérebro ainda se formando; sem cluster cinza definido." },
+      { "n": 2,  "cursor": [900, 250],  "u_mouse": [0.121, 0.555],  "u_delta": [-0.003, 0.003], "offsetX": 2.853, "rotY": -0.057, "obs": "Cérebro quase pronto; pequeno cluster cinza-claro no topo do hemisfério sob o cursor." },
+      { "n": 3,  "cursor": [1100, 350], "u_mouse": [0.384, 0.328],  "u_delta": [0.218, -0.218],  "offsetX": 2.998, "rotY": -0.002, "obs": "Cluster cinza na borda direita; partículas da borda se soltam um pouco." },
+      { "n": 4,  "cursor": [850, 450],  "u_mouse": [0.607, 0.05],   "u_delta": [-0.139, -0.354], "offsetX": 3,     "rotY": 0,      "obs": "Cluster cinza no centro-baixo, partículas maiores (+75%)." },
+      { "n": 5,  "cursor": [700, 550],  "u_mouse": [0.286, -0.194], "u_delta": [-0.252, -0.26],  "offsetX": 3,     "rotY": 0,      "obs": "Cluster cinza na parte inferior-esquerda do cérebro, perto do tronco." },
+      { "n": 6,  "cursor": [600, 650],  "u_mouse": [0.474, -0.5],   "u_delta": [-0.233, -0.233], "offsetX": 3,     "rotY": 0,      "obs": "Cursor fora da forma: sem efeito local; só partículas esparsas ao fundo." },
+      { "n": 7,  "cursor": [1000, 600], "u_mouse": [-0.036, -0.696],"u_delta": [0.089, 0.089],   "offsetX": 3,     "rotY": 0,      "obs": "Base do cérebro: cluster pequeno na borda inferior." },
+      { "n": 8,  "cursor": [1250, 500], "u_mouse": [0.569, -0.54],  "u_delta": [0.276, 0.276],   "offsetX": 3,     "rotY": 0,      "obs": "Fora, à direita: sem efeito." },
+      { "n": 9,  "cursor": [1250, 200], "u_mouse": [0.896, -0.257], "u_delta": [0.03, 0.165],    "offsetX": 3,     "rotY": 0,      "obs": "Fora: sem efeito; cérebro estático em perfil." },
+      { "n": 10, "cursor": [850, 320],  "u_mouse": [0.853, 0.442],  "u_delta": [-0.135, -0.088], "offsetX": 3,     "rotY": 0,      "obs": "Zoom: triângulos vazados ~10–14px, giro individual; maior cluster branco-cinza fica deslocado para cima-direita (onde o mouse esteve) = rastro por suavização." }
+    ],
+    "introducao_scrollY750": [
+      { "n": 1,  "cursor": [150, 150],  "u_mouse": [0.211, 0.193],  "u_delta": [-0.135, 0.135],  "offsetX": 2.418,  "rotY": -0.094, "obs": "Em trânsito: cérebro ainda em perfil, começando a deslizar para a esquerda." },
+      { "n": 2,  "cursor": [400, 250],  "u_mouse": [-0.358, 0.424], "u_delta": [-0.414, 0.414], "offsetX": -1.061, "rotY": -0.716, "obs": "Hemisfério esquerdo visível; cluster cinza no lobo superior-esquerdo sob o cursor." },
+      { "n": 3,  "cursor": [600, 350],  "u_mouse": [-0.355, 0.358], "u_delta": [0.453, -0.453], "offsetX": -3.354, "rotY": -1.195, "obs": "Cérebro de 3/4 -> frente; clusters cinza espalhados no centro-esquerda." },
+      { "n": 4,  "cursor": [350, 450],  "u_mouse": [-0.222, 0.169], "u_delta": [0.539, -0.809], "offsetX": -4.176, "rotY": -1.423, "obs": "Velocidade alta (|Δ|≈1): raio do efeito maior, vários clusters cinza." },
+      { "n": 5,  "cursor": [200, 600],  "u_mouse": [-0.372, -0.051],"u_delta": [-0.375, -0.993],"offsetX": -4.387, "rotY": -1.503, "obs": "Cluster cinza grande no canto inferior-esquerdo (cursor em cima do hemisfério)." },
+      { "n": 6,  "cursor": [300, 200],  "u_mouse": [-0.639, -0.423],"u_delta": [-0.252, -0.34], "offsetX": -4.492, "rotY": -1.561, "obs": "ESTADO FINAL: cluster cinza grande no hemisfério superior-esquerdo." },
+      { "n": 7,  "cursor": [200, 350],  "u_mouse": [-0.593, 0.093], "u_delta": [0.262, 0.228],  "offsetX": -4.498, "rotY": -1.567, "obs": "Cluster cinza no centro do hemisfério esquerdo." },
+      { "n": 8,  "cursor": [500, 480],  "u_mouse": [-0.63, 0.058],  "u_delta": [-0.264, -0.545],"offsetX": -4.5,   "rotY": -1.57,  "obs": "Cluster na parte baixo-centro; partículas ligeiramente maiores." },
+      { "n": 9,  "cursor": [700, 300],  "u_mouse": [-0.371, -0.1],  "u_delta": [0.527, -0.575], "offsetX": -4.5,   "rotY": -1.57,  "obs": "Borda direita do hemisfério direito; cluster na borda, rastro à esquerda." },
+      { "n": 10, "cursor": [1100, 600], "u_mouse": [-0.062, 0.03],  "u_delta": [0.838, 0.136],  "offsetX": -4.5,   "rotY": -1.571, "obs": "Zoom: cursor sobre o texto, sem efeito local. Estrutura: fissura longitudinal, anéis concêntricos de partículas ouro na borda, interior roxo/teal/branco, ~12px por partícula." }
+    ],
+    "explosao_scrollY1250_a_1900": [
+      { "n": 1,  "cursor": [200, 200],  "u_mouse": [0.497, -0.44],  "u_delta": [0.203, -0.109], "offsetX": -3.921, "explode": 0.074, "obs": "Em trânsito: cérebro ainda intacto e texto 'This is your workplace…' sobreposto." },
+      { "n": 2,  "cursor": [500, 300],  "u_mouse": [-0.115, 0.036], "u_delta": [-0.259, 0.302],"offsetX": -1.631, "explode": "~0.2", "obs": "Cérebro com borda desfiando; poucas partículas fora da casca." },
+      { "n": 3,  "cursor": [800, 200],  "u_mouse": [-0.149, 0.151], "u_delta": [0.503, -0.214],"offsetX": -0.832, "explode": "~0.4", "obs": "Casca quase dissolvida; grandes triângulos coloridos (ouro/magenta) em primeiro plano." },
+      { "n": 4,  "cursor": [1100, 350], "u_mouse": [0.095, 0.307],  "u_delta": [0.843, 0.269], "offsetX": -0.539, "explode": "~0.6", "obs": "Nuvem difusa; sem forma de cérebro; efeito local muito sutil." },
+      { "n": 5,  "cursor": [650, 450],  "u_mouse": [0.375, 0.157],  "u_delta": [0.716, -0.515],"offsetX": -0.447, "explode": "~0.9", "obs": "Quase só poeira dispersa; efeito local imperceptível." },
+      { "n": 6,  "cursor": [300, 250],  "u_mouse": [-0.002, -0.099],"u_delta": [-0.358, -0.25], "offsetX": -0.408, "explode": 0.999, "obs": "Nuvem total: ~150 triângulos visíveis, 3 classes de tamanho; sem efeito local." },
+      { "n": 7,  "cursor": [650, 380],  "u_mouse": [-0.274, 0.13],  "u_delta": [-0.511, 0.253],"offsetX": -0.406, "explode": 0.999, "obs": "Sem cluster; nuvem estática com cintilar leve." },
+      { "n": 8,  "cursor": [1000, 250], "u_mouse": [-0.068, 0.074], "u_delta": [0.444, -0.267],"offsetX": -0.405, "explode": 0.999, "obs": "Sem cluster." },
+      { "n": 9,  "cursor": [450, 600],  "u_mouse": [0.207, 0.16],   "u_delta": [0.547, 0.246], "offsetX": -0.405, "explode": 0.999, "obs": "Sem cluster." },
+      { "n": 10, "cursor": [900, 520],  "u_mouse": [-0.06, -0.272], "u_delta": [-0.146, -0.265],"offsetX": -0.405, "explode": 0.999, "obs": "Zoom: triângulos vazados ouro/roxo/teal/branco, giros e espessuras variadas; tamanhos de ~6px a ~40px; alguns com traço grosso em primeiro plano. Hover nulo (|explode−1| ≈ 0.001)." }
+    ],
+    "bonus_explode0.53": "Rodei 5 hovers extras em scrollY=1250 (explode 0.534): crista em arco (poeira fina, ouro->roxo->branco) permanece no topo; ~100 triângulos médios/grandes ao redor; efeito do mouse existe (peso 0.47) mas é sutil e rápido de dissipar."
+  },
+
+  "visualPorFase_ate_a_explosao": [
+    { "fase": "Hero (0–250)", "descricao": "Cérebro de PERFIL, ~680×560px, à direita (offsetX +3). Casca de ~10k partículas; contorno ouro, faixa roxa, miolo branco com pontos teal; tronco encefálico visível no rodapé. Giro individual de cada partícula via ruído." },
+    { "fase": "Virada (250–750)", "descricao": "rotY 0→−π/2 e offsetX +3→−4.5 simultâneos; u_factor 4.35→5.25 (cérebro cresce 21%); cérebro fica de FRENTE, dois hemisférios com fissura, transbordando a esquerda." },
+    { "fase": "Explosão (1000–1750)", "descricao": "offsetX −2.7→−0.4 (centraliza) e u_explode 0.23→1. Posições escalam radialmente por fator individual; crista densa permanece no topo como arco; nuvem 3D preenche a tela; partículas com fator alto passam perto da câmera e viram triângulos grandes." },
+    { "fase": "Nuvem estável (1750–2250)", "descricao": "u_explode=1: sem hover, apenas deriva/giro. Densidade baixa para o texto centralizado respirar." }
+  ],
+
+  "guiaDeClonagem": {
+    "stack": "Three.js (r1xx) + GPGPU (GPUComputationRenderer ou ping-pong RT manual) + GSAP ScrollTrigger (scrub) + Lenis/asscroll para smooth scroll.",
+    "dadosDeEntrada": [
+      "4 formas amostradas em ~10k pontos cada (MeshSurfaceSampler sobre GLBs/SVG): cérebro, lâmpada, globo (esfera + máscara de continentes), seu logo.",
+      "t_position (200×200 RGBA float): 4 quadrantes de 100×100, valores normalizados em [0,1] por (p − min)/(max − min) · 1 por eixo.",
+      "t_color e t_scale no mesmo layout 2×2.",
+      "t_params (x: delay de entrada, z: delay de show, w: rigidez extra), t_params2 (x,y,z,w: ranks de stagger por transição e por explosão, valores em [0,L)), t_params3 (x: fator radial de explosão por partícula, ex.: 1 + rand²·6)."
+    ],
+    "pseudocodigo": {
+      "velocidade": [
+        "float L = u_length;",
+        "vec3 T = pos1;",
+        "T = mix(T, pos2, clamp(u_progress*(1.+d4*(L-1.)) - d4*P2.x, 0., 1.));",
+        "T = mix(T, pos3, clamp(max(0.,u_progress-1.)*(1.+d2*(L-1.)) - d2*P2.y, 0., 1.));",
+        "T = mix(T, pos4, clamp(max(0.,u_progress-2.)*(1.+d4*(L-1.)) - d4*P2.z, 0., 1.));",
+        "T = mix(T, T*P3.x, clamp(u_explode*(1.+d3*(L-1.)) - d3*P2.w, 0., 1.));",
+        "vec3 e = T - currentPos; float k = u_spring + P.w;",
+        "vec3 v = (oldVel + e*k) * u_friction;   // k=0.006, friction=0.892"
+      ],
+      "renderVertex": [
+        "mPos = instancePos; mPos *= Rx(-rot.x); mPos *= Ry(-rot.y); mPos *= Rz(-rot.z); mPos.y -= 1.; mPos.xy += u_offset.xy;",
+        "float dist = smoothstep(1.25 + abs(max(u_delta.x,u_delta.y)), 0., distance(mPos.xy, u_mouse*res));",
+        "float hoverGain = abs(u_explode - 1.);",
+        "pos.x += dist*sin(u_time*rnd.y)*(rnd.z*.35 + u_delta.x)*hoverGain;",
+        "pos.y += dist*cos(u_time*rnd.y)*(rnd.z*.35 + u_delta.y)*hoverGain;",
+        "float n = snoise(pos*u_amplitude); rotate instância por (1,0,1)·n e (0,1,1)·mod(n+u_time, 2π); billboard lookAt(camera);",
+        "scale = (mix chain t_scale)*u_scale + dist*.75*hoverGain;"
+      ],
+      "renderFragment": [
+        "col = mix chain t_color por u_progress;",
+        "col = mix(col, vec3(.45), max(0., v_hover - u_explode)*abs(u_explode-1.));",
+        "alpha = tex.a * smoothstep(-4.5, 4., v_pos.z);"
+      ]
+    },
+    "uniformsParaAnimarPeloScroll": [
+      "u_offset.x: 3 -> -4.5 (250–750) -> -0.405 (1000–1250) -> -2.5 (2750) -> +2.6 (3500) -> +1 -> -0.5 (4300–4600)",
+      "u_rotation.y: 0 -> -π/2 (250–750) -> 0 (2750) -> π/4 (3500) -> -π (4600)",
+      "u_explode: 0 -> 1 (1000–1750) ; 1 -> 0 (2250–2750) ; 0 -> 1 (4000–4600)",
+      "u_progress: 0 -> 1 (2250–2750) ; 1 -> 2 (3000–3500)"
+    ],
+    "cuidados": [
+      "Passo fixo de 60Hz na simulação ou normalize k e friction por dt.",
+      "Cap de DPR em 1.5–2 (site mediu dpr=1.5).",
+      "Hover precisa de lerp em u_mouse e cálculo de u_delta por frame.",
+      "Não reutilize logo/modelos da Dala: gere os seus."
+    ]
+  },
+
+  "lacunas": [
+    "[Chutando] Valores de d e dos ranks tParams* (conteúdo das texturas): não lidos; recomendo gerar ranks aleatórios uniformes em [0, L).",
+    "[Chutando] Formato exato da geometria da partícula (quad com mapa de triângulo vs mesh de tetraedro).",
+    "[Chutando] Conteúdo dos ~15 passes de pós-processamento além da vinheta.",
+    "[Provável] u_mouse parece ser tweenado por evento; hover sintético só gera 1 evento, então os valores medidos subestimam a convergência real."
+  ]
+}

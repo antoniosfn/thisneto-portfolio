@@ -1,0 +1,1155 @@
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/space-grotesk.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 200 700;
+}
+
+:root {
+  --void: #000;
+  --white: #fff;
+  --ash: #9a9a9a;
+  --mist: #bdbdbd;
+  --violet: #8052ff;
+  --amber: #ffb829;
+  --teal: #15846e;
+  --page: min(100% - 72px, 1280px);
+  --header-height: 92px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--void);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--void);
+  color: var(--white);
+  font-family: "Space Grotesk", Inter, Arial, sans-serif;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+summary {
+  font: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+a,
+summary,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+::selection {
+  color: var(--void);
+  background: var(--amber);
+}
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 5px;
+}
+
+.dala-site {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  background: var(--void);
+}
+
+.particle-field,
+.grain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle-field {
+  z-index: -3;
+  background: #000;
+}
+
+.grain {
+  z-index: -2;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.94' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.reading-progress {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(90deg, var(--violet), var(--amber), var(--teal));
+  pointer-events: none;
+  will-change: transform;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 12px;
+  left: 12px;
+  padding: 12px 18px;
+  transform: translateY(-160%);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--void);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.site-header {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  left: 50%;
+  display: grid;
+  width: var(--page);
+  height: var(--header-height);
+  transform: translateX(-50%);
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 36px;
+}
+
+/* Dala's .header__bg: a full-width band that grows from the top on scroll;
+   the inner layer blurs 20px over a 0.1 → 0.5 black gradient, overscaled
+   1.1× from the bottom so its blurred edge stays hidden. */
+.header-backdrop {
+  position: fixed;
+  z-index: 29;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--header-height);
+  overflow: hidden;
+  pointer-events: none;
+  transform: scaleY(0);
+  transform-origin: center top;
+}
+.header-backdrop > div {
+  height: 100%;
+  background: linear-gradient(360deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1));
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  transform: scaleY(1.1);
+  transform-origin: center bottom;
+}
+
+.wordmark {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.brand-mark {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+.brand-mark i {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.brand-mark i:nth-child(1) {
+  top: 0;
+  left: 6px;
+  background: var(--violet);
+}
+.brand-mark i:nth-child(2) {
+  top: 6px;
+  left: 0;
+  background: var(--white);
+}
+.brand-mark i:nth-child(3) {
+  right: 0;
+  bottom: 0;
+  background: var(--amber);
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.site-header nav a,
+.eyebrow,
+.kicker {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.site-header nav a {
+  color: var(--ash);
+  transition: color 180ms ease;
+}
+.site-header nav a:hover {
+  color: var(--white);
+}
+.header-cta {
+  justify-self: end;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 46px;
+  width: max-content;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 13px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition:
+    transform 200ms ease,
+    background 200ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+.button-primary {
+  background: var(--violet);
+  color: var(--white);
+}
+.button-primary:hover {
+  background: #9370ff;
+}
+
+main,
+.site-footer {
+  position: relative;
+  z-index: 2;
+}
+.scene {
+  width: var(--page);
+  margin-inline: auto;
+  scroll-margin-top: 110px;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  min-height: 128vh;
+  padding-top: max(150px, 18vh);
+  grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.72fr);
+  align-content: start;
+  gap: 8vw;
+}
+
+.hero-copy {
+  max-width: 770px;
+}
+.kicker {
+  margin: 0 0 30px;
+  color: var(--ash);
+}
+.hero h1,
+.section-heading h2,
+.section-split h2,
+.profile-copy h2,
+.contact h2 {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.hero h1 {
+  font-size: clamp(62px, 8.1vw, 124px);
+  line-height: 0.82;
+}
+.hero h1 span {
+  display: block;
+}
+.hero-intro {
+  align-self: center;
+  max-width: 430px;
+  margin-top: 21vh;
+}
+.eyebrow {
+  margin: 0 0 20px;
+  color: var(--amber);
+}
+/* Mask for the CTA rising from below; padding keeps the focus ring visible. */
+.hero-action {
+  overflow: hidden;
+  margin: -6px;
+  padding: 6px;
+}
+/* Lenis drives the smoothed scroll; native smooth scrolling would fight it. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+.hero-intro > p:not(.eyebrow),
+.section-split > div > p:not(.eyebrow),
+.profile-copy > p:not(.eyebrow) {
+  margin: 0 0 30px;
+  color: var(--mist);
+  font-size: clamp(17px, 1.5vw, 21px);
+  font-weight: 300;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 10vh;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--ash);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.scroll-cue i {
+  width: 78px;
+  height: 1px;
+  background: currentColor;
+}
+.manifesto,
+.business,
+.profile,
+.faq,
+.contact {
+  padding-block: 22vh;
+}
+.manifesto {
+  min-height: 190vh;
+}
+
+.section-split {
+  display: grid;
+  min-height: 84vh;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
+  align-items: center;
+  gap: 9vw;
+}
+
+.section-split h2,
+.section-heading h2,
+.profile-copy h2 {
+  font-size: clamp(54px, 7vw, 110px);
+  line-height: 0.92;
+}
+
+.manifesto-line {
+  display: flex;
+  min-height: 72vh;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0;
+  color: var(--white);
+  font-size: clamp(38px, 5.8vw, 96px);
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.manifesto-line i {
+  color: var(--violet);
+  font-style: normal;
+}
+.section-heading {
+  max-width: 980px;
+  margin-bottom: 18vh;
+}
+.journey,
+.work,
+.method {
+  padding-block: 20vh;
+}
+.chapter,
+.project,
+.method-step {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  align-items: center;
+}
+.chapter {
+  grid-template-columns: 0.34fr 1fr 0.34fr;
+  gap: 5vw;
+}
+.chapter-number,
+.project-index > span,
+.method-step > span {
+  color: var(--violet);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.chapter-copy {
+  max-width: 720px;
+}
+
+.chapter h3,
+.project h3,
+.challenge-response h3,
+.method-step h3 {
+  margin: 0 0 30px;
+  font-size: clamp(42px, 5.3vw, 82px);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.chapter-copy > p:not(.eyebrow),
+.project-copy > p,
+.challenge-response > p:not(.eyebrow):not(.approach),
+.method-step > p {
+  max-width: 630px;
+  margin: 0 0 30px;
+  color: var(--mist);
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.55;
+}
+
+.chapter-note {
+  color: var(--ash);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chapter-symbol {
+  justify-self: end;
+  color: rgb(255 255 255 / 16%);
+  font-size: clamp(80px, 13vw, 210px);
+  font-weight: 200;
+}
+
+.challenge-layout {
+  display: grid;
+  min-height: 95vh;
+  grid-template-columns: minmax(300px, 0.75fr) minmax(0, 1.25fr);
+  align-items: center;
+  gap: 9vw;
+}
+
+.challenge-options {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  flex-direction: column;
+}
+.challenge-options legend {
+  margin-bottom: 28px;
+  color: var(--ash);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.challenge-option {
+  position: relative;
+  display: grid;
+  padding: 18px 0;
+  cursor: pointer;
+  grid-template-columns: 48px 1fr;
+  color: var(--ash);
+  font-size: clamp(18px, 1.7vw, 25px);
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.challenge-option:hover,
+.challenge-option.is-selected {
+  color: var(--white);
+  transform: translateX(8px);
+}
+.challenge-option.is-selected span:first-of-type {
+  color: var(--violet);
+}
+.challenge-option input {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+.challenge-option:has(input:focus-visible) {
+  outline: 2px solid var(--amber);
+  outline-offset: 5px;
+}
+.challenge-response {
+  max-width: 760px;
+}
+.approach {
+  display: flex;
+  margin-top: 42px;
+  flex-direction: column;
+  gap: 10px;
+}
+.approach span,
+.project dt,
+.method-step small {
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.approach strong {
+  font-size: clamp(18px, 2vw, 27px);
+  font-weight: 400;
+}
+
+.project {
+  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
+  gap: 8vw;
+}
+.project-index {
+  align-self: start;
+  padding-top: 10vh;
+}
+.project-index > span {
+  display: block;
+  margin-bottom: 20px;
+  font-size: clamp(52px, 6vw, 92px);
+  font-weight: 300;
+  letter-spacing: -0.05em;
+}
+.project-index p {
+  max-width: 160px;
+  color: var(--ash);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.project-copy {
+  max-width: 850px;
+}
+.project-benefit {
+  color: var(--white) !important;
+  font-size: clamp(24px, 2.7vw, 40px) !important;
+  line-height: 1.25 !important;
+}
+.project dl {
+  display: grid;
+  margin: 44px 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px;
+}
+.project dt {
+  margin-bottom: 10px;
+}
+.project dd {
+  margin: 0;
+  color: var(--mist);
+  line-height: 1.5;
+}
+.project details,
+.faq-list details {
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+.project details {
+  max-width: 650px;
+}
+.project summary,
+.faq-list summary {
+  cursor: pointer;
+  list-style: none;
+}
+.project summary::-webkit-details-marker,
+.faq-list summary::-webkit-details-marker {
+  display: none;
+}
+.project summary {
+  display: flex;
+  padding: 22px 0;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--white);
+}
+.project details[open] summary span,
+.faq-list details[open] summary i {
+  transform: rotate(45deg);
+}
+.project details > p,
+.faq-list details > p {
+  color: var(--mist);
+  line-height: 1.65;
+}
+.project details small {
+  display: block;
+  padding-bottom: 24px;
+  color: var(--ash);
+}
+
+.method-steps {
+  display: grid;
+}
+.method-step {
+  min-height: 74vh;
+  grid-template-columns: 0.2fr 0.55fr 0.75fr 0.35fr;
+  gap: 4vw;
+}
+.method-step h3 {
+  margin: 0;
+  font-size: clamp(34px, 4.2vw, 62px);
+}
+.method-step p {
+  margin: 0;
+}
+.method-step small {
+  line-height: 1.55;
+}
+
+.profile {
+  display: grid;
+  min-height: 130vh;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: 8vw;
+}
+
+.profile-portrait {
+  margin: 0;
+}
+.profile-portrait img {
+  width: 100%;
+  aspect-ratio: 0.82;
+  border-radius: 24px;
+  object-fit: cover;
+  filter: saturate(0.78) contrast(1.08);
+}
+.profile-portrait figcaption {
+  margin-top: 14px;
+  color: var(--ash);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.profile-copy {
+  max-width: 760px;
+}
+.profile-copy h2 {
+  margin-bottom: 38px;
+}
+.profile-links {
+  display: flex;
+  gap: 28px;
+}
+.profile-links a,
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--white);
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 28%);
+  text-underline-offset: 6px;
+}
+
+.faq {
+  min-height: 150vh;
+}
+.faq-list {
+  max-width: 940px;
+  margin-left: auto;
+}
+.faq-list details:last-child {
+  border-bottom: 1px solid rgb(255 255 255 / 18%);
+}
+.faq-list summary {
+  display: grid;
+  padding: 30px 0;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: 24px;
+  font-size: clamp(19px, 2vw, 28px);
+}
+.faq-list summary > span {
+  color: var(--violet);
+  font-size: 12px;
+}
+.faq-list summary i {
+  font-size: 26px;
+  font-style: normal;
+  transition: transform 180ms ease;
+}
+.faq-list details > p {
+  max-width: 700px;
+  margin: 0;
+  padding: 0 0 30px 84px;
+}
+
+.contact {
+  display: flex;
+  min-height: 128vh;
+  padding-top: 24vh;
+  flex-direction: column;
+  justify-content: center;
+}
+.contact h2 {
+  max-width: 1120px;
+  font-size: clamp(58px, 9vw, 138px);
+  line-height: 0.88;
+}
+.contact-actions {
+  display: flex;
+  margin-top: 70px;
+  align-items: center;
+  gap: 34px;
+}
+
+.site-footer {
+  display: grid;
+  width: var(--page);
+  min-height: 240px;
+  margin-inline: auto;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 40px;
+  color: var(--ash);
+  font-size: 12px;
+}
+
+.site-footer p {
+  max-width: 360px;
+  margin: 0;
+  line-height: 1.5;
+}
+.site-footer .wordmark {
+  color: var(--white);
+}
+.reveal {
+  will-change: auto;
+}
+
+@media (max-width: 980px) {
+  :root {
+    --page: min(100% - 48px, 1280px);
+  }
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+  .site-header nav {
+    display: none;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-copy {
+    max-width: 720px;
+  }
+  .hero-intro {
+    width: min(100%, 470px);
+    margin-top: 12vh;
+    margin-left: auto;
+  }
+  .section-split,
+  .challenge-layout,
+  .profile {
+    grid-template-columns: 1fr;
+  }
+  .section-split {
+    align-content: center;
+  }
+  .section-split > div {
+    width: min(100%, 520px);
+    margin-left: auto;
+  }
+  .manifesto-line {
+    flex-wrap: wrap;
+  }
+  .chapter {
+    grid-template-columns: 0.2fr 1fr;
+  }
+  .chapter-symbol {
+    position: absolute;
+    right: 0;
+    z-index: -1;
+  }
+  .challenge-layout {
+    gap: 13vh;
+  }
+  .project {
+    grid-template-columns: 0.24fr 1fr;
+  }
+  .method-step {
+    grid-template-columns: 0.16fr 0.58fr 1fr;
+  }
+  .method-step small {
+    display: none;
+  }
+  .profile {
+    gap: 12vh;
+  }
+  .profile-portrait {
+    width: min(72vw, 480px);
+  }
+}
+
+@media (max-width: 680px) {
+  :root {
+    --page: calc(100% - 36px);
+    --header-height: 76px;
+  }
+  .site-header {
+    gap: 14px;
+  }
+  .header-cta {
+    min-height: 40px;
+    padding: 10px 13px;
+    font-size: 11px;
+  }
+  .header-cta span {
+    display: none;
+  }
+  .wordmark > span:last-child {
+    max-width: 70px;
+    line-height: 1;
+  }
+  .hero {
+    min-height: 145vh;
+    padding-top: 138px;
+  }
+  .hero h1 {
+    font-size: clamp(54px, 17vw, 84px);
+    line-height: 0.87;
+  }
+  .hero-intro {
+    margin-top: 18vh;
+  }
+  .scroll-cue {
+    bottom: 7vh;
+  }
+  .manifesto,
+  .business,
+  .profile,
+  .faq,
+  .contact,
+  .journey,
+  .work,
+  .method {
+    padding-block: 16vh;
+  }
+  .section-split {
+    min-height: 110vh;
+    gap: 14vh;
+  }
+  .manifesto-line {
+    min-height: 85vh;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .manifesto-line i {
+    transform: rotate(90deg);
+  }
+  .section-heading {
+    margin-bottom: 14vh;
+  }
+  .section-heading h2,
+  .section-split h2,
+  .profile-copy h2 {
+    font-size: clamp(46px, 14vw, 72px);
+  }
+  .chapter,
+  .project,
+  .method-step {
+    min-height: 92vh;
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 32px;
+  }
+  .chapter-number,
+  .method-step > span {
+    align-self: end;
+  }
+  .chapter-symbol {
+    bottom: 12vh;
+  }
+  .challenge-layout {
+    min-height: 115vh;
+  }
+  .challenge-option {
+    grid-template-columns: 42px 1fr;
+  }
+  .project-index {
+    display: flex;
+    padding-top: 0;
+    align-items: baseline;
+    gap: 24px;
+  }
+  .project-index > span {
+    margin: 0;
+  }
+  .project-index p {
+    max-width: none;
+  }
+  .project dl {
+    grid-template-columns: 1fr;
+  }
+  .method-step {
+    min-height: 72vh;
+  }
+  .profile {
+    min-height: 150vh;
+  }
+  .profile-portrait {
+    width: 100%;
+  }
+  .faq-list summary {
+    padding: 24px 0;
+    grid-template-columns: 38px 1fr auto;
+    gap: 10px;
+  }
+  .faq-list details > p {
+    padding-left: 48px;
+  }
+  .contact h2 {
+    font-size: clamp(52px, 16vw, 82px);
+  }
+  .contact-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .site-footer {
+    min-height: 300px;
+    padding-block: 60px;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+
+@media print {
+  .particle-field,
+  .grain,
+  .reading-progress,
+  .site-header,
+  .header-backdrop,
+  .scroll-cue {
+    display: none;
+  }
+  .scene,
+  .chapter,
+  .project,
+  .method-step,
+  .contact {
+    min-height: auto;
+    padding-block: 48px;
+  }
+  .reveal {
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+/* Reference rhythm: the form owns the right side; prose follows the headline. */
+.hero {
+  min-height: 112svh;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+}
+.hero-copy {
+  grid-column: 1 / -1;
+}
+.hero h1 {
+  font-size: clamp(62px, 7.3vw, 110px);
+  line-height: 0.95;
+}
+.hero-intro {
+  grid-column: 1;
+  margin-top: 24px;
+  max-width: 460px;
+}
+.hero .scroll-cue {
+  left: auto;
+  right: 0;
+  bottom: 6vh;
+}
+.manifesto {
+  min-height: 110vh;
+}
+.section-split {
+  min-height: 52vh;
+}
+.manifesto-line {
+  min-height: 30vh;
+}
+.chapter {
+  min-height: 56vh;
+}
+.method-step {
+  min-height: 42vh;
+}
+.faq {
+  min-height: auto;
+}
+.contact {
+  min-height: 90vh;
+}
+.hero-intro,
+.section-split > div,
+.project-copy,
+.challenge-response {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(0 0 0 / 84%),
+    transparent 78%
+  );
+}
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-intro {
+    margin-left: 0;
+  }
+}
+@media (max-width: 680px) {
+  .hero {
+    min-height: 112svh;
+    padding-top: 130px;
+  }
+  .hero h1 {
+    font-size: clamp(49px, 14vw, 80px);
+  }
+  .hero-intro {
+    margin-top: 320px;
+    padding-bottom: 72px;
+  }
+  .hero .scroll-cue {
+    right: auto;
+    left: 0;
+    bottom: 28px;
+  }
+  .manifesto {
+    min-height: auto;
+  }
+  .section-split {
+    min-height: auto;
+    gap: 64px;
+  }
+  .manifesto-line {
+    min-height: auto;
+    padding-block: 80px 0;
+  }
+  .chapter,
+  .project {
+    min-height: 65vh;
+  }
+  .method-step {
+    min-height: 48vh;
+  }
+  .challenge-layout {
+    min-height: auto;
+  }
+}
+@media (min-width: 981px) {
+  .hero {
+    padding-top: max(126px, 14vh);
+    gap: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(62px, 6.2vw, 94px);
+  }
+  .hero-intro {
+    margin-top: 0;
+  }
+  .hero-intro > p:not(.eyebrow) {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+  .manifesto .section-split {
+    grid-template-columns: 1fr minmax(0, 1fr);
+    align-content: center;
+    gap: 28px 8vw;
+    min-height: 78vh;
+  }
+  .manifesto .section-split > h2,
+  .manifesto .section-split > div {
+    grid-column: 2;
+  }
+  .manifesto .section-split h2 {
+    font-size: clamp(48px, 5vw, 76px);
+  }
+  /* Dala's bulb beat keeps its copy in the right column (from 2/3 of the
+     viewport); the bulb occupies the left half. */
+  .journey .section-heading {
+    max-width: 40%;
+    margin-left: auto;
+  }
+  .journey .section-heading h2,
+  .business .section-heading h2 {
+    font-size: clamp(48px, 5vw, 76px);
+  }
+  .journey .chapter {
+    grid-template-columns: 1fr;
+    padding-left: 60%;
+    align-content: center;
+    gap: 28px;
+  }
+  .journey .chapter-symbol {
+    display: none;
+  }
+  /* The globe settles right of center (0.46–0.78 of the width): copy stays left. */
+  .business .section-heading,
+  .business .challenge-layout {
+    max-width: 44%;
+  }
+  .business .challenge-layout {
+    grid-template-columns: 1fr;
+    gap: 8vh;
+  }
+}

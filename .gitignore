@@ -28,5 +28,20 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Claude Code local config
-.claude/
+# Claude Code: only the shared skills and launch config are versioned
+.claude/*
+!.claude/skills/
+!.claude/launch.json
+
+# Local reference media and installed tools (not site assets)
+.local-tools/
+.superdesign/tmp/
+.next/
+out/
+.vite/
+*.tsbuildinfo
+test-results/
+playwright-report/
+__pycache__/
+.cache/
+artifacts/

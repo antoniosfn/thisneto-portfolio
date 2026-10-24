@@ -1,0 +1,24 @@
+{
+  "method": "SymPy exact rational arithmetic",
+  "spring": "3/500",
+  "friction": "223/250",
+  "matrix": "Matrix([[124331/125000, 223/250], [-669/125000, 223/250]])",
+  "spectral_radius": 0.9444575162494075,
+  "envelope_2_percent_frames": 68.45834672110767,
+  "stagger_endpoints": "all ranks start at 0 and complete at 1 after clamping",
+  "hover_at_full_explosion": 0,
+  "smooth_scroll_ease_per_frame": "3/40",
+  "lenis_lerp": 0.07796154146971186,
+  "smooth_scroll_95_percent_frames": 38.425770156402514,
+  "choreography_beats_checked": [
+    "0",
+    "1",
+    "11/5",
+    "3",
+    "7/2",
+    "5",
+    "6"
+  ],
+  "pointer_peak_2px_per_frame": 0.125,
+  "pointer_peak_90px_per_frame": 0.771
+}
