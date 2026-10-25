@@ -45,3 +45,6 @@ playwright-report/
 __pycache__/
 .cache/
 artifacts/
+
+# Closing-scene preview build (npm run finale); joins forms.bin on integration
+public/particles/finale.bin

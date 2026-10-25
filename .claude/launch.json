@@ -4,14 +4,33 @@
     {
       "name": "vite-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:vite"],
+      "runtimeArgs": [
+        "run",
+        "dev:vite"
+      ],
       "port": 8080
     },
     {
       "name": "next-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3100"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3100"
+      ],
       "port": 3100
+    },
+    {
+      "name": "finale-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:vite"
+      ],
+      "port": 5173,
+      "url": "http://localhost:5173"
     }
   ]
 }

@@ -21,6 +21,7 @@
     "app/**/*.tsx",
     "src/landing/**/*.ts",
     "src/landing/**/*.tsx",
+    "preview/**/*.ts",
     "preview/**/*.tsx",
     "*.config.ts",
     "tests/**/*.ts",
