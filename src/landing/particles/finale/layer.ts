@@ -22,7 +22,7 @@ export const DETAIL_DRAWN = { desktop: Infinity, tablet: 24000, mobile: 14000 } 
 
 const common = /* glsl */ `
 uniform float u_detail; // 0 → 1: the layer completes the drawing
-uniform float u_time;
+uniform float u_clock; // stops while the scene is complete
 uniform float u_factor;
 uniform float u_scale;
 uniform mat3 u_rot;
@@ -33,7 +33,7 @@ ${sceneMotion}
 // Detail grows in place, rising a little into its spot, outwards from the couple.
 vec3 place(vec3 target,vec4 motion,float rank,out float alpha,out float glow,out float st) {
   st=ease(stagger(u_detail,4.,rank));
-  vec3 p=sceneAnimate(target,motion,u_time,alpha,glow)+vec3(0.,-.06,.1)*(1.-st);
+  vec3 p=sceneAnimate(target,motion,u_clock,alpha,glow)+vec3(0.,-.06,.1)*(1.-st);
   return u_rot*(p*u_factor)+u_offset;
 }
 `;
@@ -59,7 +59,7 @@ void main() {
   float size=(.35+.8*pow(seed,3.))*u_scale*aMotion.w*2.*(1.+aLook.a*.2)*step(.001,st);
   vec3 forward=normalize(cameraPosition-world);
   vec3 right=normalize(cross(vec3(0,1,0),forward)),up=cross(forward,right);
-  vec3 c=spin(vec3(1,0,1),seed*6.28)*spin(vec3(0,1,1),seed*9.+u_time*(.2+seed))*position*size;
+  vec3 c=spin(vec3(1,0,1),seed*6.28)*spin(vec3(0,1,1),seed*9.+u_clock*(.2+seed))*position*size;
   gl_Position=projectionMatrix*viewMatrix*vec4(world+right*c.x+up*c.y+forward*c.z,1.);
   vColor=aLook.rgb;
   vEmission=aLook.a*glow;

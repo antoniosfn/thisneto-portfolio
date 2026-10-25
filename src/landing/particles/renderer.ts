@@ -19,9 +19,10 @@ import { createBackdrop } from "./backdrop";
 import { createParticleCamera, frameCamera, parallaxCamera } from "./camera";
 import { createParticleData } from "./data";
 import { SCENE_HEIGHT, SCENE_WIDTH } from "./finale/build";
+import { STILL_EASE, STILL_TOLERANCE, advanceClock } from "./stillness";
 import { loadScene } from "./finale/file";
 import { DETAIL_DRAWN, createDetailLayer } from "./finale/layer";
-import { COUNT, FORM_LOOK } from "./forms/catalog";
+import { COUNT, FORM, FORM_LOOK } from "./forms/catalog";
 import type { FormData } from "./forms/compose";
 import { createPyramidGeometry } from "./geometry";
 import { createHoverProbe } from "./hover";
@@ -31,7 +32,7 @@ import { createPost } from "./post";
 import { AdaptiveQuality } from "./quality";
 import { particleFragment, particleVertex } from "./shaders/particle";
 import { createSimulation } from "./simulation";
-import { pose as poseAt, type Layout } from "./timeline";
+import { MOBILE_FIGURE_Y, pose as poseAt, type Layout } from "./timeline";
 
 const MOBILE_WIDTH = 760;
 const TABLET_WIDTH = 1100;
@@ -42,9 +43,13 @@ const SCALE = { desktop: 1.55, tablet: 1.5, mobile: 1.5 } as const;
 // Pyramid extent in world units, calibrated to Dala's 10–14 px particles.
 const PARTICLE_SIZE = 0.06;
 const CENTER = new Vector2();
-// Phones see the closing scene at full height and cross it, left to right
-// and back, in this many seconds.
-const PAN_SECONDS = 40;
+// Share of the viewport the whole scene fills: the header covers the top and
+// the footer's text the bottom, and the couple must clear both.
+const SCENE_MARGIN = 0.78;
+// Desktop: the scene takes this share of the width, right of the contact copy,
+// at this distance (world units) from the right edge.
+const SCENE_SIDE_SHARE = 0.56;
+const SCENE_EDGE = 0.35;
 
 /** Size and line strength blended between the two forms around `progress`. */
 function formLook(progress: number) {
@@ -98,6 +103,7 @@ export function createParticleRenderer(
     u_factor: { value: 4.35 },
     u_show: { value: 0 },
     u_time: { value: 0 },
+    u_clock: { value: 0 },
     u_book: { value: new Vector4(0, 0, 0, 1) },
     u_atom: { value: new Vector4(0, 0, 0, 1) },
     u_bookFace: { value: new Matrix3() },
@@ -154,7 +160,7 @@ export function createParticleRenderer(
       detail = createDetailLayer(
         sceneForm,
         {
-          u_time: shared.u_time,
+          u_clock: shared.u_clock,
           u_factor: shared.u_factor,
           u_scale: view.u_scale,
           u_rot: view.u_rot,
@@ -173,8 +179,10 @@ export function createParticleRenderer(
   const rotation4 = new Matrix4();
   const toCamera = new Vector3(),
     turn = new Quaternion();
-  let halfWidth = 1,
-    coverFactor = 4.35;
+  const extent = new Vector2(14.9, 9.33);
+  let clock = 0,
+    lastSeconds = 0,
+    still = 0;
   let layout: Layout = "desktop",
     disposed = false,
     lost = false,
@@ -190,12 +198,8 @@ export function createParticleRenderer(
     renderer.setPixelRatio(quality.ratio);
     renderer.setSize(width, height, false);
     post.resize(width, height, quality.ratio);
-    const extent = frameCamera(camera, width / height);
-    halfWidth = extent.x / 2;
-    // The closing scene behaves like `object-fit: cover`: the larger of the
-    // two ratios fills the viewport in both axes (visible extent at z = 0 is
-    // 2·d·tan(fov/2) high, times the aspect wide).
-    coverFactor = Math.max(extent.x / SCENE_WIDTH, extent.y / SCENE_HEIGHT);
+    // Visible extent at z = 0: 2·d·tan(fov/2) high, times the aspect wide.
+    extent.copy(frameCamera(camera, width / height));
     layout = width < MOBILE_WIDTH ? "mobile" : width < TABLET_WIDTH ? "tablet" : "desktop";
     particles.count = DRAWN[layout];
     view.u_drawn.value = DRAWN[layout];
@@ -216,22 +220,21 @@ export function createParticleRenderer(
     // The first frame jumps straight to the pose.
     easePose(pose, poseAt(progress, layout), posed ? frames : Infinity);
     posed = true;
-    const shown = vacuum(pose, seconds);
-    // Into the closing scene the factor blends to the cover factor, so the
-    // picture spans the full width (landscape) or height (portrait).
-    pose.factor += (coverFactor - pose.factor) * pose.scene;
-    // In portrait the picture is wider than the screen: the camera crosses it.
-    const overhang = Math.max(0, (SCENE_WIDTH * pose.factor) / 2 - halfWidth);
-    if (overhang > 0)
-      shown.offset[0] -= overhang * Math.sin((seconds * 2 * Math.PI) / PAN_SECONDS) * pose.scene;
+    const shown = vacuum(pose, clock);
+    // Into the closing scene the size and place blend to where the whole
+    // picture fits beside (desktop) or below (smaller screens) the contact copy.
+    const sceneFit = fitScene();
+    const factor = pose.factor + (sceneFit.factor - pose.factor) * pose.scene;
+    shown.offset[0] += (sceneFit.x - shown.offset[0]) * pose.scene;
+    shown.offset[1] += (sceneFit.y - shown.offset[1]) * pose.scene;
     shared.u_progress.value = pose.progress;
     shared.u_explode.value = pose.explode;
     shared.u_explodeMix.value = pose.explodeMix;
     shared.u_seed.value = pose.seed;
     shared.u_page.value = pose.page;
-    shared.u_factor.value = pose.factor;
+    shared.u_factor.value = factor;
     // Book and atom are placed in world units; the field frame is ÷ factor.
-    const f = Math.max(0.01, pose.factor);
+    const f = Math.max(0.01, factor);
     shared.u_book.value.set(pose.book[0] / f, pose.book[1] / f, pose.book[2] / f, pose.book[3]);
     shared.u_atom.value.set(pose.atom[0] / f, pose.atom[1] / f, pose.atom[2] / f, pose.atom[3]);
     face(shared.u_bookFace.value, pose.book, pose.offset);
@@ -247,6 +250,24 @@ export function createParticleRenderer(
     publish("sectionProgress", progress);
     publish("explode", pose.explode);
     publish("progress", pose.progress);
+  }
+  /**
+   * Where the closing scene stands, as `object-fit: contain` in the free area:
+   * on desktop the right 56% beside the contact copy, hugging the right edge;
+   * on smaller screens the whole width, below the copy.
+   */
+  function fitScene() {
+    const side = layout === "desktop";
+    const factor = Math.min(
+      (extent.x * (side ? SCENE_SIDE_SHARE : SCENE_MARGIN)) / SCENE_WIDTH,
+      (extent.y * SCENE_MARGIN) / SCENE_HEIGHT,
+    );
+    return {
+      factor,
+      x: side ? extent.x / 2 - (SCENE_WIDTH * factor) / 2 - SCENE_EDGE : 0,
+      // Smaller screens: the upper half, above the contact copy.
+      y: side ? 0.45 : MOBILE_FIGURE_Y - 0.2,
+    };
   }
   /** Turn a group placed off-centre so it faces the camera, as if centred. */
   function face(out: Matrix3, at: readonly number[], offset: readonly number[]) {
@@ -280,6 +301,21 @@ export function createParticleRenderer(
     const seconds = time / 1000;
     shared.u_time.value = seconds;
     applyPose(frames, seconds);
+    // Involuntary motion (the vacuum float, orbits, sway, water, smoke…) rests
+    // while a form is complete; hover, scroll and transitions keep working.
+    const formed =
+      show === 1 &&
+      Math.abs(pose.progress - Math.round(pose.progress)) < STILL_TOLERANCE &&
+      pose.explode < STILL_TOLERANCE &&
+      // u_seed stays at 1 once the tree has grown from it: only the gathering
+      // before the tree (progress still below it) is "not formed".
+      (pose.seed < STILL_TOLERANCE || pose.progress > FORM.tree - STILL_TOLERANCE);
+    still += ((formed ? 1 : 0) - still) * (1 - (1 - STILL_EASE) ** frames);
+    // Driven by the animation timestamp, like u_time: a page that pins that
+    // clock freezes the ambient motion too.
+    clock = advanceClock(clock, Math.min(Math.max(0, seconds - lastSeconds), 0.1), still);
+    lastSeconds = seconds;
+    shared.u_clock.value = clock;
     show = Math.min(1, show + Math.max(0, delta) / 1.2);
     shared.u_show.value = show;
     if (show === 1) canvas.dataset.entered = "true";

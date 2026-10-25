@@ -69,10 +69,10 @@ vec3 target(vec2 coord) {
   // Fragments never wander: while in flight or dispersed they ride a slow
   // current, so the move to the next form reads as one organised flow.
   float drift=flow+e*(1.-e)*2.4+e*.3;
-  if(drift>.002) p+=curl(p*.16+vec3(0.,u_time*.05,0.))*drift*FLOW;
+  if(drift>.002) p+=curl(p*.16+vec3(0.,u_clock*.05,0.))*drift*FLOW;
   // Vacuum: a slow, involuntary float of every particle.
   vec3 ph=vec3(param.x,param.y,rank.z)*6.2832;
-  p+=vec3(sin(u_time*.47+ph.x),cos(u_time*.39+ph.y),sin(u_time*.33+ph.z))*.018;
+  p+=vec3(sin(u_clock*.47+ph.x),cos(u_clock*.39+ph.y),sin(u_clock*.33+ph.z))*.018;
   return p;
 }
 `;
@@ -142,7 +142,7 @@ void main() {
   float type=m.x, alpha=1.;
   // Sefirot, chakras and electrons breathe.
   if(abs(type-M_SEPHIRA)<.5||abs(type-M_CHAKRA)<.5||abs(type-M_ELECTRON)<.5)
-    look.a*=mix(1.,.62+.38*sin(u_time*2.2+rnd.y*6.2832+m.y*4.),near);
+    look.a*=mix(1.,.62+.38*sin(u_clock*2.2+rnd.y*6.2832+m.y*4.),near);
   // Sparks fade in as they leave the book and out before they recycle.
   if(abs(type-M_SPARK)<.5) {
     float h=sparkHeight(m);
@@ -152,7 +152,7 @@ void main() {
   // the windows and the couple breathe.
   if(type>M_RING+.5) {
     float sceneAlpha,glow;
-    sceneAnimate(vec3(0.),m,u_time,sceneAlpha,glow);
+    sceneAnimate(vec3(0.),m,u_clock,sceneAlpha,glow);
     alpha=mix(1.,sceneAlpha,near);
     look.a*=mix(1.,glow,near);
   }

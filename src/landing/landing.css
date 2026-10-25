@@ -39,18 +39,12 @@ h3,
 .wordmark,
 .button,
 .site-header nav a,
-.eyebrow,
-.kicker,
-.chapter-number,
-.project-index > span,
-.method-step > span,
 .faq-list summary,
 .challenge-option,
 .lia-tagline,
 .site-loader-name,
 .site-loader-count,
-.diagram-index,
-.diagram-caption {
+.project-tags {
   font-family: var(--font-display);
 }
 h1,
@@ -150,7 +144,7 @@ html.is-loading {
   bottom: max(28px, 4vh);
   margin: 0;
   color: var(--mist);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -260,7 +254,7 @@ html.is-loading {
   width: max-content;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -289,13 +283,10 @@ html.is-loading {
   align-items: center;
   gap: 30px;
 }
-.site-header nav a,
-.eyebrow,
-.kicker {
-  font-size: 12px;
+.site-header nav a {
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .site-header nav a {
   color: var(--ash);
@@ -310,16 +301,16 @@ html.is-loading {
 
 .button {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 52px;
   width: max-content;
   align-items: center;
   justify-content: center;
   gap: 14px;
   padding: 13px 18px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   transition:
     transform 200ms ease,
     background 200ms ease;
@@ -360,10 +351,6 @@ main,
 .hero-copy {
   max-width: 770px;
 }
-.kicker {
-  margin: 0 0 30px;
-  color: var(--ash);
-}
 .hero h1,
 .section-heading h2,
 .section-split h2,
@@ -387,10 +374,6 @@ main,
   max-width: 430px;
   margin-top: 21vh;
 }
-.eyebrow {
-  margin: 0 0 20px;
-  color: var(--amber);
-}
 /* Mask for the CTA rising from below; padding keeps the focus ring visible. */
 .hero-action {
   overflow: hidden;
@@ -409,9 +392,9 @@ html.lenis body {
   overflow: clip;
 }
 
-.hero-intro > p:not(.eyebrow),
-.section-split > div > p:not(.eyebrow),
-.profile-copy > p:not(.eyebrow) {
+.hero-intro > p,
+.section-split > div > p,
+.profile-copy > p {
   margin: 0 0 30px;
   color: var(--mist);
   font-size: clamp(17px, 1.5vw, 21px);
@@ -420,24 +403,6 @@ html.lenis body {
   text-wrap: pretty;
 }
 
-.scroll-cue {
-  position: absolute;
-  bottom: 10vh;
-  left: 0;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: var(--ash);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.scroll-cue i {
-  width: 78px;
-  height: 1px;
-  background: currentColor;
-}
 .manifesto,
 .business,
 .profile,
@@ -500,16 +465,8 @@ html.lenis body {
   align-items: center;
 }
 .chapter {
-  grid-template-columns: 0.34fr 1fr 0.34fr;
+  grid-template-columns: 1fr 0.34fr;
   gap: 5vw;
-}
-.chapter-number,
-.project-index > span,
-.method-step > span {
-  color: var(--violet);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
 }
 .chapter-copy {
   max-width: 720px;
@@ -527,9 +484,9 @@ html.lenis body {
   text-wrap: balance;
 }
 
-.chapter-copy > p:not(.eyebrow),
+.chapter-copy > p,
 .project-copy > p,
-.challenge-response > p:not(.eyebrow):not(.approach),
+.challenge-response > p:not(.approach),
 .method-step > p {
   max-width: 630px;
   margin: 0 0 30px;
@@ -538,12 +495,6 @@ html.lenis body {
   line-height: 1.55;
 }
 
-.chapter-note {
-  color: var(--ash);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 .chapter-symbol {
   justify-self: end;
   color: rgb(255 255 255 / 16%);
@@ -566,20 +517,13 @@ html.lenis body {
   border: 0;
   flex-direction: column;
 }
-.challenge-options legend {
-  margin-bottom: 28px;
-  color: var(--ash);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .challenge-option {
   position: relative;
   display: grid;
   padding: 18px 0;
   cursor: pointer;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 1fr;
   color: var(--ash);
   font-size: clamp(18px, 1.7vw, 25px);
   transition:
@@ -592,7 +536,7 @@ html.lenis body {
   color: var(--white);
   transform: translateX(8px);
 }
-.challenge-option.is-selected span:first-of-type {
+.challenge-option.is-selected {
   color: var(--violet);
 }
 .challenge-option input {
@@ -620,99 +564,33 @@ html.lenis body {
 }
 .approach span,
 .project dt,
-.method-step small {
-  color: var(--amber);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
 .approach strong {
   font-size: clamp(18px, 2vw, 27px);
   font-weight: 400;
 }
 
 .project {
-  grid-template-columns: minmax(180px, 0.34fr) minmax(0, 1fr);
-  gap: 8vw;
-}
-.project-index {
-  align-self: start;
-  padding-top: 10vh;
-}
-.project-index > span {
-  display: block;
-  margin-bottom: 20px;
-  font-size: clamp(52px, 6vw, 92px);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-.project-index p {
-  max-width: 160px;
-  color: var(--ash);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  line-height: 1.5;
-  text-transform: uppercase;
+  grid-template-columns: minmax(0, 1fr);
 }
 .project-copy {
   max-width: 850px;
 }
-.project-benefit {
-  color: var(--white) !important;
-  font-size: clamp(24px, 2.7vw, 40px) !important;
-  line-height: 1.25 !important;
-}
-.project dl {
-  display: grid;
-  margin: 44px 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 36px;
-}
-.project dt {
-  margin-bottom: 10px;
-}
-.project dd {
-  margin: 0;
-  color: var(--mist);
-  line-height: 1.5;
-}
-.project details,
 .faq-list details {
   border-top: 1px solid rgb(255 255 255 / 18%);
 }
-.project details {
-  max-width: 650px;
-}
-.project summary,
 .faq-list summary {
   cursor: pointer;
   list-style: none;
 }
-.project summary::-webkit-details-marker,
 .faq-list summary::-webkit-details-marker {
   display: none;
 }
-.project summary {
-  display: flex;
-  padding: 22px 0;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--white);
-}
-.project details[open] summary span,
 .faq-list details[open] summary i {
   transform: rotate(45deg);
 }
-.project details > p,
 .faq-list details > p {
   color: var(--mist);
   line-height: 1.65;
-}
-.project details small {
-  display: block;
-  padding-bottom: 24px;
-  color: var(--ash);
 }
 
 .method-steps {
@@ -720,7 +598,7 @@ html.lenis body {
 }
 .method-step {
   min-height: 74vh;
-  grid-template-columns: 0.2fr 0.55fr 0.75fr 0.35fr;
+  grid-template-columns: 0.9fr 1.1fr;
   gap: 4vw;
 }
 .method-step h3 {
@@ -751,13 +629,6 @@ html.lenis body {
   border-radius: 24px;
   object-fit: cover;
   filter: saturate(0.78) contrast(1.08);
-}
-.profile-portrait figcaption {
-  margin-top: 14px;
-  color: var(--ash);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .profile-copy {
   max-width: 760px;
@@ -793,14 +664,10 @@ html.lenis body {
 .faq-list summary {
   display: grid;
   padding: 30px 0;
-  grid-template-columns: 60px 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 24px;
   font-size: clamp(19px, 2vw, 28px);
-}
-.faq-list summary > span {
-  color: var(--violet);
-  font-size: 12px;
 }
 .faq-list summary i {
   font-size: 26px;
@@ -810,7 +677,7 @@ html.lenis body {
 .faq-list details > p {
   max-width: 700px;
   margin: 0;
-  padding: 0 0 30px 84px;
+  padding: 0 0 30px;
 }
 
 .contact {
@@ -837,11 +704,11 @@ html.lenis body {
   width: var(--page);
   min-height: 240px;
   margin-inline: auto;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 40px;
   color: var(--ash);
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .site-footer p {
@@ -893,7 +760,7 @@ html.lenis body {
     flex-wrap: wrap;
   }
   .chapter {
-    grid-template-columns: 0.2fr 1fr;
+    grid-template-columns: 1fr;
   }
   .chapter-symbol {
     position: absolute;
@@ -929,9 +796,9 @@ html.lenis body {
     gap: 14px;
   }
   .header-cta {
-    min-height: 40px;
-    padding: 10px 13px;
-    font-size: 11px;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 15px;
   }
   .header-cta span {
     display: none;
@@ -950,9 +817,6 @@ html.lenis body {
   }
   .hero-intro {
     margin-top: 18vh;
-  }
-  .scroll-cue {
-    bottom: 7vh;
   }
   .manifesto,
   .business,
@@ -993,33 +857,11 @@ html.lenis body {
     align-content: center;
     gap: 32px;
   }
-  .chapter-number,
-  .method-step > span {
-    align-self: end;
-  }
   .chapter-symbol {
     bottom: 12vh;
   }
   .challenge-layout {
     min-height: 115vh;
-  }
-  .challenge-option {
-    grid-template-columns: 42px 1fr;
-  }
-  .project-index {
-    display: flex;
-    padding-top: 0;
-    align-items: baseline;
-    gap: 24px;
-  }
-  .project-index > span {
-    margin: 0;
-  }
-  .project-index p {
-    max-width: none;
-  }
-  .project dl {
-    grid-template-columns: 1fr;
   }
   .method-step {
     min-height: 72vh;
@@ -1032,11 +874,7 @@ html.lenis body {
   }
   .faq-list summary {
     padding: 24px 0;
-    grid-template-columns: 38px 1fr auto;
-    gap: 10px;
-  }
-  .faq-list details > p {
-    padding-left: 48px;
+    gap: 16px;
   }
   .contact h2 {
     font-size: clamp(52px, 16vw, 82px);
@@ -1057,8 +895,7 @@ html.lenis body {
   .particle-field,
   .reading-progress,
   .site-header,
-  .header-backdrop,
-  .scroll-cue {
+  .header-backdrop {
     display: none;
   }
   .scene,
@@ -1093,11 +930,11 @@ html.lenis body {
 .lia-tagline {
   margin-bottom: 26px;
   color: var(--amber);
-  font-size: 13px;
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
 }
-.lia-copy > p:not(.eyebrow):not(.lia-tagline) {
+.lia-copy > p:not(.lia-tagline) {
   margin: 0 0 36px;
   color: var(--mist);
   font-size: clamp(17px, 1.4vw, 20px);
@@ -1121,11 +958,6 @@ html.lenis body {
   grid-column: 1;
   margin-top: 24px;
   max-width: 460px;
-}
-.hero .scroll-cue {
-  left: auto;
-  right: 0;
-  bottom: 6vh;
 }
 .manifesto {
   min-height: 110vh;
@@ -1170,6 +1002,28 @@ html.lenis body {
     margin-left: 0;
   }
 }
+/* Phones: the copy lives in the lower half; a firmer scrim keeps it legible
+   while it scrolls up across the figure. */
+@media (max-width: 680px) {
+  .hero-intro,
+  .section-split > div,
+  .section-heading,
+  .chapter-copy,
+  .project-copy,
+  .challenge-response,
+  .profile-copy,
+  .method-step,
+  .faq-list,
+  .lia-copy,
+  .contact h2,
+  .contact-actions {
+    background: radial-gradient(
+      ellipse 130% 110% at center,
+      rgb(0 0 0 / 94%) 42%,
+      transparent 100%
+    );
+  }
+}
 @media (max-width: 680px) {
   .hero {
     min-height: 112svh;
@@ -1181,34 +1035,6 @@ html.lenis body {
   .hero-intro {
     margin-top: 320px;
     padding-bottom: 72px;
-  }
-  .hero .scroll-cue {
-    right: auto;
-    left: 0;
-    bottom: 28px;
-  }
-  .manifesto {
-    min-height: auto;
-  }
-  .section-split {
-    min-height: auto;
-    gap: 64px;
-  }
-  .manifesto-line {
-    min-height: auto;
-    padding-block: 80px 0;
-  }
-  .chapter {
-    min-height: 100vh;
-  }
-  .project {
-    min-height: 65vh;
-  }
-  .method-step {
-    min-height: 48vh;
-  }
-  .challenge-layout {
-    min-height: auto;
   }
 }
 @media (min-width: 981px) {
@@ -1222,7 +1048,7 @@ html.lenis body {
   .hero-intro {
     margin-top: 0;
   }
-  .hero-intro > p:not(.eyebrow) {
+  .hero-intro > p {
     font-size: 18px;
     margin-bottom: 24px;
   }
@@ -1267,4 +1093,62 @@ html.lenis body {
     grid-template-columns: 1fr;
     gap: 8vh;
   }
+  /* Projects: the book hangs top right and the atom bottom left, so the copy
+     takes the free lower right. */
+  .work .section-heading {
+    max-width: 44%;
+  }
+  .work .project {
+    align-items: end;
+    padding-left: 52%;
+    padding-bottom: 10vh;
+  }
+  /* Process, about and FAQ: the tree stands right, the copy keeps the left. */
+  .method .section-heading,
+  .method-steps,
+  .faq .section-heading,
+  .faq-list {
+    max-width: 42%;
+    margin-left: 0;
+  }
+  .method-step {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 14px;
+  }
+  .method-step h3 {
+    font-size: clamp(34px, 3.4vw, 52px);
+  }
+  /* Sections are centred blocks: narrowed ones must hug the left edge. */
+  .profile {
+    width: min(var(--page), 42%);
+    margin-left: calc((100% - var(--page)) / 2);
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 3vw;
+  }
+  .profile-copy h2 {
+    margin-bottom: 24px;
+    font-size: clamp(32px, 3.2vw, 48px);
+  }
+  /* Contact: the closing scene sits right of the copy, never behind it. */
+  .contact {
+    width: min(var(--page), 32%);
+    margin-left: calc((100% - var(--page)) / 2);
+  }
+  .contact h2 {
+    font-size: clamp(40px, 4.6vw, 72px);
+    line-height: 0.95;
+  }
+  .contact-actions {
+    margin-top: 40px;
+    flex-wrap: wrap;
+    gap: 22px;
+  }
+}
+
+.project-tags {
+  margin-top: 8px !important;
+  color: var(--amber) !important;
+  font-size: 18px !important;
+  font-weight: 600;
 }

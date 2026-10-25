@@ -27,6 +27,10 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * 0.075 per 60 Hz frame and the same time constant at any refresh rate.
  */
 const SCROLL_LERP = -Math.log(1 - 0.075);
+// Phones (same breakpoint as the layout CSS): the copy's top sits at 52% of the
+// viewport, below the figure in the upper half.
+const MOBILE_COPY_WIDTH = 680;
+const MOBILE_COPY_ALIGN = 0.52;
 
 function Arrow() {
   return <span aria-hidden="true">↗</span>;
@@ -85,7 +89,11 @@ export default function LandingPage() {
         stops = sections.map((section, index) => {
           if (index === 0) return 0;
           // data-particle-align: the copy's top sits at that viewport fraction.
-          const align = Number(section.dataset.particleAlign);
+          // On phones every beat does: the figure owns the top half, the copy
+          // the lower half, so text never sits on the complete figure.
+          const align =
+            Number(section.dataset.particleAlign) ||
+            (window.innerWidth <= MOBILE_COPY_WIDTH ? MOBILE_COPY_ALIGN : 0);
           const first = section.firstElementChild as HTMLElement | null;
           if (align && first)
             return layoutTop(first) - window.innerHeight * align;
@@ -237,7 +245,6 @@ export default function LandingPage() {
       <main id="conteudo">
         <section className="hero scene" id="inicio" data-particle-stage="0">
           <div className="hero-copy reveal">
-            <p className="kicker">Matemática · IA aplicada · Engenharia</p>
             <h1 id="hero-title">
               <span>Conecte</span>
               <span>o que sabe.</span>
@@ -246,9 +253,6 @@ export default function LandingPage() {
             </h1>
           </div>
           <div className="hero-intro reveal">
-            <p className="eyebrow">
-              INFORMAÇÃO DISPERSA. POSSIBILIDADES CONECTADAS.
-            </p>
             <p>{profile.intro}</p>
             <div className="hero-action">
               <a
@@ -260,10 +264,6 @@ export default function LandingPage() {
               </a>
             </div>
           </div>
-          <div className="scroll-cue" aria-hidden="true">
-            <span>Scroll para explorar</span>
-            <i />
-          </div>
         </section>
 
         <section
@@ -274,12 +274,10 @@ export default function LandingPage() {
           <div className="section-split reveal">
             <h2>Antes de construir, entender.</h2>
             <div>
-              <p className="eyebrow">01 / MANIFESTO</p>
               <p>
                 Dados, documentos e sistemas contam partes da mesma história. Eu
-                conecto essas partes, identifico o que trava o trabalho e
-                transformo o problema em software que possa ser usado, avaliado
-                e evoluído.
+                conecto essas partes e transformo o problema em software que
+                pode ser usado e evoluído.
               </p>
             </div>
           </div>
@@ -298,22 +296,18 @@ export default function LandingPage() {
 
         <section className="journey scene" id="trajetoria">
           <header className="section-heading reveal">
-            <p className="eyebrow">02 / TRAJETÓRIA</p>
             <h2>Três perspectivas. Um mesmo raciocínio.</h2>
           </header>
           <div className="chapter-list">
-            {chapters.map((chapter) => (
+            {chapters.map((chapter, index) => (
               <article
                 className="chapter reveal"
-                key={chapter.number}
-                data-particle-stage={2 + Number(chapter.number)}
+                key={chapter.title}
+                data-particle-stage={3 + index}
               >
-                <span className="chapter-number">{chapter.number}</span>
                 <div className="chapter-copy">
-                  <p className="eyebrow">{chapter.label}</p>
                   <h3>{chapter.title}</h3>
                   <p>{chapter.body}</p>
-                  <span className="chapter-note">{chapter.note}</span>
                 </div>
                 <span className="chapter-symbol" aria-hidden="true">
                   {chapter.symbol}
@@ -329,12 +323,13 @@ export default function LandingPage() {
           data-particle-stage="6"
         >
           <header className="section-heading reveal">
-            <p className="eyebrow">03 / DESAFIOS</p>
             <h2>Tecnologia começa pelo problema.</h2>
           </header>
           <div className="challenge-layout reveal">
             <fieldset className="challenge-options">
-              <legend>Escolha um ponto de partida</legend>
+              <legend className="visually-hidden">
+                Escolha um ponto de partida
+              </legend>
               {challenges.map((challenge) => (
                 <label
                   className={`challenge-option${challenge.id === challengeId ? " is-selected" : ""}`}
@@ -348,17 +343,14 @@ export default function LandingPage() {
                     onChange={() => setChallengeId(challenge.id)}
                     suppressHydrationWarning
                   />
-                  <span>{challenge.number}</span>
                   <span>{challenge.label}</span>
                 </label>
               ))}
             </fieldset>
             <div className="challenge-response" aria-live="polite">
-              <p className="eyebrow">UMA APLICAÇÃO POSSÍVEL</p>
               <h3>{selectedChallenge.title}</h3>
               <p>{selectedChallenge.body}</p>
               <p className="approach">
-                <span>Abordagem</span>
                 <strong>{selectedChallenge.approach}</strong>
               </p>
             </div>
@@ -367,41 +359,19 @@ export default function LandingPage() {
 
         <section className="work scene" id="projetos" data-particle-stage="7">
           <header className="section-heading reveal">
-            <p className="eyebrow">04 / TRABALHO SELECIONADO</p>
             <h2>Conhecimento que encontra uma forma útil.</h2>
           </header>
           <div className="project-list">
             {projects.map((project, index) => (
               <article
                 className="project reveal"
-                key={project.number}
+                key={project.title}
                 data-particle-stage={8 + index}
               >
-                <div className="project-index">
-                  <span>{project.number}</span>
-                  <p>{project.kind}</p>
-                </div>
                 <div className="project-copy">
                   <h3>{project.title}</h3>
                   <p>{project.description}</p>
-                  <p className="project-benefit">{project.benefit}</p>
-                  <dl>
-                    <div>
-                      <dt>Contribuição</dt>
-                      <dd>{project.contribution}</dd>
-                    </div>
-                    <div>
-                      <dt>Tecnologias</dt>
-                      <dd>{project.tags.join(" · ")}</dd>
-                    </div>
-                  </dl>
-                  <details>
-                    <summary>
-                      Ver contexto do projeto <span aria-hidden="true">+</span>
-                    </summary>
-                    <p>{project.detail}</p>
-                    <small>Projeto profissional · Código privado</small>
-                  </details>
+                  <p className="project-tags">{project.tags.join(" · ")}</p>
                 </div>
               </article>
             ))}
@@ -410,16 +380,13 @@ export default function LandingPage() {
 
         <section className="method scene" id="processo" data-particle-stage="10">
           <header className="section-heading reveal">
-            <p className="eyebrow">05 / PROCESSO</p>
             <h2>Do contexto à entrega.</h2>
           </header>
           <div className="method-steps">
             {steps.map((step) => (
-              <article className="method-step reveal" key={step.number}>
-                <span>{step.number}</span>
+              <article className="method-step reveal" key={step.title}>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
-                <small>{step.output}</small>
               </article>
             ))}
           </div>
@@ -428,15 +395,12 @@ export default function LandingPage() {
         <section className="profile scene" id="sobre" data-particle-stage="11">
           <figure className="profile-portrait reveal">
             <img src="/images/antonio-neto.jpg" alt="Retrato de Antonio Neto" />
-            <figcaption>Antonio Neto · IA & Software</figcaption>
           </figure>
           <div className="profile-copy reveal">
-            <p className="eyebrow">06 / QUEM CONSTRÓI</p>
             <h2>Matemática no raciocínio. Engenharia na execução.</h2>
             <p>
-              Trabalho na interseção entre pesquisa aplicada, inteligência
-              artificial e desenvolvimento de software — com curiosidade para
-              investigar e disciplina para transformar ideias em sistemas reais.
+              Pesquisa aplicada, IA e software, com curiosidade para investigar
+              e disciplina para entregar.
             </p>
             <div className="profile-links">
               <a href={profile.linkedin} target="_blank" rel="noreferrer">
@@ -451,14 +415,12 @@ export default function LandingPage() {
 
         <section className="faq scene" id="perguntas" data-particle-stage="12">
           <header className="section-heading reveal">
-            <p className="eyebrow">07 / PERGUNTAS</p>
             <h2>Clareza antes do compromisso.</h2>
           </header>
           <div className="faq-list reveal">
-            {faqs.map((faq, index) => (
+            {faqs.map((faq) => (
               <details key={faq.question}>
                 <summary>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
                   {faq.question}
                   <i aria-hidden="true">+</i>
                 </summary>
@@ -471,7 +433,6 @@ export default function LandingPage() {
         <section className="lia scene" id="lia" data-particle-stage="13">
           <div className="section-split reveal">
             <div className="lia-copy">
-              <p className="eyebrow">{lia.eyebrow}</p>
               <h2>{lia.title}</h2>
               <p className="lia-tagline">{lia.tagline}</p>
               <p>{lia.body}</p>
@@ -494,7 +455,6 @@ export default function LandingPage() {
           data-particle-align="0.56"
           tabIndex={-1}
         >
-          <p className="eyebrow reveal">09 / PRÓXIMA CONVERSA</p>
           <h2 className="reveal">O que você quer fazer funcionar?</h2>
           <div className="contact-actions reveal">
             <a
@@ -526,7 +486,6 @@ export default function LandingPage() {
           <BrandMark />
           <span>Antonio Neto</span>
         </a>
-        <p>IA aplicada e engenharia de software para problemas que importam.</p>
         <span>© {new Date().getFullYear()}</span>
       </footer>
     </div>

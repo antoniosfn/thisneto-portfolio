@@ -2,6 +2,11 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Revisão 8 — repouso e cena inteira
+
+- **Repouso** (`particles/stillness.ts`): o movimento involuntário (flutuação de vácuo do conjunto e de cada partícula, órbitas, balanço, água, fumaça, tombo dos triângulos) segue um relógio ambiente `u_clock`. Ele desacelera até parar em cerca de 0,5 s quando a forma está completa (progresso inteiro, sem explosão e sem a semente reunida) e retoma de onde parou ao começar uma transição. Hover, scroll, explosões e correntes não usam esse relógio. Só os estilhaços do fundo continuam à deriva.
+- **Cena final inteira:** `object-fit: contain` com 80% da tela e elevada 0,45 unidade: o casal e os bichos ficam acima do rodapé em qualquer largura. No celular não há mais panorâmica.
+
 ## Revisão 7 — matemática, marca, tipografia e corpo
 
 - **Auditoria matemática** (agente de revisão, resultados conferidos contra as referências): `stagger`, rampas da linha do tempo (janelas disjuntas, soma exata em 9), `axisAngle` (Rodrigues), SDFs de Quílez, `curl`, empacotamento alfa+emissão e a câmera conferem. Corrigido:

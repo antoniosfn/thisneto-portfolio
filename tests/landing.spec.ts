@@ -100,7 +100,7 @@ test("challenge selection updates the suggested application", async ({
   expect(errors).toEqual([]);
 });
 
-test("FAQ and project details work with the keyboard", async ({ page }) => {
+test("FAQ answers open with the keyboard", async ({ page }) => {
   await page.goto("/");
 
   const faq = page
@@ -112,13 +112,6 @@ test("FAQ and project details work with the keyboard", async ({ page }) => {
     page.getByText("A escolha depende do problema.", { exact: false }),
   ).toBeVisible();
 
-  const project = page.locator(".project details").first();
-  const summary = project.locator("summary");
-  await summary.focus();
-  await page.keyboard.press("Enter");
-  await expect(
-    project.getByText("Projeto profissional · Código privado"),
-  ).toBeVisible();
 });
 
 test("primary contact jump preserves keyboard focus", async ({ page }) => {
