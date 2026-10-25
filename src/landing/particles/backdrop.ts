@@ -6,10 +6,11 @@ import {
   ShaderMaterial,
   Vector2,
 } from "three";
-import { createPyramidGeometry } from "./particle-geometry";
-import { random } from "./particle-shapes";
-import { ease } from "./particle-motion";
-import { backdropVertex, particleFragment } from "./particle-shaders";
+import { createPyramidGeometry } from "./geometry";
+import { random } from "./forms/hash";
+import { ease } from "./motion";
+import { backdropVertex } from "./shaders/backdrop";
+import { particleFragment } from "./shaders/particle";
 
 /**
  * Dala's background layer: 250 triangles spread over the viewport (x, y in
@@ -24,7 +25,7 @@ const PALETTE = [
   [40, 116, 100],
   [164, 148, 175],
 ] as const;
-const SCALE = { desktop: 0.05, mobile: 0.075 } as const;
+const SCALE = { desktop: 0.05, mobile: 0.095 } as const;
 // Pyramid extent before the per-layer scale; keeps the screenshot-matched size.
 const EXTENT = 1.5;
 const MOUSE = { gain: 0.25, ease: 0.1 } as const;

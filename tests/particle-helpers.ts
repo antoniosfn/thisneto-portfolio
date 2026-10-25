@@ -18,7 +18,8 @@ export async function settleParticles(page: Page) {
         previous = current;
         return stable;
       },
-      { intervals: [500], timeout: 15000 },
+      // Slow emulated phones settle the 16 384-particle spring more slowly.
+      { intervals: [500], timeout: 30000 },
     )
     .toBeGreaterThanOrEqual(2);
 }
@@ -54,4 +55,25 @@ export async function changedPixels(page: Page, a: Buffer, b: Buffer) {
     },
     [a.toString("base64"), b.toString("base64")],
   );
+}
+
+/**
+ * Wait until adaptive quality stops stepping the pixel ratio down, so two
+ * captures of the same pose are rendered at the same resolution.
+ */
+export async function settleQuality(page: Page) {
+  const field = page.locator(".particle-field");
+  let previous = "";
+  let stable = 0;
+  await expect
+    .poll(
+      async () => {
+        const ratio = (await field.getAttribute("data-pixel-ratio")) ?? "";
+        stable = ratio === previous ? stable + 1 : 0;
+        previous = ratio;
+        return ratio === "1.00" ? 3 : stable;
+      },
+      { intervals: [2000], timeout: 30000 },
+    )
+    .toBeGreaterThanOrEqual(3);
 }

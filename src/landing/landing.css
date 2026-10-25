@@ -75,8 +75,7 @@ img {
   background: var(--void);
 }
 
-.particle-field,
-.grain {
+.particle-field {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -89,12 +88,6 @@ img {
   background: #000;
 }
 
-.grain {
-  z-index: -2;
-  opacity: 0.12;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.94' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-  mix-blend-mode: soft-light;
-}
 
 .reading-progress {
   position: fixed;
@@ -973,7 +966,6 @@ html.lenis body {
 
 @media print {
   .particle-field,
-  .grain,
   .reading-progress,
   .site-header,
   .header-backdrop,
@@ -993,6 +985,34 @@ html.lenis body {
     opacity: 1 !important;
     visibility: visible !important;
   }
+}
+
+/* Lia: the figure stands right of the copy; on small screens it is behind. */
+.lia {
+  display: grid;
+  min-height: 130vh;
+  align-items: center;
+}
+.lia-copy {
+  max-width: 560px;
+}
+.lia h2 {
+  margin-bottom: 18px;
+  font-size: clamp(54px, 7vw, 112px);
+  line-height: 0.92;
+}
+.lia-tagline {
+  margin-bottom: 26px;
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.lia-copy > p:not(.eyebrow):not(.lia-tagline) {
+  margin: 0 0 36px;
+  color: var(--mist);
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.55;
 }
 
 /* Reference rhythm: the form owns the right side; prose follows the headline. */
@@ -1028,7 +1048,8 @@ html.lenis body {
   min-height: 30vh;
 }
 .chapter {
-  min-height: 56vh;
+  /* Each figure holds while its chapter is read; changes are spaced out. */
+  min-height: 112vh;
 }
 .method-step {
   min-height: 42vh;
@@ -1042,7 +1063,10 @@ html.lenis body {
 .hero-intro,
 .section-split > div,
 .project-copy,
-.challenge-response {
+.challenge-response,
+.profile-copy,
+.method-step,
+.faq-list {
   background: radial-gradient(
     ellipse at center,
     rgb(0 0 0 / 84%),
@@ -1085,7 +1109,9 @@ html.lenis body {
     min-height: auto;
     padding-block: 80px 0;
   }
-  .chapter,
+  .chapter {
+    min-height: 100vh;
+  }
   .project {
     min-height: 65vh;
   }

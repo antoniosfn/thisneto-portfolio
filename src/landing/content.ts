@@ -141,3 +141,12 @@ export const faqs = [
       "Os dois projetos profissionais têm código privado. No GitHub, compartilho estudos públicos de algoritmos, análise de dados e Machine Learning que complementam esta apresentação.",
   },
 ];
+
+/** Provisional copy: the closing figure of the field presents Lia. */
+export const lia = {
+  eyebrow: "08 / LIA",
+  title: "Conheça a Lia.",
+  tagline: "UMA AGENTE DE IA PARA EMPRESAS.",
+  body: "Tudo o que veio antes converge aqui: matemática, engenharia e IA aplicada reunidas em uma agente pensada para colocar o conhecimento da sua empresa para trabalhar.",
+  invitation: "Quero conhecer a Lia",
+};
