@@ -140,9 +140,30 @@ export function decodeForms(buffer: ArrayBuffer): FormData[] {
   });
 }
 
-export async function loadForms(signal?: AbortSignal) {
+/**
+ * Fetch and decode the forms, reporting received bytes as a fraction. When
+ * the server compresses the file, Content-Length counts compressed bytes
+ * while the stream yields decompressed ones: the fraction is then capped
+ * just below 1 until the download ends.
+ */
+export async function loadForms(signal?: AbortSignal, onProgress?: (fraction: number) => void) {
   // Revalidate (ETag): a rebuilt forms file is never served stale.
   const response = await fetch(FORMS_URL, { signal, cache: "no-cache" });
   if (!response.ok) throw new Error(`Forms file: HTTP ${response.status}`);
-  return decodeForms(await response.arrayBuffer());
+  const total = Number(response.headers.get("content-length"));
+  if (!onProgress || !response.body || !total) return decodeForms(await response.arrayBuffer());
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    onProgress(Math.min(0.98, received / total));
+  }
+  const bytes = new Uint8Array(received);
+  chunks.reduce((offset, chunk) => (bytes.set(chunk, offset), offset + chunk.length), 0);
+  onProgress(1);
+  return decodeForms(bytes.buffer);
 }

@@ -2,6 +2,30 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Tela de loading
+
+`src/landing/Loader.tsx` e `src/landing/loading.ts`.
+
+Pesquisa no Refero:
+- **Screens:** os loadings reais (Netflix, Luma, Riverside, Open) são um único indicador no centro de um canvas vazio.
+- **Estilos:**
+  - Active Theory é a base: preto puro, UI mínima na periferia, luz só nas partículas.
+  - Do Regisgrumberg vem um emblema central único.
+  - Do Midjourney vem a imagem que se renderiza enquanto você espera.
+
+Como funciona:
+- A marca do portfólio (os três triângulos) se monta com 240 fragmentos triangulares vazados, as mesmas partículas do campo, na proporção do progresso real.
+- O progresso vem dos bytes do `forms.bin` lidos em streaming (85%), e os dois primeiros quadros do campo fecham o resto.
+- O contador fica no canto inferior direito, em numerais tabulares, com o nome no canto esquerdo.
+- Aos 100%, os fragmentos se dispersam para fora enquanto o campo entra.
+- **Fica no mínimo 0,9 s na tela:** quem volta com cache ainda vê a marca se formar.
+- **Garantias:**
+  - sai em no máximo 12 s, por JavaScript, e em 14 s por CSS, se o script falhar;
+  - sem JavaScript, um `<noscript>` esconde a tela;
+  - sem WebGL, sai assim que o campo desiste.
+- O scroll fica travado durante o loading (`html.is-loading`).
+- O tempo usa `performance.now()`, então o loading sai mesmo quando a página congela o relógio de animação.
+
 ## Revisão 6 — definição, hover 3D, formas novas e a Lia
 
 Pedido do Antonio (24/10/2026), com 14 imagens de referência, guardadas em [reference/v6-targets](reference/v6-targets). As capturas de antes e depois estão em [reference/v6-before](reference/v6-before) e [reference/v6-after](reference/v6-after), geradas por `node scripts/capture-stages.mts <pasta>`.

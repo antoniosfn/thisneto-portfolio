@@ -181,3 +181,21 @@ test("page has no failed local assets and captures visual evidence", async ({
   await page.screenshot({ path: testInfo.outputPath("projects.png") });
   expect(failures).toEqual([]);
 });
+
+test("loading screen counts up, lifts and gives the page back", async ({
+  page,
+}) => {
+  await page.goto("/", { waitUntil: "commit" });
+  const loader = page.locator(".site-loader");
+  await expect(loader).toBeAttached();
+  await expect(page.locator("html")).toHaveClass(/is-loading/);
+  // It lifts once the field has drawn, and the page scrolls again.
+  await expect(loader).toHaveCount(0, { timeout: 20000 });
+  await expect(page.locator("html")).not.toHaveClass(/is-loading/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Conecte o que sabe. Construa o que falta.",
+    }),
+  ).toBeVisible();
+});

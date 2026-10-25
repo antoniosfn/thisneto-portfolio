@@ -31,6 +31,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Without JavaScript nothing loads behind the loading screen: skip it. */}
+        <noscript>
+          <style>{".site-loader{display:none}"}</style>
+        </noscript>
       </head>
       <body>{children}</body>
     </html>

@@ -16,6 +16,7 @@ import {
   projects,
   steps,
 } from "./content";
+import Loader from "./Loader";
 import ParticleField, { type ParticleController } from "./ParticleField";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -190,6 +191,7 @@ export default function LandingPage() {
       </a>
       <div className="reading-progress" ref={progress} aria-hidden="true" />
       <ParticleField controller={particleController} />
+      <Loader />
 
       <div className="header-backdrop" ref={headerBackdrop} aria-hidden="true">
         <div />
