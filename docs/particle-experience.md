@@ -2,6 +2,53 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Revisão 6 — definição, hover 3D, formas novas e a Lia
+
+Pedido do Antonio (24/10/2026), com 14 imagens de referência, guardadas em [reference/v6-targets](reference/v6-targets). As capturas de antes e depois estão em [reference/v6-before](reference/v6-before) e [reference/v6-after](reference/v6-after), geradas por `node scripts/capture-stages.mts <pasta>`.
+
+### O que mudou
+
+| Pedido | Solução |
+| --- | --- |
+| Hover preso ao mouse, sem profundidade | O ponteiro vira um raio 3D. Uma passada de sonda grava num pixel, com blending MIN, a profundidade da partícula mais próxima do raio: a superfície da frente da figura. Só a camada nessa profundidade reage, abrindo uma cratera ao longo do raio. Fora da figura, nada se mexe (`particles/hover.ts`, `shaders/hover.ts`). |
+| Baixa definição, cinza sob o mouse | Pixel ratio adaptativo de até 2 (até 1,5 no celular), que só desce, em degraus, se o quadro passar de 19 ms (`quality.ts`). 16 384 partículas (antes 10 000). O hover deixou de misturar cinza: agora clareia. |
+| Saturação | Ganho de saturação de 1,32 no fragmento e emissão por partícula no canal alfa do atlas de cor. O bloom subiu o limiar para 0,42, para que só os pontos emissivos brilhem e a forma densa não vire uma massa branca. |
+| Preto AMOLED | A última passada zera tudo abaixo de 3/255. O teste `background is true black` confere que não sobra névoa quase preta. |
+| Movimento de vácuo | Flutuação do campo inteiro em 0,21, 0,33 e 0,47 Hz (`motion.ts`, `vacuum`), deriva lenta por partícula e deriva dos estilhaços do fundo. |
+| Fragmentos espalhados por pouco tempo, depois fluxo organizado | Nuvem do manifesto mais curta (1,15 → 1,45). Em qualquer transição ou explosão, o alvo segue uma corrente de curl noise, ponderada por `st·(1−st)`. |
+| Figuras da Trajetória antes, maiores e mais espaçadas | Cada forma completa antes de o capítulo centralizar (por exemplo, Lorenz em 2,15 → 2,75). Escalas +15–20%. Capítulos com 112vh no desktop e 100vh no celular. |
+| Cubo maior | Escala de 0,46 para 0,6. Ficou sem linhas de luz, que engrossavam as barras. |
+| Grandes no celular | Fator de 3,0 (antes 2,2), partículas 1,5× e fundo 0,11 (antes 0,075). |
+| Organização | `src/landing/particles/`: renderer, simulation, post, quality, hover, lines, timeline, `shaders/` e `forms/`, com um arquivo por forma. |
+
+### Fluxo
+
+| f | Seção | Forma |
+| --- | --- | --- |
+| 0–1 | Hero, Manifesto | Nó trefoil |
+| 2 | Linha do manifesto | Nuvem curta → corrente |
+| 3–5 | Trajetória | Lorenz, treliça, rede |
+| 6 | Desafios | Cubo |
+| 7 | Projetos (título) | O cubo explode; fila indiana até o centro, dois fios torcidos que se dividem em quente e frio |
+| 8–9 | Projeto 01, 02 | Livro semiaberto (vermelho, âmbar, branco, com fagulhas) no alto à direita e átomo (azul e roxo) embaixo à esquerda; uma folha vira por projeto |
+| 10 | Processo | Os dois se juntam no centro, descem e chovem para baixo, formando a semente; a Árvore da Vida cresce de dentro para fora, em espiral de galáxia |
+| 11–12 | Quem constrói, FAQ | Árvore com as 10 sefirot e os 22 caminhos |
+| 13–14 | Lia, Contato | A figura da Lia |
+
+### Formas novas
+
+Cada forma foi reconstruída a partir da imagem correspondente, seguindo o método da skill `img2threejs`: análise da imagem do geral para o detalhe, lista dos traços que definem a identidade, construção em passes e comparação de cada render com a referência. O pipeline de estado e gates da skill (material PBR, rig, CS2) não se aplica a amostras de partículas e não foi usado.
+
+- **Fluxo** (`forms/stream.ts`): caminho calculado no shader, porque as pontas seguem o livro e o átomo em qualquer layout.
+- **Livro** (`forms/book.ts`): a folha de cima de cada lado é superfície; o bloco embaixo aparece pelas linhas empilhadas da cabeça, do pé e da borda. Tem linhas de texto, capa vermelha e uma coluna de fagulhas que sobe do sulco.
+- **Átomo** (`forms/atom.ts`): núcleo de poliedros em cristal, três órbitas de 2,8 : 1 a 60° uma da outra e cinco elétrons com cauda de cometa. Livro e átomo giram para encarar a câmera (`u_bookFace`, `u_atomFace`).
+- **Árvore** (`forms/tree.ts`): copa e raízes crescidas por colonização de espaço (Runions, 2007), tronco que se alarga em direção às raízes e galhos coloridos por lado (dourado e violeta à esquerda, azul e teal à direita). Sefirot como estrelas tetraédricas dentro de icosaedros. O rank de chegada é o comprimento do caminho até a semente.
+- **Lia** (`forms/woman.ts`): corpo por SDF (união suave de elipsoides e cápsulas afiladas, cânone de 8 cabeças), cabelo em mechas esvoaçantes, 7 chakras, dois anéis e uma aura. Partículas menores e malha de linhas de luz (`FORM_LOOK`). É estilizada: uma imagem gerada por IA tem detalhe anatômico que 16 mil partículas não reproduzem.
+
+O alvo também é animado: órbitas, elétrons, folha virando, fagulhas, cabelo, chakras e anéis (`shaders/motion.ts`). Por isso as linhas de luz, que leem as posições simuladas, acompanham o movimento.
+
+`?f=10.5` na URL fixa o campo nesse progresso de seção, para revisão.
+
 ## Revisão 5 — brilho e paleta
 
 O brilho estava intenso e o branco dominava. Medimos isso nas capturas: fração quase branca dos pixels acesos (mínimo dos canais > 0.78), saturação média, brilho médio e área acesa, no recorte de cada forma.

@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import type { ParticlePose } from "./particle-timeline";
+import type { ParticlePose } from "./timeline";
 
 export const STEP = 1 / 60;
 
@@ -23,13 +23,19 @@ export function ease(perFrame: number, frames: number) {
 export function createPose(): ParticlePose {
   return {
     progress: 0,
-    progress2: 0,
     explode: 0,
+    explodeMix: 0,
+    seed: 0,
+    page: 0,
+    factor: 0,
     offset: [0, 0, 0],
     rotation: [0, 0, 0],
-    factor: 0,
+    book: [0, 0, 0, 1],
+    atom: [0, 0, 0, 1],
   };
 }
+
+const SCALARS = ["progress", "explode", "explodeMix", "seed", "page", "factor"] as const;
 
 /** Move the rendered pose toward the scroll target, as Dala's uniforms do. */
 export function easePose(
@@ -39,14 +45,37 @@ export function easePose(
 ) {
   const k = ease(POSE_EASE, frames),
     r = ease(ROTATION_EASE, frames);
-  current.progress += (target.progress - current.progress) * k;
-  current.progress2 += (target.progress2 - current.progress2) * k;
-  current.explode += (target.explode - current.explode) * k;
-  current.factor += (target.factor - current.factor) * k;
+  for (const key of SCALARS) current[key] += (target[key] - current[key]) * k;
   for (let i = 0; i < 3; i++) {
     current.offset[i] += (target.offset[i] - current.offset[i]) * k;
     current.rotation[i] += (target.rotation[i] - current.rotation[i]) * r;
   }
+  for (let i = 0; i < 4; i++) {
+    current.book[i] += (target.book[i] - current.book[i]) * k;
+    current.atom[i] += (target.atom[i] - current.atom[i]) * k;
+  }
+}
+
+/**
+ * Involuntary float, as in a vacuum: a slow sway of the whole field on
+ * incommensurate frequencies (0.21, 0.33, 0.47 Hz), so it never visibly
+ * repeats. Applied on top of the eased pose.
+ */
+export function vacuum(pose: ParticlePose, seconds: number): ParticlePose {
+  const w = (hz: number, phase: number) => Math.sin(seconds * hz * 2 * Math.PI + phase);
+  return {
+    ...pose,
+    offset: [
+      pose.offset[0] + 0.05 * w(0.21, 0.4),
+      pose.offset[1] + 0.08 * w(0.33, 1.3),
+      pose.offset[2] + 0.06 * w(0.47, 2.1),
+    ],
+    rotation: [
+      pose.rotation[0] + 0.04 * w(0.33, 0.7),
+      pose.rotation[1] + 0.04 * w(0.21, 2.6),
+      pose.rotation[2] + 0.03 * w(0.47, 4.2),
+    ],
+  };
 }
 
 /**

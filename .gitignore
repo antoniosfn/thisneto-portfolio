@@ -45,3 +45,7 @@ playwright-report/
 __pycache__/
 .cache/
 artifacts/
+
+# Review captures (large; regenerate with scripts/capture-stages.mts)
+docs/reference/v6-before/
+docs/reference/v6-after/

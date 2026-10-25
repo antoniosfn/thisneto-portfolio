@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Vector2 } from "three";
-import { ease } from "./particle-motion";
+import { ease } from "./motion";
 
 /**
  * Dala's particle camera, as constructed in its bundle: a 50° vertical field of
@@ -10,8 +10,6 @@ import { ease } from "./particle-motion";
  */
 export const CAMERA_DISTANCE = 10;
 export const CAMERA_FOV = 50;
-/** Dala's particle object sits at y = −1.19 in front of the camera. */
-export const OBJECT_Y = -1.19;
 const PARALLAX = { x: 0.05, y: -0.075, ease: 0.1 } as const;
 
 export function createParticleCamera() {

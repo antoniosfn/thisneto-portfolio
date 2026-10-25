@@ -1,0 +1,46 @@
+/**
+ * Pixel ratio that keeps the field fluid. It starts sharp (up to 2 on dense
+ * screens; 1.5 on phones, whose GPUs are smaller) and steps down while the
+ * average frame stays above budget. It never steps back up, so the field
+ * does not oscillate between sharp and soft.
+ */
+const STEPS = [2, 1.5, 1.25, 1] as const;
+const BUDGET_MS = 19; // ~52 fps
+const WINDOW = 90; // frames averaged before deciding
+// A 50 Hz screen or a 30 fps power saver is slow by design, not by load:
+// only step down when frames run this much slower than the best seen.
+const SLOWDOWN = 1.3;
+
+export class AdaptiveQuality {
+  private samples = 0;
+  private total = 0;
+  private index: number;
+  private ceiling: number;
+  private best = Infinity;
+
+  constructor(devicePixelRatio: number, mobile: boolean) {
+    const start = Math.min(devicePixelRatio, mobile ? 1.5 : 2);
+    this.index = STEPS.findIndex((step) => step <= start + 1e-6);
+    if (this.index < 0) this.index = STEPS.length - 1;
+    this.ceiling = start;
+  }
+
+  get ratio() {
+    return Math.min(this.ceiling, STEPS[this.index]);
+  }
+
+  /** Record one frame; true when the ratio just dropped. */
+  sample(milliseconds: number) {
+    // Long gaps are tab switches or hitches, not rendering cost.
+    if (milliseconds > 100) return false;
+    this.total += milliseconds;
+    if (++this.samples < WINDOW) return false;
+    const average = this.total / this.samples;
+    this.samples = this.total = 0;
+    this.best = Math.min(this.best, average);
+    const budget = Math.max(BUDGET_MS, this.best * SLOWDOWN);
+    if (average <= budget || this.index >= STEPS.length - 1) return false;
+    this.index++;
+    return true;
+  }
+}

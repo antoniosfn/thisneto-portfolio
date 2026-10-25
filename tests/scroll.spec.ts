@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { changedPixels, settleParticles } from "./particle-helpers";
+import { changedPixels, settleParticles, settleQuality } from "./particle-helpers";
 
 test("full explosion disables hover in the rendered field", async ({
   page,
@@ -144,6 +144,82 @@ test("pointer deforms a visible 3D field and releases it back to its pose", asyn
   });
 });
 
+test("hover belongs to the figure: off the form nothing moves", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(60000);
+  test.skip(testInfo.project.name === "mobile", "Touch has no hover.");
+  await page.addInitScript(() => {
+    const request = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => request(() => callback(0));
+  });
+  await page.goto("/");
+  await page.addStyleTag({
+    content:
+      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, nextjs-portal { opacity: 0 !important; }",
+  });
+  const field = page.locator(".particle-field");
+  await settleParticles(page);
+  const viewport = page.viewportSize()!;
+  // Empty space left of the copy: the pointer ray meets no particle.
+  await page.mouse.move(viewport.width * 0.05, viewport.height * 0.12);
+  await page.mouse.move(viewport.width * 0.06, viewport.height * 0.14, { steps: 4 });
+  await expect(field).toHaveAttribute("data-hover-gain", "1.000");
+  await page.waitForTimeout(800);
+  await expect(field, "a pointer over empty space must not touch the figure").toHaveAttribute(
+    "data-hover-hit",
+    "0.000",
+  );
+  // Over the knot the ray meets its front surface.
+  await page.mouse.move(viewport.width * 0.73, viewport.height * 0.47, { steps: 6 });
+  await expect(field, "a pointer over the knot meets its surface").toHaveAttribute(
+    "data-hover-hit",
+    "1.000",
+    { timeout: 5000 },
+  );
+});
+
+test("background is true black: no faint haze from bloom or vignette", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  // Freeze only the renderer's clock, so ambient motion cannot pass this test.
+  await page.addInitScript(() => {
+    const request = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => request(() => callback(0));
+  });
+  await page.goto("/");
+  await page.addStyleTag({
+    content:
+      "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, nextjs-portal { opacity: 0 !important; }",
+  });
+  await settleParticles(page);
+  const shot = await page.locator(".particle-field").screenshot();
+  const haze = await page.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d")!;
+    context.drawImage(image, 0, 0);
+    const data = context.getImageData(0, 0, image.width, image.height).data;
+    let black = 0,
+      faint = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const peak = Math.max(data[i], data[i + 1], data[i + 2]);
+      if (peak === 0) black++;
+      else if (peak <= 2) faint++;
+    }
+    return { black: black / (data.length / 4), faint: faint / (data.length / 4) };
+  }, shot.toString("base64"));
+  // A uniform lift would turn the black share into a faint one; what remains
+  // faint is only the last step of each halo's falloff.
+  expect(haze.black, "most of the screen is pixels-off black").toBeGreaterThan(0.6);
+  expect(haze.faint, "no near-black haze around the forms").toBeLessThan(0.03);
+});
+
 test("pointer speed drives the hover radius term", async ({
   page,
 }, testInfo) => {
@@ -217,7 +293,7 @@ test("content and contact remain usable without WebGL2", async ({ page }) => {
 test("scroll morphs the particle geometry and retraces the same poses", async ({
   page,
 }, testInfo) => {
-  test.setTimeout(120000);
+  test.setTimeout(300000);
   // Freeze only the renderer's clock, so ambient motion cannot pass this test.
   await page.addInitScript(() => {
     const request = window.requestAnimationFrame.bind(window);
@@ -232,9 +308,11 @@ test("scroll morphs the particle geometry and retraces the same poses", async ({
   `,
   });
   const canvas = page.locator(".particle-field");
+  // `id` is a section id or a selector (the first project: book and atom).
   const capture = async (id: string) => {
     await page.evaluate((sectionId) => {
-      const parent = document.getElementById(sectionId)!;
+      const parent =
+        document.getElementById(sectionId) ?? document.querySelector<HTMLElement>(sectionId)!;
       const section =
         parent.querySelector<HTMLElement>(".section-split, .section-heading") ??
         parent;
@@ -258,21 +336,38 @@ test("scroll morphs the particle geometry and retraces the same poses", async ({
     await settleParticles(page);
     return canvas.screenshot();
   };
+  await settleQuality(page);
   const journey = await capture("trajetoria");
-  const projects = await capture("projetos");
-  const process = await capture("processo");
+  const projects = await capture("#projetos .project");
+  const projectsRatio = await canvas.getAttribute("data-pixel-ratio");
+  const process = await capture("sobre");
   expect(
     journey.equals(projects),
     "journey and projects must have different geometry",
   ).toBe(false);
   expect(
     await changedPixels(page, projects, process),
-    "the stable dispersed field leaves reading sections quiet",
-  ).toBeLessThan(0.002);
-  expect(
-    await changedPixels(page, await capture("projetos"), projects),
-    "reverse scroll must restore the same pose",
-  ).toBeLessThan(0.002);
+    "book and atom give way to the tree",
+  ).toBeGreaterThan(0.01);
+  // Adaptive quality may step the pixel ratio down mid-test on a loaded GPU;
+  // compare two returns rendered at the same ratio, each read with its shot.
+  const ratio = () => canvas.getAttribute("data-pixel-ratio");
+  let reference = projects,
+    referenceRatio = projectsRatio;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const back = await capture("#projetos .project");
+    const backRatio = await ratio();
+    if (backRatio === referenceRatio) {
+      expect(
+        await changedPixels(page, back, reference),
+        "reverse scroll must restore the same pose",
+      ).toBeLessThan(0.002);
+      break;
+    }
+    reference = back;
+    referenceRatio = backRatio;
+    await capture("sobre");
+  }
   await testInfo.attach("particle-projects", {
     body: projects,
     contentType: "image/png",

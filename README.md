@@ -25,7 +25,7 @@ Vite: http://127.0.0.1:5173. Os dois caminhos renderizam o mesmo componente `src
 npm run particles
 ```
 
-Gera `public/particles/forms.bin` a partir das malhas em `src/landing/particle-shapes.ts`. O arquivo é determinístico e versionado; rode o comando sempre que alterar uma forma. Detalhes em `docs/particle-experience.md`.
+Gera `public/particles/forms.bin` a partir das formas em `src/landing/particles/forms/` (um arquivo por forma). O arquivo é determinístico e versionado; rode o comando sempre que alterar uma forma. Para revisar uma forma, abra o site com `?f=<progresso>` (por exemplo `?f=11.5` para a Árvore da Vida); `node scripts/capture-stages.mts <pasta>` captura todos os estágios. Detalhes em `docs/particle-experience.md`.
 
 ## Builds
 

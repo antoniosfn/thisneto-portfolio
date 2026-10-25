@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useRef, type MutableRefObject } from "react";
-import { loadForms } from "./particle-forms-file";
-import { createParticleRenderer } from "./particle-renderer";
+import { loadForms } from "./particles/forms-file";
+import { createParticleRenderer } from "./particles/renderer";
 
 export type ParticleController = {
   /** Section progress f: stage index + scrolled fraction of it. */
   progress: number;
 };
+
+/** Review aid: `?f=10.5` pins the field at that section progress. */
+function pinnedProgress() {
+  const value = Number(new URLSearchParams(location.search).get("f"));
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
 
 export default function ParticleField({
   controller,
@@ -19,6 +25,7 @@ export default function ParticleField({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const abort = new AbortController();
+    const pinned = pinnedProgress();
     let dispose: (() => void) | undefined;
     // The precomputed forms arrive before the field starts; content never waits.
     loadForms(abort.signal)
@@ -26,7 +33,7 @@ export default function ParticleField({
         if (abort.signal.aborted) return;
         dispose = createParticleRenderer(
           canvas,
-          () => controller.current,
+          () => (pinned === undefined ? controller.current : { progress: pinned }),
           forms,
         );
       })

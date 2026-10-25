@@ -5,12 +5,13 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
-import { sectionProgress } from "./particle-timeline";
+import { sectionProgress } from "./particles/timeline";
 import { revealText } from "./text-reveal";
 import {
   challenges,
   chapters,
   faqs,
+  lia,
   profile,
   projects,
   steps,
@@ -353,8 +354,12 @@ export default function LandingPage() {
             <h2>Conhecimento que encontra uma forma útil.</h2>
           </header>
           <div className="project-list">
-            {projects.map((project) => (
-              <article className="project reveal" key={project.number}>
+            {projects.map((project, index) => (
+              <article
+                className="project reveal"
+                key={project.number}
+                data-particle-stage={8 + index}
+              >
                 <div className="project-index">
                   <span>{project.number}</span>
                   <p>{project.kind}</p>
@@ -386,7 +391,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="method scene" id="processo" data-particle-stage="8">
+        <section className="method scene" id="processo" data-particle-stage="10">
           <header className="section-heading reveal">
             <p className="eyebrow">05 / PROCESSO</p>
             <h2>Do contexto à entrega.</h2>
@@ -403,7 +408,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="profile scene" id="sobre" data-particle-stage="9">
+        <section className="profile scene" id="sobre" data-particle-stage="11">
           <figure className="profile-portrait reveal">
             <img src="/images/antonio-neto.jpg" alt="Retrato de Antonio Neto" />
             <figcaption>Antonio Neto · IA & Software</figcaption>
@@ -427,7 +432,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="faq scene" id="perguntas" data-particle-stage="10">
+        <section className="faq scene" id="perguntas" data-particle-stage="12">
           <header className="section-heading reveal">
             <p className="eyebrow">07 / PERGUNTAS</p>
             <h2>Clareza antes do compromisso.</h2>
@@ -446,15 +451,33 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="lia scene" id="lia" data-particle-stage="13">
+          <div className="section-split reveal">
+            <div className="lia-copy">
+              <p className="eyebrow">{lia.eyebrow}</p>
+              <h2>{lia.title}</h2>
+              <p className="lia-tagline">{lia.tagline}</p>
+              <p>{lia.body}</p>
+              <a
+                className="button button-primary"
+                href="#contato"
+                onClick={(event) => handleJump(event, "#contato")}
+              >
+                {lia.invitation} <Arrow />
+              </a>
+            </div>
+          </div>
+        </section>
+
         <section
           className="contact scene"
           id="contato"
-          data-particle-stage="11"
-          // Dala's footer copy starts just below the reformed logo (≈0.54 H).
+          data-particle-stage="14"
+          // The contact copy starts just below the middle of the screen.
           data-particle-align="0.56"
           tabIndex={-1}
         >
-          <p className="eyebrow reveal">08 / PRÓXIMA CONVERSA</p>
+          <p className="eyebrow reveal">09 / PRÓXIMA CONVERSA</p>
           <h2 className="reveal">O que você quer fazer funcionar?</h2>
           <div className="contact-actions reveal">
             <a

@@ -26,6 +26,9 @@ test("hero follows the reference language and exposes the core journey", async (
       name: "Conhecimento que encontra uma forma útil.",
     }),
   ).toBeAttached();
+  await expect(
+    page.locator("#lia").getByRole("heading", { name: "Conheça a Lia." }),
+  ).toBeAttached();
 });
 
 test("layout has no horizontal overflow at supported widths", async ({
