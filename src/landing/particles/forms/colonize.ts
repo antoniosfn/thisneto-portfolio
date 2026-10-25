@@ -101,7 +101,11 @@ export function colonize(options: Options) {
   return nodes;
 }
 
-/** Pipe model: a branch carries the cross-section of all it supports. */
+/**
+ * Pipe model: a branch carries the cross-section of all it supports.
+ * Exponent 2 preserves area (da Vinci), 3 is Murray's law; real trees measure
+ * 2.0–2.5. Below 2 the trunk fattens relative to the twigs.
+ */
 export function thicken(nodes: Branch[], tip: number, exponent: number) {
   for (let i = nodes.length - 1; i >= 0; i--) {
     const node = nodes[i];

@@ -90,7 +90,9 @@ export const atlas = /* glsl */ `
 vec4 slot(sampler2D atlas,vec2 coord,float k) {
   return texture2D(atlas,(coord+vec2(mod(k,GRID),floor(k/GRID)))/GRID);
 }
-// Dala's staggered delay: each particle departs by its rank r in [0, 1].
+// Dala's staggered delay: each particle departs by its rank r in [0, 1]; rank
+// r is in flight for t ∈ [d·r/(1+d), (1+d·r)/(1+d)], so with d = 5 the last
+// particle leaves at 5/6 and every rank has arrived at t = 1.
 const float MORPH_DELAY=5.;
 float stagger(float t,float d,float r) { return clamp(t*(1.+d)-d*r,0.,1.); }
 `;

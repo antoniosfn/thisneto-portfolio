@@ -161,7 +161,8 @@ export function sampleMesh(
     n.toArray(normals, i * 3);
     uv.toArray(uvs, i * 2);
   }
-  // Hexagonal-packing distance for `count` points on this area.
+  // Hexagonal packing: each point owns (√3/2)·r², so r = √(2A / (√3·N)).
+  // Greedy dart throwing reaches ~55% of that density: hence the shrink loop.
   const radius = Math.sqrt(
     (2 * surfaceArea(geometry)) / (Math.sqrt(3) * count),
   );

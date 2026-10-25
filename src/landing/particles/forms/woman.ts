@@ -36,20 +36,20 @@ function body(): Sdf {
     ellipsoid(HEAD, v(0.07, 0.096, 0.084)),
     ellipsoid(v(0, 0.77, 0.014), v(0.052, 0.05, 0.058)), // jaw
     roundCone(v(0, 0.69, -0.006), v(0, 0.76, 0), 0.034, 0.03), // neck
-    ellipsoid(v(0, 0.578, -0.006), v(0.15, 0.058, 0.07)), // shoulders
-    ellipsoid(v(0, 0.47, 0), v(0.118, 0.12, 0.074)), // ribcage
-    ellipsoid(v(0, 0.3, 0), v(0.07, 0.1, 0.056)), // waist
-    ellipsoid(v(0, 0.13, -0.006), v(0.168, 0.11, 0.086)), // pelvis
+    ellipsoid(v(0, 0.578, -0.006), v(0.17, 0.066, 0.08)), // shoulders
+    ellipsoid(v(0, 0.47, 0), v(0.135, 0.13, 0.088)), // ribcage
+    ellipsoid(v(0, 0.3, 0), v(0.092, 0.11, 0.07)), // waist
+    ellipsoid(v(0, 0.13, -0.006), v(0.19, 0.125, 0.1)), // pelvis
   ];
   for (const s of [-1, 1]) {
     shapes.push(
-      ellipsoid(v(s * 0.056, 0.47, 0.056), v(0.054, 0.05, 0.05)), // breast
-      roundCone(v(s * 0.155, 0.585, 0), v(s * 0.255, 0.34, 0.01), 0.034, 0.028),
-      roundCone(v(s * 0.255, 0.34, 0.01), v(s * 0.36, 0.12, 0.05), 0.027, 0.02),
+      ellipsoid(v(s * 0.06, 0.47, 0.064), v(0.06, 0.056, 0.056)), // breast
+      roundCone(v(s * 0.165, 0.585, 0), v(s * 0.265, 0.34, 0.01), 0.044, 0.036),
+      roundCone(v(s * 0.265, 0.34, 0.01), v(s * 0.36, 0.12, 0.05), 0.034, 0.025),
       ellipsoid(v(s * 0.388, 0.072, 0.066), v(0.024, 0.05, 0.013)), // palm
-      roundCone(v(s * 0.088, 0.08, 0), v(s * 0.05, -0.42, 0.005), 0.064, 0.041),
-      ellipsoid(v(s * 0.056, -0.56, -0.012), v(0.04, 0.1, 0.042)), // calf
-      roundCone(v(s * 0.05, -0.44, 0), v(s * 0.04, -0.86, -0.005), 0.041, 0.024),
+      roundCone(v(s * 0.095, 0.08, 0), v(s * 0.055, -0.42, 0.005), 0.082, 0.052),
+      ellipsoid(v(s * 0.058, -0.56, -0.012), v(0.05, 0.11, 0.052)), // calf
+      roundCone(v(s * 0.055, -0.44, 0), v(s * 0.042, -0.86, -0.005), 0.05, 0.03),
       roundCone(v(s * 0.04, -0.86, 0), v(s * 0.045, -0.97, 0.03), 0.024, 0.013),
     );
     // Fingers fanned slightly, palms open.
@@ -59,7 +59,7 @@ function body(): Sdf {
     }
     shapes.push(roundCone(v(s * 0.372, 0.08, 0.075), v(s * 0.35, 0.03, 0.09), 0.007, 0.005)); // thumb
   }
-  return smoothUnion(shapes, 0.026);
+  return smoothUnion(shapes, 0.034);
 }
 
 /** Skin colour: gold head and hands, red heart, violet torso, blue legs. */
@@ -132,7 +132,7 @@ const RINGS = [
 
 export function woman(count: number, seed: number) {
   const [nBody, nHair, nChakra, nRing, nShard] = budget(count, [66, 16, 5, 6, 7]);
-  const skinSamples = sampleSdf(body(), v(-0.5, -1, -0.2), v(0.5, 1, 0.2), nBody, 2.05, 300);
+  const skinSamples = sampleSdf(body(), v(-0.5, -1, -0.2), v(0.5, 1, 0.2), nBody, 2.6, 300);
   const hairPoints = hair(nHair);
   const chakraGeometry = merge(
     CHAKRAS.flatMap(([y, z, size]) => [

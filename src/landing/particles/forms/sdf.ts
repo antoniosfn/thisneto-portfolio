@@ -40,7 +40,11 @@ export function roundCone(a: Vector3, b: Vector3, ra: number, rb: number): Sdf {
   };
 }
 
-/** Polynomial smooth minimum: blends shapes into one continuous skin. */
+/**
+ * Polynomial smooth minimum (Quílez), folded pairwise: blends shapes into one
+ * continuous skin. The fold is order dependent where three shapes meet, which
+ * is tolerable for a figure; the exact alternative is −k·log Σ exp(−dᵢ/k).
+ */
 export function smoothUnion(shapes: Sdf[], k: number): Sdf {
   return (p) => {
     let d = shapes[0](p);

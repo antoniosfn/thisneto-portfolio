@@ -2,6 +2,20 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Revisão 7 — matemática, marca, tipografia e corpo
+
+- **Auditoria matemática** (agente de revisão, resultados conferidos contra as referências): `stagger`, rampas da linha do tempo (janelas disjuntas, soma exata em 9), `axisAngle` (Rodrigues), SDFs de Quílez, `curl`, empacotamento alfa+emissão e a câmera conferem. Corrigido:
+  - `quality.ts`: uma GPU presa a 33 ms desde o primeiro quadro nunca baixava a resolução, porque o "melhor quadro" era tomado como cadência da tela. Agora só conta como cadência se estiver perto do orçamento.
+  - hover: o termo de velocidade era `abs(max(Δx, Δy))`, assimétrico por direção. Passou a `max(|Δx|, |Δy|)`.
+  - mola: com atrito 0,892, `|λ| = √0,892` para qualquer k > 0,0035, então k só mudava o período. O atrito agora varia por partícula (0,88–0,905), o que de fato dá tempos de assentamento diferentes.
+  - loading: easing independente da taxa de quadros e limiares que chegam a 100%.
+  - comentários de derivação em `sampling`, `colonize`, `atom`, `common`, `sdf`.
+- **Árvore:** expoente do modelo de tubos 2,1 → 1,85 (tronco mais grosso em relação aos galhos), pontas 0,006 → 0,011, raio mínimo das barras 0,013, tronco alargado na base.
+- **Lia:** ombros, caixa torácica, cintura, quadril, braços e coxas 15–30% mais largos; união suave 0,026 → 0,034.
+- **Cena final:** `object-fit: cover` em qualquer tela: o fator passa a `max(largura visível / largura da cena, altura visível / altura da cena)` (`renderer.ts`). Em retrato a câmera atravessa a sobra.
+- **Marca:** sai o trio de triângulos; entra a semente que vira árvore (traço contínuo, semente âmbar, três nós violeta). Cabeçalho, rodapé, favicon e loading (`MARK_PATHS`) usam a mesma geometria.
+- **Tipografia:** League Spartan (títulos, rótulos, botões, pesos 600) e Inter (corpo, 400), ambas hospedadas em `public/fonts`. Tracking dos títulos de −0,05em para −0,03em, porque a Spartan já é fechada.
+
 ## Tela de loading
 
 `src/landing/Loader.tsx` e `src/landing/loading.ts`.

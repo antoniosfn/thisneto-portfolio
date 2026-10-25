@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link
           rel="preload"
-          href="/fonts/space-grotesk.woff2"
+          href="/fonts/league-spartan.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"

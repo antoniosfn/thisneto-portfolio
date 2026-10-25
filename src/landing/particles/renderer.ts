@@ -18,10 +18,10 @@ import type { ParticleController } from "../ParticleField";
 import { createBackdrop } from "./backdrop";
 import { createParticleCamera, frameCamera, parallaxCamera } from "./camera";
 import { createParticleData } from "./data";
-import { SCENE_WIDTH } from "./finale/build";
+import { SCENE_HEIGHT, SCENE_WIDTH } from "./finale/build";
 import { loadScene } from "./finale/file";
 import { DETAIL_DRAWN, createDetailLayer } from "./finale/layer";
-import { COUNT, FORM, FORM_LOOK } from "./forms/catalog";
+import { COUNT, FORM_LOOK } from "./forms/catalog";
 import type { FormData } from "./forms/compose";
 import { createPyramidGeometry } from "./geometry";
 import { createHoverProbe } from "./hover";
@@ -173,7 +173,8 @@ export function createParticleRenderer(
   const rotation4 = new Matrix4();
   const toCamera = new Vector3(),
     turn = new Quaternion();
-  let halfWidth = 1;
+  let halfWidth = 1,
+    coverFactor = 4.35;
   let layout: Layout = "desktop",
     disposed = false,
     lost = false,
@@ -191,6 +192,10 @@ export function createParticleRenderer(
     post.resize(width, height, quality.ratio);
     const extent = frameCamera(camera, width / height);
     halfWidth = extent.x / 2;
+    // The closing scene behaves like `object-fit: cover`: the larger of the
+    // two ratios fills the viewport in both axes (visible extent at z = 0 is
+    // 2·d·tan(fov/2) high, times the aspect wide).
+    coverFactor = Math.max(extent.x / SCENE_WIDTH, extent.y / SCENE_HEIGHT);
     layout = width < MOBILE_WIDTH ? "mobile" : width < TABLET_WIDTH ? "tablet" : "desktop";
     particles.count = DRAWN[layout];
     view.u_drawn.value = DRAWN[layout];
@@ -212,12 +217,13 @@ export function createParticleRenderer(
     easePose(pose, poseAt(progress, layout), posed ? frames : Infinity);
     posed = true;
     const shown = vacuum(pose, seconds);
-    if (layout === "mobile") {
-      // The closing scene is wider than a phone: the camera crosses it.
-      const scene = Math.max(0, Math.min(1, pose.progress - (FORM.finale - 1)));
-      const overhang = Math.max(0, (SCENE_WIDTH * pose.factor) / 2 - halfWidth);
-      shown.offset[0] -= overhang * Math.sin((seconds * 2 * Math.PI) / PAN_SECONDS) * scene;
-    }
+    // Into the closing scene the factor blends to the cover factor, so the
+    // picture spans the full width (landscape) or height (portrait).
+    pose.factor += (coverFactor - pose.factor) * pose.scene;
+    // In portrait the picture is wider than the screen: the camera crosses it.
+    const overhang = Math.max(0, (SCENE_WIDTH * pose.factor) / 2 - halfWidth);
+    if (overhang > 0)
+      shown.offset[0] -= overhang * Math.sin((seconds * 2 * Math.PI) / PAN_SECONDS) * pose.scene;
     shared.u_progress.value = pose.progress;
     shared.u_explode.value = pose.explode;
     shared.u_explodeMix.value = pose.explodeMix;
@@ -256,8 +262,8 @@ export function createParticleRenderer(
     view.u_pointer.value = pointer.isActive ? 1 : 0;
     // Hover fades out while the field is exploded: |explode − 1|.
     view.u_hoverGain.value = Math.abs(shared.u_explode.value - 1);
-    // Same term the shader adds to the hover radius: abs(max(Δx, Δy)).
-    publish("pointerSpeed", Math.abs(Math.max(pointer.delta.x, pointer.delta.y)));
+    // Same term the shader adds to the hover radius: max(|Δx|, |Δy|).
+    publish("pointerSpeed", Math.max(Math.abs(pointer.delta.x), Math.abs(pointer.delta.y)));
     publish("hoverGain", view.u_pointer.value * view.u_hoverGain.value);
     parallaxCamera(camera, pointer.isActive ? pointer.target : CENTER, frames);
     probe.update(camera, pointer.mouse, pointer.isActive, view.u_rayOrigin.value, view.u_rayDir.value);

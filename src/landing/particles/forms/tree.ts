@@ -17,7 +17,7 @@ import { merge, strut } from "./sampling";
 const SEED = new Vector3(...TREE_SEED).divideScalar(TREE_SCALE);
 const PERIWINKLE = BLUE.clone().lerp(VIOLET, 0.45).lerp(WHITE, 0.2);
 const TONES = [VIOLET, GOLD, TEAL, PERIWINKLE];
-const THICK = 0.034; // branches thicker than this read as trunk
+const THICK = 0.05; // branches thicker than this read as trunk
 
 /** Sefirot in the field frame, with their pillar (−1 left, 0 middle, 1 right). */
 const SEFIROT: [number, number, number][] = [
@@ -75,11 +75,13 @@ function grow() {
     bias: new Vector3(0, -0.2, 0),
     iterations: 200,
   });
-  thicken(crown, 0.006, 2.1);
-  thicken(roots, 0.006, 2.1);
+  // Pipe model (Shinozaki, 1964): a branch's cross-section is the sum of its
+  // children's; exponent 2 keeps area, below 2 fattens the trunk.
+  thicken(crown, 0.011, 1.85);
+  thicken(roots, 0.011, 1.85);
   // The trunk flares towards the roots, as in the reference.
   crown.forEach((node) => {
-    if (node.at.y < -0.05) node.radius = Math.max(node.radius, 0.05 + 0.06 * ((-0.05 - node.at.y) / 0.53));
+    if (node.at.y < -0.05) node.radius = Math.max(node.radius, 0.085 + 0.09 * ((-0.05 - node.at.y) / 0.53));
   });
   return { crown, roots };
 }
@@ -104,7 +106,7 @@ function segments(nodes: Branch[]) {
   const parts: BufferGeometry[] = [];
   nodes.forEach((node) => {
     if (node.parent < 0) return;
-    parts.push(strut(nodes[node.parent].at, node.at, Math.max(0.008, node.radius), 6));
+    parts.push(strut(nodes[node.parent].at, node.at, Math.max(0.013, node.radius), 7));
   });
   return merge(parts);
 }

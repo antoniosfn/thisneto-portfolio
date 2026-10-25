@@ -31,7 +31,8 @@ vec3 hover(vec3 world,vec4 rnd,float time,out float glow) {
   vec3 perp=rel-u_rayDir*t;
   float dist=length(perp);
   // Dala's speed term widens the reach while the pointer moves.
-  float radius=HOVER_RADIUS*(1.+min(abs(max(u_delta.x,u_delta.y)),2.)*.35);
+  // Pointer speed as the larger axis step, whatever the direction.
+  float radius=HOVER_RADIUS*(1.+min(max(abs(u_delta.x),abs(u_delta.y)),2.)*.35);
   float reach=1.-smoothstep(0.,radius,dist);
   float depth=exp(-max(0.,t-front)/HOVER_DEPTH);
   float w=reach*depth*u_hoverGain;

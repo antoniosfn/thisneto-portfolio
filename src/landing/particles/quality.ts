@@ -15,18 +15,16 @@ export class AdaptiveQuality {
   private samples = 0;
   private total = 0;
   private index: number;
-  private ceiling: number;
   private best = Infinity;
 
   constructor(devicePixelRatio: number, mobile: boolean) {
     const start = Math.min(devicePixelRatio, mobile ? 1.5 : 2);
     this.index = STEPS.findIndex((step) => step <= start + 1e-6);
     if (this.index < 0) this.index = STEPS.length - 1;
-    this.ceiling = start;
   }
 
   get ratio() {
-    return Math.min(this.ceiling, STEPS[this.index]);
+    return STEPS[this.index];
   }
 
   /** Record one frame; true when the ratio just dropped. */
@@ -38,7 +36,10 @@ export class AdaptiveQuality {
     const average = this.total / this.samples;
     this.samples = this.total = 0;
     this.best = Math.min(this.best, average);
-    const budget = Math.max(BUDGET_MS, this.best * SLOWDOWN);
+    // `best` only counts as the display's cadence when it is itself near
+    // budget; a GPU bound at 33 ms from the first frame is load, not cadence.
+    const cadence = this.best <= BUDGET_MS * 1.15 ? this.best : BUDGET_MS;
+    const budget = Math.max(BUDGET_MS, cadence * SLOWDOWN);
     if (average <= budget || this.index >= STEPS.length - 1) return false;
     this.index++;
     return true;

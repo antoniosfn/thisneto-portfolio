@@ -4,20 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import { loading } from "./loading";
 
 /**
- * Loading screen. The portfolio's mark — three right-pointing triangles —
- * assembles from small triangle fragments in step with the real download, on
- * the same black void as the field; at 100% the fragments scatter outwards as
- * the field flies in. Direction (Refero): Active Theory's void and peripheral
+ * Loading screen. The portfolio's mark — a seed growing into a tree — draws
+ * itself from small triangle fragments in step with the real download, on the
+ * same black void as the field; at 100% the fragments scatter outwards as the
+ * field flies in. Direction (Refero): Active Theory's void and peripheral
  * micro-UI, Regisgrumberg's single central emblem, Midjourney's image that
  * renders itself while you wait.
  */
 const FRAGMENTS = 240;
-// The mark's three triangles in its 24-unit box (see .brand-mark): left, top.
-const MARK = [
-  { left: 6, top: 0, color: "#8052ff" },
-  { left: 0, top: 6, color: "#ffffff" },
-  { left: 12, top: 12, color: "#ffb829" },
-] as const;
+/** The mark in its 24-unit box (see BrandMark): strokes as polylines. */
+const MARK_PATHS: { points: [number, number][]; color: string; weight: number }[] = [
+  { points: [[12, 17.4], [12, 11.2], [12, 3.6]], color: "#ffffff", weight: 3 },
+  { points: [[12, 11.2], [11.6, 9.2], [10.2, 8.1], [8.3, 6.9], [6.4, 5.6]], color: "#ffffff", weight: 2.4 },
+  { points: [[12, 11.2], [12.4, 9.2], [13.8, 8.1], [15.7, 6.9], [17.6, 5.6]], color: "#ffffff", weight: 2.4 },
+];
+const MARK_DOTS: { at: [number, number]; r: number; color: string; weight: number }[] = [
+  { at: [12, 19.8], r: 2.5, color: "#ffb829", weight: 2.6 },
+  { at: [6.4, 5.6], r: 1.6, color: "#8052ff", weight: 1 },
+  { at: [17.6, 5.6], r: 1.6, color: "#8052ff", weight: 1 },
+  { at: [12, 3.6], r: 1.6, color: "#8052ff", weight: 1 },
+];
 const MIN_VISIBLE_MS = 900; // a cached visit still sees the mark form
 const FAILSAFE_MS = 12000; // content never waits longer than this
 const EXIT_MS = 1100;
@@ -37,39 +43,67 @@ function hash(i: number, salt: number) {
   return v - Math.floor(v);
 }
 
-/** Fragments on the outline and inside of the mark's triangles. */
-function createFragments(): Fragment[] {
-  return Array.from({ length: FRAGMENTS }, (_, i) => {
-    const triangle = MARK[i % 3];
-    const corners = [
-      [triangle.left, triangle.top],
-      [triangle.left + 12, triangle.top + 6],
-      [triangle.left, triangle.top + 12],
-    ];
-    let a = hash(i, 1),
-      b = hash(i, 2);
-    if (hash(i, 3) < 0.72) {
-      // On an edge: the outline reads first, as the reference's wireframe.
-      const edge = Math.floor(hash(i, 4) * 3);
-      a = edge === 0 ? hash(i, 5) : edge === 1 ? 1 - hash(i, 5) : 0;
-      b = edge === 0 ? 0 : edge === 1 ? hash(i, 5) : 1 - hash(i, 5);
-    } else if (a + b > 1) {
-      a = 1 - a;
-      b = 1 - b;
+/** Point at arc-length fraction t of a polyline. */
+function along(points: [number, number][], t: number): [number, number] {
+  const lengths = points.slice(1).map(([x, y], k) => Math.hypot(x - points[k][0], y - points[k][1]));
+  const total = lengths.reduce((a, b) => a + b, 0);
+  let d = t * total;
+  for (let k = 0; k < lengths.length; k++) {
+    if (d <= lengths[k] || k === lengths.length - 1) {
+      const u = lengths[k] ? Math.min(1, d / lengths[k]) : 0;
+      const [ax, ay] = points[k],
+        [bx, by] = points[k + 1];
+      return [ax + (bx - ax) * u, ay + (by - ay) * u];
     }
-    const [p0, p1, p2] = corners;
-    const x = p0[0] + (p1[0] - p0[0]) * a + (p2[0] - p0[0]) * b;
-    const y = p0[1] + (p1[1] - p0[1]) * a + (p2[1] - p0[1]) * b;
+    d -= lengths[k];
+  }
+  return points[points.length - 1];
+}
+
+/**
+ * Fragments along the strokes (weighted by length) and filling the dots; the
+ * seed sets off first and the tree grows upwards from it, so the drawing
+ * reads as growth, not as random fill.
+ */
+function createFragments(): Fragment[] {
+  const pieces = [
+    ...MARK_PATHS.map((p) => ({ ...p, kind: "path" as const })),
+    ...MARK_DOTS.map((d) => ({ ...d, kind: "dot" as const })),
+  ];
+  const total = pieces.reduce((n, p) => n + p.weight, 0);
+  return Array.from({ length: FRAGMENTS }, (_, i) => {
+    // Pick a piece by weight.
+    let pick = hash(i, 1) * total,
+      piece = pieces[0];
+    for (const p of pieces) {
+      piece = p;
+      if ((pick -= p.weight) <= 0) break;
+    }
+    let x: number, y: number;
+    if (piece.kind === "path") {
+      [x, y] = along(piece.points, hash(i, 2));
+      // A little width, so the stroke is a swarm and not a hairline.
+      x += (hash(i, 3) - 0.5) * 1.1;
+      y += (hash(i, 4) - 0.5) * 0.6;
+    } else {
+      const a = hash(i, 2) * Math.PI * 2,
+        r = piece.r * Math.sqrt(hash(i, 3));
+      x = piece.at[0] + Math.cos(a) * r;
+      y = piece.at[1] + Math.sin(a) * r;
+    }
     const angle = hash(i, 6) * Math.PI * 2;
     const reach = 0.45 + 0.6 * hash(i, 7);
+    // Growth order: bottom (seed, y ~ 20) first, top (nodes, y ~ 4) last.
+    const growth = 1 - (y - 3) / 18;
     return {
       target: [x, y],
       start: [Math.cos(angle) * reach, Math.sin(angle) * reach],
-      color: triangle.color,
+      color: piece.color,
       size: 0.35 + 0.65 * hash(i, 8) ** 2,
       turn: hash(i, 9) * Math.PI * 2,
       phase: hash(i, 10) * Math.PI * 2,
-      threshold: hash(i, 11) * 0.92,
+      // Travel takes 0.1 of progress: a threshold of 0.9 arrives exactly at 100%.
+      threshold: Math.min(0.9, Math.max(0, growth * 0.76 + hash(i, 11) * 0.14)),
     };
   });
 }
@@ -90,6 +124,7 @@ export default function Loader() {
     document.documentElement.classList.add("is-loading");
     let target = 0,
       shown = 0,
+      last = performance.now(),
       finished = false,
       leaving = 0,
       frame = 0;
@@ -113,7 +148,9 @@ export default function Loader() {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
       // The bar never jumps: it eases towards the real progress.
-      shown += (target - shown) * 0.08;
+      // 8% of the gap per 60 Hz frame, whatever the refresh rate.
+      shown += (target - shown) * (1 - 0.92 ** ((now - last) / 16.667));
+      last = now;
       if (target - shown < 0.002) shown = target;
       const percent = Math.round(shown * 100);
       if (counterRef.current) counterRef.current.textContent = String(percent).padStart(3, "0");

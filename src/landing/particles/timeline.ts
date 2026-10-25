@@ -26,6 +26,7 @@ export type ParticlePose = {
   explodeMix: number; // 0 radial burst, 1 rain downwards
   seed: number;
   page: number;
+  scene: number; // 0 → 1 into the closing scene (its size follows the viewport)
   detail: number; // the closing scene's detail layer, 0 → 1
   factor: number;
   offset: Vec3;
@@ -36,8 +37,6 @@ export type ParticlePose = {
 export type Layout = "desktop" | "tablet" | "mobile";
 
 export const BASE_FACTOR = { desktop: 4.35, tablet: 3.9, mobile: 3.0 } as const;
-/** Phones: the closing scene at 3.4 instead of 3.0, so it keeps its height. */
-const FINALE_MOBILE_ZOOM = 3.4 / 3.0;
 const PI = Math.PI;
 /** Dala's particle object sits at y = −1.19 in front of the camera. */
 const OBJECT_Y = -1.19;
@@ -113,6 +112,7 @@ function beats(f: number) {
     explodeMix: ramp(f, 8, 8.5),
     seed: ramp(f, 9.95, 10.12),
     page: ramp(f, 8.0, 8.55) + ramp(f, 9.0, 9.55),
+    scene: ramp(f, 13.6, 14.0),
     detail: ramp(f, 13.8, 14.0),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
@@ -184,8 +184,7 @@ export function mobilePose(f: number): ParticlePose {
       ]),
       0,
     ],
-    // The closing scene keeps its height; the renderer pans across it.
-    factor: BASE_FACTOR.mobile * track(f, [[13.6, 1], [14.0, FINALE_MOBILE_ZOOM]]),
+    factor: BASE_FACTOR.mobile,
     book: gather(f, [0.7, 2.05, 0, 0.82], [0.35, -0.2, 0, 0.6]),
     atom: gather(f, [-0.45, -2.1, 0, 0.72], [-0.35, -0.4, 0, 0.55]),
   };

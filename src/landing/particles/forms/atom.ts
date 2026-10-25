@@ -21,6 +21,7 @@ import { merge } from "./sampling";
  * turn about their own normals in the shader (motion ORBIT, ELECTRON).
  */
 export const ORBIT_RADIUS = 0.6;
+// A circle tilted θ about an in-plane axis projects with axis ratio cos θ.
 const ORBIT_TILT = Math.acos(1 / 2.8); // a 2.8 : 1 ellipse face-on
 const NUCLEUS = 0.16;
 const ELECTRONS = [

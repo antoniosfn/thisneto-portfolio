@@ -32,12 +32,27 @@ function Arrow() {
   return <span aria-hidden="true">↗</span>;
 }
 
+/**
+ * The mark: a seed that grows into a tree. One stroke rises from the amber
+ * seed and opens into three branches, each ending in a node, as the Tree of
+ * Life of the particle field. Geometry shared with Loader.tsx (MARK_PATHS).
+ */
 function BrandMark() {
   return (
     <span className="brand-mark" aria-hidden="true">
-      <i />
-      <i />
-      <i />
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 17.4V11.2M12 11.2C12 8.6 9.4 7.6 6.4 5.6M12 11.2C12 8.6 14.6 7.6 17.6 5.6M12 11.2V3.6"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle className="mark-seed" cx="12" cy="19.8" r="2.5" />
+        <circle className="mark-node" cx="6.4" cy="5.6" r="1.6" />
+        <circle className="mark-node" cx="17.6" cy="5.6" r="1.6" />
+        <circle className="mark-node" cx="12" cy="3.6" r="1.6" />
+      </svg>
     </span>
   );
 }

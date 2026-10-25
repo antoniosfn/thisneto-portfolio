@@ -85,8 +85,13 @@ ${targetFunctions}
 void main() {
   vec3 p=texture2D(t_current,vUv).xyz;
   vec3 v=texture2D(t_velocity,vUv).xyz;
-  float k=.006+texture2D(t_params,vUv).w;
-  gl_FragColor=vec4((v+(target(vUv)-p)*k)*.892,1.);
+  // Semi-implicit Euler with friction d: the step matrix [[1-dk, d], [-dk, d]]
+  // has |λ| = √d ≈ 0.944 for any k > 0.0035, so friction sets the settle time
+  // (≈17 frames to 1/e) and k only the period (87–129 frames). A per-particle
+  // friction in [0.88, 0.905] is what makes some particles settle sooner.
+  vec4 prm=texture2D(t_params,vUv);
+  float k=.006+prm.w, d=.88+prm.y*.025;
+  gl_FragColor=vec4((v+(target(vUv)-p)*k)*d,1.);
 }
 `;
 

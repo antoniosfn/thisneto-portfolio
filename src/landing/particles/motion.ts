@@ -27,6 +27,7 @@ export function createPose(): ParticlePose {
     explodeMix: 0,
     seed: 0,
     page: 0,
+    scene: 0,
     detail: 0,
     factor: 0,
     offset: [0, 0, 0],
@@ -36,7 +37,7 @@ export function createPose(): ParticlePose {
   };
 }
 
-const SCALARS = ["progress", "explode", "explodeMix", "seed", "page", "detail", "factor"] as const;
+const SCALARS = ["progress", "explode", "explodeMix", "seed", "page", "scene", "detail", "factor"] as const;
 
 /** Move the rendered pose toward the scroll target, as Dala's uniforms do. */
 export function easePose(
