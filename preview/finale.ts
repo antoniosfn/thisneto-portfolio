@@ -26,7 +26,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { createPyramidGeometry } from "../src/landing/particle-geometry";
+import { createPyramidGeometry } from "../src/landing/particles/geometry";
 import { CORE, SCENE_WIDTH } from "../src/landing/particles/finale/build";
 import { SCENE_URL, decodeScene } from "../src/landing/particles/finale/file";
 import { sceneMotion } from "../src/landing/particles/finale/shaders";
@@ -80,7 +80,7 @@ void main() {
   float alpha,glow,st;
   vec3 world=place(aTarget,aStart,aMotion,aRankSeed.x,u_layer,alpha,glow,st);
   float seed=aRankSeed.y;
-  float size=(.35+.8*pow(seed,3.))*u_scale*aMotion.w*(1.+aLook.a*.2);
+  float size=(.35+.8*pow(seed,3.))*u_scale*aMotion.w*2.*(1.+aLook.a*.2);
   vec3 forward=normalize(cameraPosition-world);
   vec3 right=normalize(cross(vec3(0,1,0),forward)),up=cross(forward,right);
   vec3 c=spin(vec3(1,0,1),seed*6.28)*spin(vec3(0,1,1),seed*9.+u_time*(.2+seed))*position*size;

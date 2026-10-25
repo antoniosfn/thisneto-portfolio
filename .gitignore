@@ -50,5 +50,3 @@ artifacts/
 docs/reference/v6-before/
 docs/reference/v6-after/
 
-# Closing-scene preview build (npm run finale); joins forms.bin on integration
-public/particles/finale.bin

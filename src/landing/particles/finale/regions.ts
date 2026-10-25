@@ -1,3 +1,5 @@
+import { MOTION } from "../forms/catalog";
+
 /**
  * The closing scene, read from docs/reference/finale/reference.webp
  * (1024 × 765): a waterfall under a polygonal moon, three trees, a house with
@@ -7,18 +9,15 @@
  */
 export const REFERENCE = { width: 1024, height: 765 } as const;
 
-/**
- * Motion types of the closing scene, appended after the forms' MOTION table
- * (forms/catalog.ts on the v6 branch ends at RING = 13).
- */
+/** Motion types of the closing scene, from the field's MOTION table. */
 export const SCENE_MOTION = {
-  STILL: 0,
-  LEAF: 10, // shared with the tree: a slow sway
-  WATER: 14, // falls down its strand and recycles
-  RIVER: 15, // drifts down-left with the current
-  SMOKE: 16, // rises from the chimney and fades
-  CLOUD: 17, // drifts sideways and back
-  GLOW: 18, // still, breathing light (moon, windows, the couple)
+  STILL: MOTION.NONE,
+  LEAF: MOTION.LEAF, // shared with the tree: a slow sway
+  WATER: MOTION.WATER, // falls down its strand and recycles
+  RIVER: MOTION.RIVER, // drifts down-left with the current
+  SMOKE: MOTION.SMOKE, // rises from the chimney and fades
+  CLOUD: MOTION.CLOUD, // drifts sideways and back
+  GLOW: MOTION.GLOW, // still, breathing light (moon, windows, the couple)
 } as const;
 
 export type Region = {

@@ -3,6 +3,8 @@
  * the simulation's target, so the spring smooths it and the lines of light,
  * which read the simulated positions, move with it.
  */
+import { sceneMotion } from "../finale/shaders";
+
 export const motion = /* glsl */ `
 uniform vec4 u_book; // xyz centre, w scale, in the field frame
 uniform vec4 u_atom;
@@ -53,6 +55,8 @@ vec3 streamPoint(float s,float warm,vec2 lateral) {
   return p;
 }
 
+${sceneMotion}
+
 vec3 animate(vec3 p,vec4 m) {
   float type=m.x;
   if(type<.5) return p;
@@ -75,6 +79,11 @@ vec3 animate(vec3 p,vec4 m) {
   if(type<M_CHAKRA+.5) {
     vec3 c=vec3(0.,m.z,m.w);
     return c+axisAngle(vec3(0,1,0),u_time*.6)*(p-c);
+  }
+  if(type>M_RING+.5) {
+    // The closing scene: water, river, smoke, clouds, glow (finale/shaders.ts).
+    float alpha,glow;
+    return sceneAnimate(p,m,u_time,alpha,glow);
   }
   // RING: about its tilted axis through (0, y, 0).
   vec3 c=vec3(0.,m.y,0.);

@@ -17,6 +17,7 @@ export const constants = /* glsl */ `
 const float GRID=${float(GRID)};
 const int FORMS=${FORM_COUNT};
 const int TREE=${FORM.tree};
+const float FINALE=${float(FORM.finale)};
 const float PI=3.14159265;
 ${Object.entries(MOTION)
   .map(([name, value]) => `const float M_${name}=${float(value)};`)

@@ -18,7 +18,10 @@ import type { ParticleController } from "../ParticleField";
 import { createBackdrop } from "./backdrop";
 import { createParticleCamera, frameCamera, parallaxCamera } from "./camera";
 import { createParticleData } from "./data";
-import { COUNT, FORM_LOOK } from "./forms/catalog";
+import { SCENE_WIDTH } from "./finale/build";
+import { loadScene } from "./finale/file";
+import { DETAIL_DRAWN, createDetailLayer } from "./finale/layer";
+import { COUNT, FORM, FORM_LOOK } from "./forms/catalog";
 import type { FormData } from "./forms/compose";
 import { createPyramidGeometry } from "./geometry";
 import { createHoverProbe } from "./hover";
@@ -39,6 +42,9 @@ const SCALE = { desktop: 1.55, tablet: 1.5, mobile: 1.5 } as const;
 // Pyramid extent in world units, calibrated to Dala's 10–14 px particles.
 const PARTICLE_SIZE = 0.06;
 const CENTER = new Vector2();
+// Phones see the closing scene at full height and cross it, left to right
+// and back, in this many seconds.
+const PAN_SECONDS = 40;
 
 /** Size and line strength blended between the two forms around `progress`. */
 function formLook(progress: number) {
@@ -140,6 +146,26 @@ export function createParticleRenderer(
   lines.mesh.renderOrder = 1;
   scene.add(backdrop.mesh, particles, lines.mesh);
   const post = createPost(renderer, scene, camera);
+  // The closing scene's detail layer arrives after the field; nothing waits.
+  let detail: ReturnType<typeof createDetailLayer> | undefined;
+  loadScene()
+    .then((sceneForm) => {
+      if (disposed) return;
+      detail = createDetailLayer(
+        sceneForm,
+        {
+          u_time: shared.u_time,
+          u_factor: shared.u_factor,
+          u_scale: view.u_scale,
+          u_rot: view.u_rot,
+          u_offset: view.u_offset,
+        },
+        PARTICLE_SIZE,
+      );
+      detail.setDrawn(DETAIL_DRAWN[layout]);
+      scene.add(...detail.meshes);
+    })
+    .catch((error: unknown) => console.error("Closing scene could not be loaded", error));
 
   const pointer = new PointerMotion();
   const pose = createPose();
@@ -147,6 +173,7 @@ export function createParticleRenderer(
   const rotation4 = new Matrix4();
   const toCamera = new Vector3(),
     turn = new Quaternion();
+  let halfWidth = 1;
   let layout: Layout = "desktop",
     disposed = false,
     lost = false,
@@ -163,10 +190,12 @@ export function createParticleRenderer(
     renderer.setSize(width, height, false);
     post.resize(width, height, quality.ratio);
     const extent = frameCamera(camera, width / height);
+    halfWidth = extent.x / 2;
     layout = width < MOBILE_WIDTH ? "mobile" : width < TABLET_WIDTH ? "tablet" : "desktop";
     particles.count = DRAWN[layout];
     view.u_drawn.value = DRAWN[layout];
     probe.setDrawn(DRAWN[layout]);
+    detail?.setDrawn(DETAIL_DRAWN[layout]);
     backdrop.resize(extent, layout === "mobile");
     canvas.dataset.pixelRatio = quality.ratio.toFixed(2);
     // A pixel-ratio step mid-scroll must not make the pose jump.
@@ -183,6 +212,12 @@ export function createParticleRenderer(
     easePose(pose, poseAt(progress, layout), posed ? frames : Infinity);
     posed = true;
     const shown = vacuum(pose, seconds);
+    if (layout === "mobile") {
+      // The closing scene is wider than a phone: the camera crosses it.
+      const scene = Math.max(0, Math.min(1, pose.progress - (FORM.finale - 1)));
+      const overhang = Math.max(0, (SCENE_WIDTH * pose.factor) / 2 - halfWidth);
+      shown.offset[0] -= overhang * Math.sin((seconds * 2 * Math.PI) / PAN_SECONDS) * scene;
+    }
     shared.u_progress.value = pose.progress;
     shared.u_explode.value = pose.explode;
     shared.u_explodeMix.value = pose.explodeMix;
@@ -199,6 +234,7 @@ export function createParticleRenderer(
     euler.set(shown.rotation[0], shown.rotation[1], shown.rotation[2], "ZYX");
     view.u_rot.value.setFromMatrix4(rotation4.makeRotationFromEuler(euler));
     lines.update(pose.progress);
+    detail?.update(pose.detail);
     const look = formLook(pose.progress);
     view.u_scale.value = SCALE[layout] * look.size;
     view.u_lineGain.value = look.lines;
@@ -320,6 +356,7 @@ export function createParticleRenderer(
     geometry.dispose();
     material.dispose();
     lines.dispose();
+    detail?.dispose();
     probe.dispose();
     backdrop.dispose();
     simulation.dispose();

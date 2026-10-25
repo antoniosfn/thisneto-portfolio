@@ -13,7 +13,8 @@
  *   f 10 process         both gather, rain down into a seed; the tree grows
  *   f 11–12 about, FAQ   the Tree of Life, breathing
  *   f 13 Lia             the tree rises into the figure of Lia
- *   f 14 contact         Lia stays
+ *   f 14 contact         Lia gives way to the closing scene, formed outwards
+ *                        from the couple; a detail layer completes the drawing
  *
  * Form k of the atlas is shown at u_progress = k. See docs/particle-experience.md.
  */
@@ -25,6 +26,7 @@ export type ParticlePose = {
   explodeMix: number; // 0 radial burst, 1 rain downwards
   seed: number;
   page: number;
+  detail: number; // the closing scene's detail layer, 0 → 1
   factor: number;
   offset: Vec3;
   rotation: Vec3;
@@ -34,6 +36,8 @@ export type ParticlePose = {
 export type Layout = "desktop" | "tablet" | "mobile";
 
 export const BASE_FACTOR = { desktop: 4.35, tablet: 3.9, mobile: 3.0 } as const;
+/** Phones: the closing scene at 3.4 instead of 3.0, so it keeps its height. */
+const FINALE_MOBILE_ZOOM = 3.4 / 3.0;
 const PI = Math.PI;
 /** Dala's particle object sits at y = −1.19 in front of the camera. */
 const OBJECT_Y = -1.19;
@@ -63,7 +67,8 @@ function progress(f: number) {
     ramp(f, 6.5, 7.05) + // stream
     ramp(f, 7.15, 7.8) + // book and atom
     ramp(f, 10.15, 10.75) + // tree
-    ramp(f, 12.5, 13.05) // Lia
+    ramp(f, 12.5, 13.05) + // Lia
+    ramp(f, 13.6, 14.0) // the closing scene
   );
 }
 
@@ -108,6 +113,7 @@ function beats(f: number) {
     explodeMix: ramp(f, 8, 8.5),
     seed: ramp(f, 9.95, 10.12),
     page: ramp(f, 8.0, 8.55) + ramp(f, 9.0, 9.55),
+    detail: ramp(f, 13.8, 14.0),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
 }
@@ -133,12 +139,16 @@ export function desktopPose(f: number, layout: Layout = "desktop"): ParticlePose
     [7.0, 0],
     [12.45, 0],
     [13.05, 2.7],
+    [13.6, 2.7],
+    [14.0, 0], // the closing scene fills the screen
   ]);
   const y = track(f, [
     [6.4, OBJECT_Y],
     [7.0, 0],
     [12.45, 0],
     [13.05, -0.55],
+    [13.6, -0.55],
+    [14.0, 0],
   ]);
   const factor =
     BASE_FACTOR[layout] *
@@ -169,10 +179,13 @@ export function mobilePose(f: number): ParticlePose {
         [7.0, 0],
         [12.45, 0],
         [13.05, -0.5],
+        [13.6, -0.5],
+        [14.0, 0],
       ]),
       0,
     ],
-    factor: BASE_FACTOR.mobile,
+    // The closing scene keeps its height; the renderer pans across it.
+    factor: BASE_FACTOR.mobile * track(f, [[13.6, 1], [14.0, FINALE_MOBILE_ZOOM]]),
     book: gather(f, [0.7, 2.05, 0, 0.82], [0.35, -0.2, 0, 0.6]),
     atom: gather(f, [-0.45, -2.1, 0, 0.72], [-0.35, -0.4, 0, 0.55]),
   };

@@ -33,7 +33,8 @@ Pedido do Antonio (24/10/2026), com 14 imagens de referência, guardadas em [ref
 | 8–9 | Projeto 01, 02 | Livro semiaberto (vermelho, âmbar, branco, com fagulhas) no alto à direita e átomo (azul e roxo) embaixo à esquerda; uma folha vira por projeto |
 | 10 | Processo | Os dois se juntam no centro, descem e chovem para baixo, formando a semente; a Árvore da Vida cresce de dentro para fora, em espiral de galáxia |
 | 11–12 | Quem constrói, FAQ | Árvore com as 10 sefirot e os 22 caminhos |
-| 13–14 | Lia, Contato | A figura da Lia |
+| 13 | Lia | A figura da Lia |
+| 14 | Contato | A cena final: cachoeira, casa e casal, formada a partir do casal ([particle-finale.md](particle-finale.md)) |
 
 ### Formas novas
 

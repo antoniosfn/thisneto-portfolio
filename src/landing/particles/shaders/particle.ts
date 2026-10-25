@@ -1,4 +1,4 @@
-import { rotation, simplex } from "./common";
+import { atlas, constants, rotation, simplex } from "./common";
 import { hoverFunctions } from "./hover";
 import { decodeLook } from "./simulation";
 
@@ -11,10 +11,14 @@ uniform mat3 u_rot;
 uniform vec3 u_offset;
 uniform float u_time;
 uniform float u_scale;
+uniform sampler2D t_motion;
+uniform float u_progress;
 varying vec3 vColor;
 varying float vDepth;
 varying float vAlpha;
 varying float vEmission;
+${constants}
+${atlas}
 ${simplex}
 ${rotation}
 ${hoverFunctions}
@@ -31,6 +35,10 @@ void main() {
   decodeLook(look,emission,alpha);
   float size=(.35+.8*pow(fract(rnd.x*13.37+rnd.y*7.1),3.))*u_scale;
   size*=1.+glow*.55+emission*.22;
+  // The closing scene sizes each region: fine strokes for the couple, large
+  // triangles for the leaves (motion.w = size ÷ 2).
+  float scene=clamp(u_progress-(FINALE-1.),0.,1.);
+  if(scene>0.) size*=mix(1.,slot(t_motion,coord,FINALE).w*2.,scene);
   float n=snoise(p*.619);
   vec3 corner=axisAngle(vec3(1,0,1),n)*axisAngle(vec3(0,1,1),mod(n+u_time,6.283185))*position;
   gl_Position=projectionMatrix*viewMatrix*vec4(billboard(world,corner*size*step(.01,alpha)),1.);

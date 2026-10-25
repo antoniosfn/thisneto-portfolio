@@ -143,6 +143,14 @@ void main() {
     float h=sparkHeight(m);
     alpha=mix(1.,smoothstep(0.,.08,h)*(1.-smoothstep(.7,.92,h)),near);
   }
+  // The closing scene: water, river and smoke cycle in and out; the moon,
+  // the windows and the couple breathe.
+  if(type>M_RING+.5) {
+    float sceneAlpha,glow;
+    sceneAnimate(vec3(0.),m,u_time,sceneAlpha,glow);
+    alpha=mix(1.,sceneAlpha,near);
+    look.a*=mix(1.,glow,near);
+  }
   // Until it leaves, a particle in the seed burns white.
   float seedGlow=u_seed*(1.-treeArrival);
   look.rgb=mix(look.rgb,vec3(1.,.92,.8),seedGlow*.35);

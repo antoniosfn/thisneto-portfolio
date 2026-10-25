@@ -2,6 +2,7 @@ import { bookAtom } from "./book-atom";
 import { FORM, FORM_COUNT } from "./catalog";
 import type { FormData } from "./compose";
 import { cube } from "./cube";
+import { finale } from "./finale";
 import { knot } from "./knot";
 import { lorenz } from "./lorenz";
 import { neural } from "./neural";
@@ -21,9 +22,10 @@ export const FORM_BUILDERS: ((count: number, seed: number) => FormData)[] = [
   bookAtom,
   tree,
   woman,
+  finale,
 ];
 
-if (FORM_BUILDERS.length !== FORM_COUNT || FORM.woman !== FORM_COUNT - 1)
+if (FORM_BUILDERS.length !== FORM_COUNT || FORM.finale !== FORM_COUNT - 1)
   throw new Error("FORM_BUILDERS and FORM disagree");
 
 export function createForms(count: number, log?: (line: string) => void) {

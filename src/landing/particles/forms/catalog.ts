@@ -16,6 +16,7 @@ export const FORM = {
   bookAtom: 6,
   tree: 7,
   woman: 8,
+  finale: 9,
 } as const;
 export const FORM_COUNT = Object.keys(FORM).length;
 
@@ -34,6 +35,9 @@ export const FORM_LOOK: { size: number; lines: number }[] = [
   { size: 0.82, lines: 1.3 }, // book and atom
   { size: 0.8, lines: 1.4 }, // tree
   { size: 0.55, lines: 2.6 }, // Lia
+  // The closing scene: each region scales this (motion.w), from the couple's
+  // fine strokes to the leaves' large triangles.
+  { size: 0.8, lines: 1.2 }, // finale
 ];
 
 
@@ -56,6 +60,12 @@ export const MOTION = {
   HAIR: 11,
   CHAKRA: 12,
   RING: 13,
+  // The closing scene (finale/regions.ts).
+  WATER: 14,
+  RIVER: 15,
+  SMOKE: 16,
+  CLOUD: 17,
+  GLOW: 18,
 } as const;
 
 /** Particles per side of the simulation texture: 128² = 16 384 particles. */

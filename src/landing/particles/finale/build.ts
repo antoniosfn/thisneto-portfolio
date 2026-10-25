@@ -11,7 +11,7 @@ export type SceneForm = {
   colors: Float32Array; // rgb, raw sRGB
   emission: Float32Array;
   ranks: Float32Array; // arrival order: outwards from the couple
-  motion: Float32Array; // type, a, b, size (scene types keep c for size)
+  motion: Float32Array; // type, a, b, size ÷ 2 (motion params stay in [−1, 1])
   edges: number[];
   /** Region index per particle (REGIONS), for checks; not stored. */
   region?: Int8Array;
@@ -143,7 +143,7 @@ export function buildScene(image: Raster, count: number): SceneForm {
     form.emission[slot] = Math.min(1, (luma[pixel] / 255) ** 2 * own + region.glow);
     form.ranks[slot] = Math.min(1, (Math.hypot(px - coupleX, py - coupleY) / reach) * 0.85 + 0.15 * random(k, 5));
     form.motion.set(motionOf(region.motion, px, py, k), slot * 4);
-    form.motion[slot * 4 + 3] = region.size;
+    form.motion[slot * 4 + 3] = region.size / 2;
     form.region![slot] = regionOf[pixel];
   });
   form.edges = sceneEdges(
