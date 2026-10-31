@@ -34,7 +34,7 @@ import { createSimulation } from "./simulation";
 import {
   MOBILE_FIGURE_Y,
   pose as poseAt,
-  SOLUTION_SIDES,
+  CUBE_CROSSING,
   solutionWeight as solutionWeightAt,
   track,
   type Layout,
@@ -54,9 +54,9 @@ const CENTER = new Vector2();
 const FRAME_FLOOR_MS = STEP * 1000 * 0.75;
 // Share of the viewport the whole scene fills: the header covers the top and
 // the footer's text the bottom, and the couple must clear both.
-const SCENE_MARGIN = 0.78;
+const SCENE_MARGIN = 0.98;
 // Desktop: the closing landscape takes this share of the width.
-const SCENE_SIDE_SHARE = 0.78;
+const SCENE_SIDE_SHARE = 0.96;
 
 /** Size and line strength blended between the two forms around `progress`. */
 function formLook(progress: number) {
@@ -250,7 +250,7 @@ export function createParticleRenderer(
     );
     const saturnFit = Math.min(
       targetPose.factor,
-      (extent.x * (layout === "desktop" ? 0.6 : 0.98)) / 2.05,
+      (extent.x * (layout === "desktop" ? 0.92 : 1.05)) / 2.05,
     );
     targetPose.factor += (saturnFit - targetPose.factor) * saturnWeight;
     if (layout !== "desktop") {
@@ -259,7 +259,7 @@ export function createParticleRenderer(
       const radius =
         radii[a] + (radii[Math.ceil(targetPose.progress)] - radii[a]) * t;
       // Account for perspective at the nearest point of the bounding sphere.
-      const diameter = Math.min(extent.x * 0.84, extent.y * 0.34);
+      const diameter = Math.min(extent.x * 0.98, extent.y * 0.55);
       const fit = diameter / (radius * (2 + diameter / 10));
       // Book and atom are placed and scaled on their own to fill the screen,
       // and Saturn fits the width above; the atlas radius would shrink both
@@ -302,18 +302,18 @@ export function createParticleRenderer(
         }
       }
     }
-    // The three service beats: the cube crosses to the side opposite the
-    // copy on every screen; stacked screens keep it below the copy.
+    // The solutions: the cube forms on the right and crosses to the left on
+    // every screen, as large as the stage allows.
     const solutionWeight = solutionWeightAt(progress);
     if (solutionWeight > 0) {
       const side = layout === "desktop";
-      const direction = track(progress, SOLUTION_SIDES);
-      const x = extent.x * (side ? 0.25 : 0.2) * direction;
-      const y = side ? -0.4 : MOBILE_FIGURE_Y;
+      const direction = track(progress, CUBE_CROSSING);
+      const x = extent.x * (side ? 0.22 : 0.16) * direction;
+      const y = side ? -0.2 : MOBILE_FIGURE_Y;
       const fit = Math.min(
         targetPose.factor,
-        (extent.x * (side ? 0.4 : 0.55)) / 1.5,
-        (extent.y * (side ? 0.65 : 0.3)) / 1.5,
+        (extent.x * (side ? 0.5 : 0.78)) / 1.5,
+        (extent.y * (side ? 0.8 : 0.5)) / 1.5,
       );
       targetPose.offset[0] += (x - targetPose.offset[0]) * solutionWeight;
       targetPose.offset[1] += (y - targetPose.offset[1]) * solutionWeight;
@@ -380,9 +380,9 @@ export function createParticleRenderer(
     const side = layout === "desktop";
     const factor = Math.min(
       (extent.x * (side ? SCENE_SIDE_SHARE : SCENE_MARGIN)) / SCENE_WIDTH,
-      (extent.y * (side ? 0.66 : 0.34)) / SCENE_HEIGHT,
+      (extent.y * (side ? 0.86 : 0.55)) / SCENE_HEIGHT,
     );
-    return { factor, x: 0, y: side ? -0.35 : -0.75 };
+    return { factor, x: 0, y: side ? -0.2 : MOBILE_FIGURE_Y };
   }
   /** Turn a group placed off-centre so it faces the camera, as if centred. */
   function face(

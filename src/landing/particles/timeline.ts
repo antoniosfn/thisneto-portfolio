@@ -3,19 +3,21 @@
  * (stage index + scrolled fraction): sums of clamped linear ramps, the grammar
  * read from dala.craftedbygc.com, and keyframe tracks for placement.
  *
- * Light sections are opaque and cover the field; every change of form happens
- * behind them, so each dark section opens on a complete figure.
+ * Each figure condenses out of a cloud while its dark section rises to the
+ * middle of the screen, complete at the section's anchor, and bursts back
+ * into a cloud once the section leaves. Light sections cover the cloud.
  *
- *   f 0  hero (light)        the Lorenz waits, covered
- *   f 1  trajectory (dark)   Lorenz, right of the copy
- *   f 2  manifesto (light)   Lorenz → cube
- *   f 3–5 solutions (dark)   the cube alternates sides and turns a full 360°
- *   f 6  process (light)     cube → book and atom
- *   f 7  projects (dark)     book and atom, pages turning
- *   f 8  about (light)       book and atom → Saturn
- *   f 9  FAQ (dark)          Saturn, rings spinning, left of the questions
- *   f 10 contact (light)     Saturn → the landscape
- *   f 11 closing (dark)      the landscape, centred
+ *   f 0  hero (light)        cloud, covered
+ *   f 1  trajectory (dark)   the Lorenz forms, filling the stage
+ *   f 2  manifesto (light)   the Lorenz bursts
+ *   f 3–5 solutions (dark)   the cube forms on the right, then turns left on
+ *                            its own axis while it crosses to the left
+ *   f 6  process (light)     the cube bursts
+ *   f 7  projects (dark)     book and atom form, pages turning
+ *   f 8  about (light)       they burst
+ *   f 9  FAQ (dark)          Saturn forms, rings spinning
+ *   f 10 contact (light)     Saturn bursts
+ *   f 11 closing (dark)      the landscape forms, centred
  *
  * Form k of the atlas is shown at u_progress = k. See docs/particle-experience.md.
  */
@@ -38,9 +40,12 @@ export type ParticlePose = {
 export type Layout = "desktop" | "tablet" | "mobile";
 
 export const BASE_FACTOR = { desktop: 4.35, tablet: 3.9, mobile: 3.0 } as const;
+/**
+ * Figures fill their stage; the renderer then fits each one to the screen,
+ * so this only needs to be larger than any fit.
+ */
+const FILL = 2.4;
 const PI = Math.PI;
-/** Dala's particle object sits at y = −1.19 in front of the camera. */
-const OBJECT_Y = -1.19;
 
 /** Linear map of f from [a, b] to [c, d], clamped to the image interval. */
 export function ramp(f: number, a: number, b: number, c = 0, d = 1) {
@@ -58,110 +63,129 @@ export function track(f: number, keys: readonly (readonly [number, number])[]) {
   return keys[keys.length - 1][1];
 }
 
-/** Each morph runs inside a light section, while the field is covered. */
+/**
+ * Formation windows: the dark section at stage k rises from the bottom of the
+ * screen to its middle between k − 0.5 and k.
+ */
+const FORMS = {
+  lorenz: [0.5, 1],
+  cube: [2.5, 3],
+  bookAtom: [6.5, 7],
+  saturn: [8.5, 9],
+  landscape: [10.5, 11],
+} as const;
+/** Bursts: each figure leaves as its section scrolls away. */
+const BURSTS = {
+  lorenz: [1.4, 1.7],
+  cube: [5.3, 5.6],
+  bookAtom: [7.4, 7.7],
+  saturn: [9.4, 9.7],
+} as const;
+
+/** The atlas changes form only while the field is a cloud. */
 function progress(f: number) {
   return (
-    ramp(f, 2.1, 2.8) + // Lorenz → cube (manifesto)
-    ramp(f, 6.1, 6.8) + // cube → book and atom (process)
-    ramp(f, 8.1, 8.8) // book and atom → Saturn (about)
+    ramp(f, ...FORMS.cube) +
+    ramp(f, ...FORMS.bookAtom) +
+    ramp(f, ...FORMS.saturn)
   );
 }
 
-/** The three solution beats: the cube's side, +1 right of the copy, −1 left. */
-export const SOLUTION_SIDES = [
-  [3.3, 1],
-  [3.7, -1],
-  [4.3, -1],
-  [4.7, 1],
+function explode(f: number) {
+  return (
+    1 -
+    ramp(f, ...FORMS.lorenz) +
+    ramp(f, ...BURSTS.lorenz) -
+    ramp(f, ...FORMS.cube) +
+    ramp(f, ...BURSTS.cube) -
+    ramp(f, ...FORMS.bookAtom) +
+    ramp(f, ...BURSTS.bookAtom) -
+    ramp(f, ...FORMS.saturn) +
+    ramp(f, ...BURSTS.saturn) -
+    ramp(f, ...FORMS.landscape)
+  );
+}
+
+/**
+ * The cube's crossing: +1 on the right while it forms and through the first
+ * solution, −1 on the left for the third.
+ */
+export const CUBE_CROSSING = [
+  [3.5, 1],
+  [4.9, -1],
 ] as const;
 /** Weight of the solution placement: on through the three beats. */
 export function solutionWeight(f: number) {
-  return ramp(f, 2.6, 2.95) - ramp(f, 5.55, 6.0);
+  return ramp(f, 2.4, 2.5) - ramp(f, 5.6, 5.7);
 }
 
-// The Lorenz wings keep a slight yaw so their depth shows; the cube shows its
-// classic corner and turns once around through the solutions.
+// The Lorenz wings keep a slight yaw so their depth shows. The cube shows its
+// classic corner and turns once to the left, on its own axis, as it crosses.
 const LORENZ_YAW = 0.35;
 const CUBE_YAW = PI / 4;
 const yaw = [
-  [2.1, LORENZ_YAW],
-  [2.8, CUBE_YAW],
-  [3.0, CUBE_YAW],
-  [5.5, CUBE_YAW + 2 * PI],
-  [6.1, CUBE_YAW + 2 * PI],
-  [6.8, 2 * PI],
+  [1.7, LORENZ_YAW],
+  [2.5, CUBE_YAW],
+  [3.5, CUBE_YAW],
+  [4.9, CUBE_YAW - 2 * PI],
+  [5.6, CUBE_YAW - 2 * PI],
+  [6.5, 0],
 ] as const;
 const pitch = [
-  [2.1, 0],
-  [2.8, 0.5],
-  [5.5, 0.5],
-  [6.8, 0],
+  [1.7, 0],
+  [2.5, 0.5],
+  [5.6, 0.5],
+  [6.5, 0],
 ] as const;
 
 /** Shared beats; layouts differ in placement and size only. */
 function beats(f: number) {
   return {
     progress: progress(f),
-    explode: 0,
+    explode: explode(f),
     explodeMix: 0,
     seed: 0,
-    page: ramp(f, 6.9, 7.4) + ramp(f, 7.3, 7.9),
-    scene: ramp(f, 10.1, 10.8),
-    detail: ramp(f, 10.3, 10.9),
+    page: ramp(f, 7.0, 7.3) + ramp(f, 7.2, 7.4),
+    scene: ramp(f, ...FORMS.landscape),
+    detail: ramp(f, FORMS.landscape[0] + 0.2, FORMS.landscape[1]),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
 }
 
+/**
+ * Book and atom are sized by their own placement, so the field keeps its base
+ * scale while they are on stage; every other figure is fitted down from FILL.
+ */
+function fill(f: number) {
+  return f > FORMS.bookAtom[0] - 0.3 && f < FORMS.saturn[0] ? 1 : FILL;
+}
+
+/** Desktop and tablet: figures centred on their stage, copy over them. */
 export function desktopPose(
   f: number,
   layout: Layout = "desktop",
 ): ParticlePose {
   const narrow = layout === "tablet" ? 0.62 : 1;
-  // Each figure takes the column opposite its copy.
-  const x = track(f, [
-    [2.1, 2.2],
-    [2.8, 0],
-    [8.1, 0],
-    [8.8, -3.1],
-  ]);
-  // The Lorenz sits higher and smaller so both wings clear the fold.
-  const y = track(f, [
-    [2.1, OBJECT_Y + 0.55],
-    [2.8, OBJECT_Y - 0.35],
-    [8.1, OBJECT_Y - 0.35],
-    [8.8, -0.45],
-  ]);
-  // Saturn grows to fill its column.
-  const factor =
-    BASE_FACTOR[layout] *
-    track(f, [
-      [2.1, 0.82],
-      [2.8, 1],
-      [8.1, 1],
-      [8.8, 1.35],
-    ]);
   return {
     ...beats(f),
-    offset: [x * narrow, y, 0],
-    factor,
-    book: [3.9 * narrow, 0.95, 0, 1.05],
-    atom: [1.9 * narrow, -1.55, 0, 1.15],
+    offset: [0, -0.1, 0],
+    factor: BASE_FACTOR[layout] * fill(f),
+    // Book and atom share the stage, each about half its height.
+    book: [2.7 * narrow, 0.9, 0, 1.75],
+    atom: [-2.7 * narrow, -0.9, 0, 1.85],
   };
 }
 
-/**
- * Stacked screens keep copy above the figure, which fills the lower area;
- * the renderer fits its bounds.
- */
-export const MOBILE_FIGURE_Y = -1.7;
+/** Stacked screens: the figure fills the stage below the first lines of copy. */
+export const MOBILE_FIGURE_Y = -0.9;
 export function mobilePose(f: number): ParticlePose {
   return {
     ...beats(f),
     offset: [0, MOBILE_FIGURE_Y, 0],
-    factor: BASE_FACTOR.mobile * 0.85,
-    // Book over atom, each about as wide as the screen.
-    book: [0, 0.95, 0, 1.35],
-    atom: [0, -1.25, 0, 1.25],
+    factor: BASE_FACTOR.mobile * (fill(f) === 1 ? 0.85 : FILL),
+    // Book over atom, each wider than the screen's reading column.
+    book: [0, 1.55, 0, 1.65],
+    atom: [0, -1.45, 0, 1.55],
   };
 }
 

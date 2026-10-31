@@ -356,7 +356,16 @@ html.lenis body {
   box-shadow: 0 0 0 100vmax var(--paper);
 }
 .stage p {
-  color: rgba(243, 243, 243, 0.72);
+  color: rgba(243, 243, 243, 0.78);
+}
+/* Figures fill the stage behind the copy: a soft halo keeps it legible. */
+.stage h2,
+.stage h3,
+.stage p,
+.faq-list summary {
+  text-shadow:
+    0 0 18px rgba(0, 0, 0, 0.85),
+    0 0 4px rgba(0, 0, 0, 0.6);
 }
 .stage-copy,
 .solution-copy {
@@ -462,7 +471,8 @@ html.lenis body {
   min-height: 100svh;
   align-items: center;
 }
-.solution:nth-child(2) {
+/* The cube crosses right → left, so the last copy moves to the right. */
+.solution:nth-child(3) {
   justify-content: flex-end;
 }
 .solution h2 {
@@ -654,10 +664,10 @@ html.lenis body {
   .work .stage,
   .faq .stage {
     align-items: flex-start;
-    padding-bottom: 62svh;
+    padding-bottom: 45svh;
   }
   .solution,
-  .solution:nth-child(2) {
+  .solution:nth-child(3) {
     align-items: flex-start;
     justify-content: flex-start;
     padding-top: var(--section-pad);

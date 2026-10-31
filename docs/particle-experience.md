@@ -381,3 +381,9 @@ A regressão está em tests/compact-scroll.spec.ts: abertura, permanência do Lo
 - Os anéis de Saturno giram em volta do polo inclinado (movimento SPIN), o globo gira mais devagar
 - A paisagem fecha a página, centralizada
 - Testes da coreografia em tests/choreography.spec.ts
+
+### Formação no meio da seção e figuras enchendo o palco (31/10/2026)
+
+- Cada figura nasce de uma nuvem enquanto sua seção preta sobe até o meio da tela (k − 0,5 → k) e explode de volta em nuvem quando a seção sai; o atlas só troca de forma dentro da nuvem
+- O dado se forma à direita, atravessa para a esquerda entre 3,5 e 4,9 girando −360° no próprio eixo e só depois se desfaz (5,3–5,6); a cópia da terceira solução passa para a direita
+- As figuras partem de 2,4× a escala base e o renderer as encaixa no palco: ocupam quase toda a seção, com o texto por cima e um halo escuro para leitura
