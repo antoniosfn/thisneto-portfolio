@@ -352,13 +352,34 @@ html.lenis body {
   position: relative;
   min-height: 100svh;
   padding: var(--section-pad) calc(var(--gutter) - var(--frame));
+  overflow: hidden;
   border-radius: var(--stage-radius) var(--stage-radius) 0 0;
   box-shadow: 0 0 0 100vmax var(--paper);
 }
 .stage p {
   color: rgba(243, 243, 243, 0.78);
 }
-/* Figures fill the stage behind the copy: a soft halo keeps it legible. */
+/* Figures fill the stage behind the copy: a dark pool under the column and
+   a soft halo on each line keep it legible. */
+.stage-copy,
+.solution-copy {
+  position: relative;
+  isolation: isolate;
+}
+.stage-copy::before,
+.solution-copy::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -12% -18%;
+  background: radial-gradient(
+    closest-side,
+    rgba(0, 0, 0, 0.82),
+    rgba(0, 0, 0, 0.55) 60%,
+    transparent
+  );
+  pointer-events: none;
+}
 .stage h2,
 .stage h3,
 .stage p,

@@ -1,4 +1,4 @@
-import { BufferGeometry, Vector3 } from "three";
+import { BufferGeometry, IcosahedronGeometry, Vector3 } from "three";
 import { MOTION, budget, type Part } from "./compose";
 import { random } from "./hash";
 import {
@@ -60,35 +60,28 @@ export function atomParts(count: number, seed: number): Part[] {
   const [nCrystal, nCore, nRays, nOrbit, nElectron, nSparkle] = budget(count, [
     12, 2, 4, 50, 22, 10,
   ]);
-  // Nucleus: a tight cluster of edge-drawn polyhedra.
+  // Nucleus: thirteen equal nucleons, one at the centre and twelve on the
+  // vertices of an icosahedron, so the core reads as one ordered crystal.
   const crystals: BufferGeometry[] = [];
-  const kinds = ["tetra", "octa", "icosa", "tetra"] as const;
-  for (let k = 0; k < 18; k++) {
-    const dir = new Vector3(
-      random(k, 1) - 0.5,
-      random(k, 2) - 0.5,
-      random(k, 3) - 0.5,
-    ).normalize();
-    crystals.push(
-      edgeFrame(
-        kinds[k % 4],
-        dir.multiplyScalar(NUCLEUS * 0.62 * Math.cbrt(random(k, 4))),
-        0.045 + 0.04 * random(k, 5),
-        0.002,
-        random(k, 6) * 3,
-      ),
-    );
+  const shell = new IcosahedronGeometry(NUCLEUS * 0.58, 0).getAttribute("position");
+  const centres = [new Vector3()];
+  for (let i = 0; i < shell.count; i++) {
+    const v = new Vector3().fromBufferAttribute(shell, i);
+    if (!centres.some((c) => c.distanceTo(v) < 1e-4)) centres.push(v);
   }
+  for (const centre of centres)
+    crystals.push(edgeFrame("icosa", centre, 0.05, 0.002, 0));
   const core = cloud(nCore, new Vector3(), new Vector3(0.03, 0.03, 0.03), 70);
   const rays = new Float32Array(nRays * 3);
+  // Rays: evenly spread (Fibonacci sphere), all of the same reach.
+  const RAYS = 24;
   for (let i = 0; i < nRays; i++) {
-    const ray = Math.floor(random(i, 80) * 30);
-    const dir = new Vector3(
-      Math.cos(ray * 2.4),
-      Math.sin(ray * 2.4),
-      (random(ray, 81) - 0.5) * 0.6,
-    ).normalize();
-    const reach = NUCLEUS * (1.05 + 1.6 * random(ray, 82));
+    const ray = Math.floor(random(i, 80) * RAYS);
+    const y = 1 - (2 * (ray + 0.5)) / RAYS;
+    const r = Math.sqrt(1 - y * y);
+    const a = ray * Math.PI * (3 - Math.sqrt(5));
+    const dir = new Vector3(Math.cos(a) * r, y, Math.sin(a) * r);
+    const reach = NUCLEUS * 2;
     dir.multiplyScalar(NUCLEUS * 0.9 + (reach - NUCLEUS * 0.9) * random(i, 83)).toArray(rays, i * 3);
   }
   const orbitOf = (i: number) => Math.floor(random(i, 84) * 3);

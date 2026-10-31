@@ -57,10 +57,14 @@ test("figures are scaled to fill the stage", () => {
   expect(pose(3, "desktop").factor).toBeGreaterThan(9);
   expect(pose(9, "mobile").factor).toBeGreaterThan(6);
   const mobile = pose(7, "mobile");
-  expect(mobile.book[3]).toBeGreaterThan(1.5);
-  expect(mobile.atom[3]).toBeGreaterThan(1.5);
+  expect(mobile.book[3]).toBeGreaterThan(1.4);
+  expect(mobile.atom[3]).toBeGreaterThan(1.2);
   expect(mobile.book[1]).toBeGreaterThan(mobile.atom[1]);
-  expect(pose(7, "desktop").book[3]).toBeGreaterThan(1.6);
+  // The atom sits lower and smaller than the book, clear of the copy.
+  const desk = pose(7, "desktop");
+  expect(desk.atom[3]).toBeLessThan(desk.book[3]);
+  expect(desk.atom[1]).toBeLessThan(desk.book[1] - 2.5);
+  expect(desk.atom[0]).toBeGreaterThan(-1);
 });
 
 test("the Lorenz holds whole right of the copy and fragments on either side", () => {

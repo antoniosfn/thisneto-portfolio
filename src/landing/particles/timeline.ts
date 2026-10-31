@@ -184,9 +184,10 @@ export function desktopPose(
     ...beats(f),
     offset: [LORENZ_AT[0] * narrow * lorenz, -0.1 + (LORENZ_AT[1] + 0.1) * lorenz, 0],
     factor: BASE_FACTOR[layout] * (fill(f) + (LORENZ_SCALE - fill(f)) * lorenz),
-    // Book and atom share the stage, each about half its height.
-    book: [2.7 * narrow, 0.9, 0, 1.75],
-    atom: [-2.7 * narrow, -0.9, 0, 1.85],
+    // Book above on the right, atom lower and smaller beside it, clear of
+    // the copy on the left, with a gap between the two.
+    book: [3.3 * narrow, 1.15, 0, 1.4],
+    atom: [0.2 * narrow, -2.0, 0, 1.15],
   };
 }
 
@@ -198,8 +199,8 @@ export function mobilePose(f: number): ParticlePose {
     offset: [0, MOBILE_FIGURE_Y, 0],
     factor: BASE_FACTOR.mobile * (fill(f) === 1 ? 0.85 : FILL),
     // Book over atom, each wider than the screen's reading column.
-    book: [0, 1.55, 0, 1.65],
-    atom: [0, -1.45, 0, 1.55],
+    book: [0, 1.5, 0, 1.45],
+    atom: [0, -1.75, 0, 1.25],
   };
 }
 
