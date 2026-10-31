@@ -90,6 +90,14 @@ export default function Loader() {
       // The counter and exit also work if a 2D canvas is unavailable.
       const context = canvas.getContext("2d");
       const fragments = createFragments();
+      // Centre the drawing on its own bounds, not on the projection origin.
+      const xs = fragments.map((f) => f.target[0]),
+        ys = fragments.map((f) => f.target[1]);
+      const minX = Math.min(...xs),
+        minY = Math.min(...ys);
+      const bookW = Math.max(...xs) - minX,
+        bookH = Math.max(...ys) - minY;
+      const extent = Math.max(bookW, bookH);
       const mounted = performance.now();
       document.documentElement.classList.add("is-loading");
       let target = 0,
@@ -126,7 +134,7 @@ export default function Loader() {
             "compress",
           )
           .to(
-            ".site-loader-name, .site-loader-count",
+            ".site-loader-meta",
             { opacity: 0, duration: 0.25 },
             0,
           )
@@ -172,9 +180,14 @@ export default function Loader() {
           context.setTransform(ratio, 0, 0, ratio, 0, 0);
           context.clearRect(0, 0, width, height);
           const bookSize = Math.min(340, width * 0.7, height * 0.48);
-          const unit = bookSize / 24;
-          const cx = (width - bookSize) / 2,
-            cy = (height - bookSize) / 2;
+          const unit = bookSize / extent;
+          // Optical centre slightly above the middle, leaving room for the counter.
+          const cx = (width - bookW * unit) / 2 - minX * unit,
+            cy = height * 0.46 - (bookH * unit) / 2 - minY * unit;
+          overlay.style.setProperty(
+            "--book-bottom",
+            `${Math.round(height * 0.46 + (bookH * unit) / 2)}px`,
+          );
           const span = Math.max(width, height),
             time = now / 1000;
           context.lineWidth = 0.8;
@@ -182,18 +195,19 @@ export default function Loader() {
             const t = easeOut(
               Math.min(1, Math.max(0, (shown - f.threshold) / 0.1)),
             );
-            if (t <= 0) continue;
             const tx =
               cx + f.target[0] * unit + Math.sin(time * 0.9 + f.phase) * 0.25;
             const ty =
               cy + f.target[1] * unit + Math.cos(time * 0.7 + f.phase) * 0.25;
             const sx = width / 2 + f.start[0] * span,
               sy = height / 2 + f.start[1] * span;
-            const x = sx + (tx - sx) * t,
-              y = sy + (ty - sy) * t;
+            // Unformed fragments wait in place as the ghost outline.
+            const x = t > 0 ? sx + (tx - sx) * t : tx,
+              y = t > 0 ? sy + (ty - sy) * t : ty;
             const size = (1.4 + 2.4 * f.size) * (1 - 0.35 * (1 - t));
             const angle = f.turn * (1 - t) + time * 0.15 * (1 - t * 0.8);
-            context.globalAlpha = Math.min(1, t * 1.6);
+            // A faint outline of the book is there from the first frame.
+            context.globalAlpha = t > 0 ? Math.min(1, 0.1 + t * 1.6) : 0.1;
             context.strokeStyle = f.color;
             context.beginPath();
             for (let k = 0; k < 3; k++) {
@@ -232,12 +246,12 @@ export default function Loader() {
       aria-live="polite"
     >
       <canvas ref={canvasRef} aria-hidden="true" />
-      <p className="site-loader-name" aria-hidden="true">
-        Antonio Neto
-      </p>
-      <p className="site-loader-count" aria-hidden="true">
-        <span ref={counterRef}>000</span>
-      </p>
+      <div className="site-loader-meta" aria-hidden="true">
+        <p className="site-loader-name">Antonio Neto</p>
+        <p className="site-loader-count">
+          <span ref={counterRef}>000</span>
+        </p>
+      </div>
       <span className="visually-hidden">
         {phase === "loading" ? "Carregando o site" : "Conteúdo carregado"}
       </span>

@@ -133,22 +133,30 @@ html.is-loading {
 .site-loader[data-phase="revealing"] {
   pointer-events: none;
 }
-.site-loader-name,
-.site-loader-count {
+/* Name and counter sit as one centred caption just under the book. */
+.site-loader-meta {
   position: absolute;
-  bottom: max(28px, 4vh);
-  margin: 0;
+  left: 50%;
+  top: calc(var(--book-bottom, 70%) + 32px);
+  display: flex;
+  gap: 1.25em;
+  align-items: baseline;
+  transform: translateX(-50%);
   color: var(--stage-ink);
   font-family: var(--font-m);
   font-size: 13px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+.site-loader-meta p {
+  margin: 0;
 }
 .site-loader-name {
-  left: var(--gutter);
+  opacity: 0.6;
 }
 .site-loader-count {
-  right: var(--gutter);
+  min-width: 3ch;
   font-variant-numeric: tabular-nums;
 }
 @keyframes site-loader-failsafe {
