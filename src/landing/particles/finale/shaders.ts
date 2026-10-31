@@ -24,14 +24,19 @@ vec3 sceneAnimate(vec3 p,vec4 m,float t,out float alpha,out float glow) {
   glow=1.;
   if(abs(type-S_WATER)<.5) {
     // Each strand keeps its x; water accelerates down it and recycles at the top.
+    // The particles chase their target on a spring (~0.5 s to settle), so the
+    // jump back to the top stays hidden until they have arrived: only the
+    // downward fall is ever seen.
     float h=fract(m.y+t*.2);
     p.y=mix(FALLS_TOP,FALLS_BOTTOM,pow(h,1.35));
-    alpha=smoothstep(0.,.06,h)*(1.-smoothstep(.88,1.,h));
+    alpha=smoothstep(.14,.22,h)*(1.-smoothstep(.9,.97,h));
   } else if(abs(type-S_RIVER)<.5) {
-    // Downstream: towards the bottom left and the viewer.
-    float h=fract(m.y+t*.06);
-    p+=vec3(-.55,-.22,.3)*(h-.5)*.16;
-    alpha=sin(3.14159*h);
+    // Downstream: towards the bottom left and the viewer, a little faster and
+    // longer than before. Hidden while it springs back upstream, then a long
+    // even plateau so the current reads dense and uniform.
+    float h=fract(m.y+t*.085);
+    p+=vec3(-.55,-.22,.3)*(h-.5)*.22;
+    alpha=smoothstep(.1,.22,h)*(1.-smoothstep(.85,.97,h));
   } else if(abs(type-S_SMOKE)<.5) {
     float h=fract(m.y+t*.08);
     p.x=CHIMNEY.x+h*.05+sin(h*6.+m.z*6.28)*.015*h;
