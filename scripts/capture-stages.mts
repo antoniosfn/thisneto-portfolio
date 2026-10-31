@@ -23,9 +23,11 @@ const POINTERS = {
   right: [0.72, 0.5],
 } as const;
 
-async function stageCount(page: Page) {
-  return page.evaluate(
-    () => document.querySelectorAll("[data-particle-stage]").length,
+async function stageValues(page: Page) {
+  return page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-particle-stage]")].map(
+      (element) => Number(element.dataset.particleStage),
+    ),
   );
 }
 
@@ -41,7 +43,9 @@ async function scrollToStage(page: Page, f: number) {
     await page.evaluate((y) => window.scrollTo(0, y), mid);
     await page.waitForTimeout(220);
     const value = Number(
-      await page.locator(".particle-field").getAttribute("data-section-progress"),
+      await page
+        .locator(".particle-field")
+        .getAttribute("data-section-progress"),
     );
     if (Math.abs(value - f) < 0.02) break;
     if (value < f) low = mid;
@@ -63,15 +67,18 @@ async function capture(name: keyof typeof VIEWPORTS) {
   await page
     .locator('.particle-field[data-entered="true"]')
     .waitFor({ timeout: 30000 });
-  const stages = only ?? [...Array(await stageCount(page)).keys()];
+  const stages = only ?? (await stageValues(page));
   for (const f of stages) {
     await scrollToStage(page, f);
     for (const [label, at] of Object.entries(POINTERS)) {
       if (viewport.mobile && at) continue;
-      if (at) await page.mouse.move(viewport.width * at[0], viewport.height * at[1]);
+      if (at)
+        await page.mouse.move(viewport.width * at[0], viewport.height * at[1]);
       else
         await page.evaluate(() =>
-          document.documentElement.dispatchEvent(new PointerEvent("pointerleave")),
+          document.documentElement.dispatchEvent(
+            new PointerEvent("pointerleave"),
+          ),
         );
       await page.waitForTimeout(1600);
       await page.screenshot({ path: `${out}/${name}-f${f}-${label}.png` });

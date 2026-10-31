@@ -4,8 +4,8 @@ import { isBook } from "./catalog";
 import { emptyForm, fill } from "./compose";
 
 /**
- * Knowledge, in two halves: the warm particles of the stream land as the book,
- * the cool ones as the atom. Each half is built at its own origin; the shader
+ * Saturn separates in two: its rings land as the book and its globe as the
+ * atom. Each half is built at its own origin; the shader
  * places them (u_book, u_atom), so every layout can move them apart.
  */
 export function bookAtom(count: number, seed: number) {

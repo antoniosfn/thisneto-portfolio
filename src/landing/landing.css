@@ -1,29 +1,22 @@
-/* League Spartan carries headings, labels and buttons; Inter carries prose. */
+/* Manrope uses a heavier hierarchy without panels behind the text. */
 @font-face {
-  font-family: "League Spartan";
-  src: url("/fonts/league-spartan.woff2") format("woff2");
+  font-family: "Manrope";
+  src: url("/fonts/manrope.woff2") format("woff2");
   font-display: swap;
   font-style: normal;
-  font-weight: 100 900;
-}
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 100 900;
+  font-weight: 200 800;
 }
 
 :root {
   --void: #000;
   --white: #fff;
-  --ash: #9a9a9a;
-  --mist: #bdbdbd;
+  --ash: #c7c7c7;
+  --mist: #f2f2f2;
   --violet: #8052ff;
   --amber: #ffb829;
   --teal: #15846e;
-  --font-display: "League Spartan", "Inter", Arial, sans-serif;
-  --font-body: "Inter", Arial, sans-serif;
+  --font-display: "Manrope", Arial, sans-serif;
+  --font-body: "Manrope", Arial, sans-serif;
   --page: min(100% - 72px, 1280px);
   --header-height: 92px;
   color-scheme: dark;
@@ -40,8 +33,6 @@ h3,
 .button,
 .site-header nav a,
 .faq-list summary,
-.challenge-option,
-.lia-tagline,
 .site-loader-name,
 .site-loader-count,
 .project-tags {
@@ -50,8 +41,7 @@ h3,
 h1,
 h2,
 h3 {
-  /* Spartan is already tight: less negative tracking than Space Grotesk took. */
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.03em;
 }
 
@@ -67,7 +57,7 @@ body {
   background: var(--void);
   color: var(--white);
   font-family: var(--font-body);
-  font-weight: 400;
+  font-weight: 600;
   text-rendering: optimizeLegibility;
 }
 
@@ -115,7 +105,7 @@ img {
   pointer-events: none;
 }
 
-/* Loading screen: the mark assembles on the void, counter at the edge. */
+/* The book compresses first, then the black veil fades to reveal the page. */
 html.is-loading {
   overflow: hidden;
 }
@@ -124,7 +114,6 @@ html.is-loading {
   z-index: 100;
   inset: 0;
   background: var(--void);
-  transition: background-color 700ms cubic-bezier(0.16, 1, 0.3, 1) 250ms;
   /* If the script never lifts it, the page still appears. */
   animation: site-loader-failsafe 400ms ease 14s forwards;
 }
@@ -133,9 +122,9 @@ html.is-loading {
   inset: 0;
   width: 100%;
   height: 100%;
+  transform-origin: 50% 50%;
 }
-.site-loader.is-leaving {
-  background-color: transparent;
+.site-loader[data-phase="revealing"] {
   pointer-events: none;
 }
 .site-loader-name,
@@ -148,7 +137,6 @@ html.is-loading {
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  transition: opacity 400ms ease;
 }
 .site-loader-name {
   left: max(24px, calc((100% - 1280px) / 2));
@@ -156,9 +144,6 @@ html.is-loading {
 .site-loader-count {
   right: max(24px, calc((100% - 1280px) / 2));
   font-variant-numeric: tabular-nums;
-}
-.site-loader.is-leaving :is(.site-loader-name, .site-loader-count) {
-  opacity: 0;
 }
 @keyframes site-loader-failsafe {
   to {
@@ -179,7 +164,6 @@ html.is-loading {
   z-index: -3;
   background: #000;
 }
-
 
 .reading-progress {
   position: fixed;
@@ -255,7 +239,7 @@ html.is-loading {
   align-items: center;
   gap: 10px;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
@@ -285,7 +269,7 @@ html.is-loading {
 }
 .site-header nav a {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
 .site-header nav a {
@@ -309,7 +293,7 @@ html.is-loading {
   padding: 13px 18px;
   border-radius: 999px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.01em;
   transition:
     transform 200ms ease,
@@ -357,7 +341,7 @@ main,
 .profile-copy h2,
 .contact h2 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
@@ -398,7 +382,7 @@ html.lenis body {
   margin: 0 0 30px;
   color: var(--mist);
   font-size: clamp(17px, 1.5vw, 21px);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.55;
   text-wrap: pretty;
 }
@@ -438,7 +422,7 @@ html.lenis body {
   margin: 0;
   color: var(--white);
   font-size: clamp(38px, 5.8vw, 96px);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -474,11 +458,10 @@ html.lenis body {
 
 .chapter h3,
 .project h3,
-.challenge-response h3,
 .method-step h3 {
   margin: 0 0 30px;
   font-size: clamp(42px, 5.3vw, 82px);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 0.98;
   text-wrap: balance;
@@ -486,7 +469,6 @@ html.lenis body {
 
 .chapter-copy > p,
 .project-copy > p,
-.challenge-response > p:not(.approach),
 .method-step > p {
   max-width: 630px;
   margin: 0 0 30px;
@@ -502,71 +484,35 @@ html.lenis body {
   font-weight: 300;
 }
 
-.challenge-layout {
-  display: grid;
-  min-height: 95vh;
-  grid-template-columns: minmax(300px, 0.75fr) minmax(0, 1.25fr);
+/* Static service copy leaves the opposite column to the particle figure. */
+.solution {
+  display: flex;
+  min-height: 112vh;
   align-items: center;
-  gap: 9vw;
 }
-
-.challenge-options {
-  display: flex;
+.solution-copy {
+  width: 44%;
+  min-width: 0;
+  container-type: inline-size;
+}
+.solution:nth-child(even) .solution-copy {
+  margin-left: auto;
+}
+.solution h2 {
+  margin: 0 0 28px;
+  font-size: clamp(42px, 14cqw, 84px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.solution p {
+  max-width: 32ch;
   margin: 0;
-  padding: 0;
-  border: 0;
-  flex-direction: column;
-}
-
-.challenge-option {
-  position: relative;
-  display: grid;
-  padding: 18px 0;
-  cursor: pointer;
-  grid-template-columns: 1fr;
-  color: var(--ash);
-  font-size: clamp(18px, 1.7vw, 25px);
-  transition:
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.challenge-option:hover,
-.challenge-option.is-selected {
-  color: var(--white);
-  transform: translateX(8px);
-}
-.challenge-option.is-selected {
-  color: var(--violet);
-}
-.challenge-option input {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  cursor: pointer;
-  opacity: 0;
-}
-.challenge-option:has(input:focus-visible) {
-  outline: 2px solid var(--amber);
-  outline-offset: 5px;
-}
-.challenge-response {
-  max-width: 760px;
-}
-.approach {
-  display: flex;
-  margin-top: 42px;
-  flex-direction: column;
-  gap: 10px;
-}
-.approach span,
-.project dt,
-.approach strong {
-  font-size: clamp(18px, 2vw, 27px);
-  font-weight: 400;
+  color: var(--mist);
+  font-size: clamp(18px, 1.5vw, 22px);
+  line-height: 1.5;
 }
 
 .project {
@@ -663,6 +609,7 @@ html.lenis body {
 }
 .faq-list summary {
   display: grid;
+  font-weight: 700;
   padding: 30px 0;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -723,7 +670,7 @@ html.lenis body {
   will-change: auto;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1099px) {
   :root {
     --page: min(100% - 48px, 1280px);
   }
@@ -745,7 +692,6 @@ html.lenis body {
     margin-left: auto;
   }
   .section-split,
-  .challenge-layout,
   .profile {
     grid-template-columns: 1fr;
   }
@@ -766,9 +712,6 @@ html.lenis body {
     position: absolute;
     right: 0;
     z-index: -1;
-  }
-  .challenge-layout {
-    gap: 13vh;
   }
   .project {
     grid-template-columns: 0.24fr 1fr;
@@ -860,9 +803,6 @@ html.lenis body {
   .chapter-symbol {
     bottom: 12vh;
   }
-  .challenge-layout {
-    min-height: 115vh;
-  }
   .method-step {
     min-height: 72vh;
   }
@@ -913,34 +853,6 @@ html.lenis body {
   }
 }
 
-/* Lia: the figure stands right of the copy; on small screens it is behind. */
-.lia {
-  display: grid;
-  min-height: 130vh;
-  align-items: center;
-}
-.lia-copy {
-  max-width: 560px;
-}
-.lia h2 {
-  margin-bottom: 18px;
-  font-size: clamp(54px, 7vw, 112px);
-  line-height: 0.92;
-}
-.lia-tagline {
-  margin-bottom: 26px;
-  color: var(--amber);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-.lia-copy > p:not(.lia-tagline) {
-  margin: 0 0 36px;
-  color: var(--mist);
-  font-size: clamp(17px, 1.4vw, 20px);
-  line-height: 1.55;
-}
-
 /* Reference rhythm: the form owns the right side; prose follows the headline. */
 .hero {
   min-height: 112svh;
@@ -981,63 +893,7 @@ html.lenis body {
 .contact {
   min-height: 90vh;
 }
-.hero-intro,
-.section-split > div,
-.project-copy,
-.challenge-response,
-.profile-copy,
-.method-step,
-.faq-list {
-  background: radial-gradient(
-    ellipse at center,
-    rgb(0 0 0 / 84%),
-    transparent 78%
-  );
-}
-@media (max-width: 980px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-  .hero-intro {
-    margin-left: 0;
-  }
-}
-/* Phones: the copy lives in the lower half; a firmer scrim keeps it legible
-   while it scrolls up across the figure. */
-@media (max-width: 680px) {
-  .hero-intro,
-  .section-split > div,
-  .section-heading,
-  .chapter-copy,
-  .project-copy,
-  .challenge-response,
-  .profile-copy,
-  .method-step,
-  .faq-list,
-  .lia-copy,
-  .contact h2,
-  .contact-actions {
-    background: radial-gradient(
-      ellipse 130% 110% at center,
-      rgb(0 0 0 / 94%) 42%,
-      transparent 100%
-    );
-  }
-}
-@media (max-width: 680px) {
-  .hero {
-    min-height: 112svh;
-    padding-top: 130px;
-  }
-  .hero h1 {
-    font-size: clamp(49px, 14vw, 80px);
-  }
-  .hero-intro {
-    margin-top: 320px;
-    padding-bottom: 72px;
-  }
-}
-@media (min-width: 981px) {
+@media (min-width: 1100px) {
   .hero {
     padding-top: max(126px, 14vh);
     gap: 24px;
@@ -1071,8 +927,7 @@ html.lenis body {
     max-width: 40%;
     margin-left: auto;
   }
-  .journey .section-heading h2,
-  .business .section-heading h2 {
+  .journey .section-heading h2 {
     font-size: clamp(48px, 5vw, 76px);
   }
   .journey .chapter {
@@ -1083,15 +938,6 @@ html.lenis body {
   }
   .journey .chapter-symbol {
     display: none;
-  }
-  /* The globe settles right of center (0.46–0.78 of the width): copy stays left. */
-  .business .section-heading,
-  .business .challenge-layout {
-    max-width: 44%;
-  }
-  .business .challenge-layout {
-    grid-template-columns: 1fr;
-    gap: 8vh;
   }
   /* Projects: the book hangs top right and the atom bottom left, so the copy
      takes the free lower right. */
@@ -1150,5 +996,263 @@ html.lenis body {
   margin-top: 8px !important;
   color: var(--amber) !important;
   font-size: 18px !important;
-  font-weight: 600;
+  font-weight: 800;
+}
+
+/* Size display text against its reading column, including after SplitText. */
+.hero-copy,
+.section-heading {
+  container-type: inline-size;
+  min-width: 0;
+}
+.hero h1 {
+  font-size: clamp(32px, 12cqw, 94px);
+  line-height: 1.04;
+}
+.section-heading h2 {
+  font-size: clamp(34px, 16cqw, 100px);
+  line-height: 1.06;
+}
+.hero h1,
+.section-heading h2,
+.chapter h3,
+.project h3,
+.profile-copy h2 {
+  overflow-wrap: anywhere;
+}
+.hero-intro {
+  max-width: 440px;
+  min-width: 0;
+}
+.hero-intro > p {
+  text-wrap: pretty;
+}
+.hero-action .button {
+  max-width: 100%;
+  white-space: normal;
+}
+
+/* Tablet and phone share one centred reading column, below each figure. */
+@media (max-width: 1099px) {
+  main,
+  .site-footer {
+    text-align: center;
+  }
+  .hero,
+  .section-split,
+  .chapter,
+  .project,
+  .method-step,
+  .profile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-copy,
+  .hero-intro,
+  .section-heading,
+  .section-split > h2,
+  .section-split > div,
+  .chapter-copy,
+  .project-copy,
+  .solution-copy,
+  .profile-copy,
+  .faq-list,
+  .contact h2 {
+    width: 100%;
+    max-width: 680px;
+    margin-inline: auto;
+    min-width: 0;
+  }
+  .hero {
+    gap: 24px;
+    padding-top: max(126px, 14svh);
+  }
+  .hero h1 {
+    font-size: clamp(40px, 8cqw, 64px);
+  }
+  .hero-intro {
+    margin-top: max(300px, 48svh);
+    padding-bottom: 64px;
+  }
+  .hero-intro > p,
+  .section-split p,
+  .chapter-copy > p,
+  .project-copy > p,
+  .solution p,
+  .profile-copy > p,
+  .method-step > p {
+    max-width: 44ch;
+    margin-inline: auto;
+    font-size: clamp(17px, 1.9vw, 20px);
+    line-height: 1.6;
+  }
+  .section-heading h2,
+  .section-split h2 {
+    font-size: clamp(36px, 7vw, 68px);
+    line-height: 1.08;
+  }
+  .chapter h3,
+  .project h3,
+  .solution h2,
+  .profile-copy h2 {
+    font-size: clamp(38px, 6.5vw, 60px);
+    line-height: 1.08;
+  }
+  .manifesto-line {
+    align-items: center;
+    justify-content: center;
+  }
+  .chapter-symbol {
+    display: none;
+  }
+  .solution {
+    padding-top: 52svh;
+    align-items: flex-start;
+  }
+  .solution:nth-child(even) .solution-copy {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .solution h2 {
+    font-size: clamp(42px, 6.5vw, 60px);
+  }
+  .method-step {
+    gap: 16px;
+    align-content: center;
+  }
+  .profile {
+    gap: 28px;
+    align-content: center;
+    min-height: 112svh;
+  }
+  .profile-portrait {
+    width: min(44vw, 200px);
+    margin-inline: auto;
+  }
+  .profile-links,
+  .contact-actions {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .profile-links a,
+  .text-link {
+    min-height: 44px;
+    justify-content: center;
+  }
+  .faq-list summary {
+    min-height: 64px;
+    padding: 22px 0 22px 40px;
+    grid-template-columns: minmax(0, 1fr) 24px;
+    gap: 16px;
+    font-size: clamp(20px, 2.4vw, 25px);
+  }
+  .faq-list details > p {
+    margin-inline: auto;
+    max-width: 54ch;
+  }
+  .contact h2 {
+    font-size: clamp(44px, 8vw, 72px);
+    line-height: 1.06;
+  }
+  .contact-actions {
+    margin-top: 32px;
+  }
+  .site-footer {
+    min-height: 180px;
+    padding-block: 48px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 16px;
+  }
+}
+
+/* Compact scroll rhythm; full forms live below the stacked reading area. */
+.hero {
+  min-height: 100svh;
+}
+.manifesto,
+.business,
+.profile,
+.faq,
+.contact,
+.journey,
+.work,
+.method {
+  padding-block: clamp(56px, 8svh, 88px);
+}
+.manifesto {
+  min-height: auto;
+}
+.manifesto .section-split {
+  min-height: 54svh;
+}
+.manifesto-line {
+  min-height: 24svh;
+}
+.section-heading {
+  margin-bottom: clamp(32px, 6svh, 64px);
+}
+.chapter,
+.solution {
+  min-height: 78svh;
+}
+.project {
+  min-height: 76svh;
+}
+.method-step {
+  min-height: 30svh;
+}
+.profile {
+  min-height: 74svh;
+}
+.contact {
+  min-height: 68svh;
+}
+
+@media (max-width: 1099px) {
+  .hero {
+    min-height: 100svh;
+    gap: 20px;
+  }
+  .hero-intro {
+    margin-top: clamp(240px, 38svh, 360px);
+    padding-bottom: 40px;
+  }
+  .manifesto .section-split {
+    min-height: 42svh;
+    gap: 24px;
+    align-content: start;
+  }
+  .manifesto-line {
+    min-height: 18svh;
+  }
+  .chapter,
+  .solution,
+  .project {
+    min-height: 78svh;
+    padding-block: 5svh 36svh;
+    align-content: start;
+    align-items: start;
+  }
+  .solution {
+    padding-top: 5svh;
+  }
+  .chapter h3,
+  .project h3,
+  .solution h2 {
+    margin-bottom: 18px;
+  }
+  .method-step {
+    min-height: 26svh;
+  }
+  .profile {
+    min-height: auto;
+    padding-bottom: 36svh;
+  }
+  .contact {
+    min-height: 64svh;
+    justify-content: start;
+    padding-bottom: 34svh;
+  }
 }

@@ -1,5 +1,5 @@
 import { Euler, Matrix3, Matrix4 } from "three";
-import { BOOK, FORM, FORM_COUNT, MOTION, STREAM, TREE_SEED } from "../forms/catalog";
+import { BOOK, FORM, FORM_COUNT, MOTION, TREE_SEED } from "../forms/catalog";
 import { GRID } from "../data";
 
 const float = (v: number) => (Number.isInteger(v) ? `${v}.` : `${v}`);
@@ -27,8 +27,6 @@ const vec3 BOOK_GUTTER=${vec3(BOOK.gutter)};
 const float BOOK_WIDTH=${float(BOOK.width)};
 const float BOOK_OPEN=${float(BOOK.open)};
 const vec3 TREE_SEED=${vec3(TREE_SEED)};
-const vec3 STREAM_START=${vec3(STREAM.start)};
-const float FORK_AT=${float(STREAM.forkAt)};
 `;
 
 // 3D simplex noise by Ian McEwan / Ashima Arts and Stefan Gustavson (MIT).

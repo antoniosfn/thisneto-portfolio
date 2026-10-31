@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { changedPixels, settleParticles, settleQuality } from "./particle-helpers";
+import {
+  changedPixels,
+  settleParticles,
+  settleQuality,
+} from "./particle-helpers";
 
 test("full explosion disables hover in the rendered field", async ({
   page,
@@ -163,20 +167,23 @@ test("hover belongs to the figure: off the form nothing moves", async ({
   const viewport = page.viewportSize()!;
   // Empty space left of the copy: the pointer ray meets no particle.
   await page.mouse.move(viewport.width * 0.05, viewport.height * 0.12);
-  await page.mouse.move(viewport.width * 0.06, viewport.height * 0.14, { steps: 4 });
+  await page.mouse.move(viewport.width * 0.06, viewport.height * 0.14, {
+    steps: 4,
+  });
   await expect(field).toHaveAttribute("data-hover-gain", "1.000");
   await page.waitForTimeout(800);
-  await expect(field, "a pointer over empty space must not touch the figure").toHaveAttribute(
-    "data-hover-hit",
-    "0.000",
-  );
+  await expect(
+    field,
+    "a pointer over empty space must not touch the figure",
+  ).toHaveAttribute("data-hover-hit", "0.000");
   // Over the knot the ray meets its front surface.
-  await page.mouse.move(viewport.width * 0.73, viewport.height * 0.47, { steps: 6 });
-  await expect(field, "a pointer over the knot meets its surface").toHaveAttribute(
-    "data-hover-hit",
-    "1.000",
-    { timeout: 5000 },
-  );
+  await page.mouse.move(viewport.width * 0.73, viewport.height * 0.47, {
+    steps: 6,
+  });
+  await expect(
+    field,
+    "a pointer over the knot meets its surface",
+  ).toHaveAttribute("data-hover-hit", "1.000", { timeout: 5000 });
 });
 
 test("background is true black: no faint haze from bloom or vignette", async ({
@@ -212,11 +219,16 @@ test("background is true black: no faint haze from bloom or vignette", async ({
       if (peak === 0) black++;
       else if (peak <= 2) faint++;
     }
-    return { black: black / (data.length / 4), faint: faint / (data.length / 4) };
+    return {
+      black: black / (data.length / 4),
+      faint: faint / (data.length / 4),
+    };
   }, shot.toString("base64"));
   // A uniform lift would turn the black share into a faint one; what remains
   // faint is only the last step of each halo's falloff.
-  expect(haze.black, "most of the screen is pixels-off black").toBeGreaterThan(0.6);
+  expect(haze.black, "most of the screen is pixels-off black").toBeGreaterThan(
+    0.6,
+  );
   expect(haze.faint, "no near-black haze around the forms").toBeLessThan(0.03);
 });
 
@@ -282,11 +294,11 @@ test("content and contact remain usable without WebGL2", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page
-    .getByRole("link", { name: "Vamos conversar", exact: true })
+    .getByRole("link", { name: "Falar do projeto", exact: true })
     .click();
   await expect(page.locator("#contato")).toBeFocused({ timeout: 2000 });
   await expect(
-    page.getByRole("link", { name: "Conversar no LinkedIn", exact: true }),
+    page.getByRole("link", { name: "Falar no LinkedIn", exact: true }),
   ).toBeVisible();
 });
 
@@ -312,7 +324,8 @@ test("scroll morphs the particle geometry and retraces the same poses", async ({
   const capture = async (id: string) => {
     await page.evaluate((sectionId) => {
       const parent =
-        document.getElementById(sectionId) ?? document.querySelector<HTMLElement>(sectionId)!;
+        document.getElementById(sectionId) ??
+        document.querySelector<HTMLElement>(sectionId)!;
       const section =
         parent.querySelector<HTMLElement>(".section-split, .section-heading") ??
         parent;

@@ -22,7 +22,6 @@ uniform vec3 u_offset;
 uniform float u_progress;
 uniform float u_explode;
 uniform float u_factor;
-uniform float u_time;
 uniform float u_lineGain;
 uniform float u_drawn; // particles drawn: small screens draw a prefix
 varying vec3 vColor;
@@ -40,7 +39,7 @@ void main() {
   float fit=1.-smoothstep(aRest*1.35,aRest*2.4,len);
   vec3 world=u_rot*(aEnd<.5 ? a : b)+u_offset;
   float glow;
-  world=hover(world,texture2D(t_params,uv),u_time,glow);
+  world=hover(world,texture2D(t_params,uv),glow);
   vec4 look=texture2D(t_look,uv);
   float emission,alpha;
   decodeLook(look,emission,alpha);

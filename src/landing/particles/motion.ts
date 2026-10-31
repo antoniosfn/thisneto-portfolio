@@ -59,28 +59,6 @@ export function easePose(
 }
 
 /**
- * Involuntary float, as in a vacuum: a slow sway of the whole field on
- * incommensurate frequencies (0.21, 0.33, 0.47 Hz), so it never visibly
- * repeats. Applied on top of the eased pose.
- */
-export function vacuum(pose: ParticlePose, seconds: number): ParticlePose {
-  const w = (hz: number, phase: number) => Math.sin(seconds * hz * 2 * Math.PI + phase);
-  return {
-    ...pose,
-    offset: [
-      pose.offset[0] + 0.05 * w(0.21, 0.4),
-      pose.offset[1] + 0.08 * w(0.33, 1.3),
-      pose.offset[2] + 0.06 * w(0.47, 2.1),
-    ],
-    rotation: [
-      pose.rotation[0] + 0.04 * w(0.33, 0.7),
-      pose.rotation[1] + 0.04 * w(0.21, 2.6),
-      pose.rotation[2] + 0.03 * w(0.47, 4.2),
-    ],
-  };
-}
-
-/**
  * Dala's pointer chain: each move sets an impulse of 50 × the NDC step, limited
  * to ±2; the impulse decays by 10% per frame and both the cursor and the
  * shader's u_delta chase their targets at 7.5% per frame.

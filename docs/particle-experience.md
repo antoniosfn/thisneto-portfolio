@@ -2,6 +2,41 @@
 
 A fonte de verdade desta revisão é [o relatório fornecido](reference/dala-measurements.json), preservado integralmente. A referência visual do Refero é Dala, estilo `ba81bf2a-a5ad-4234-92a4-1d6d47742785`, consultado no conector. A página pública permaneceu no carregamento durante a captura; isso impede uma comparação visual direta do modelo original.
 
+## Revisão 13 — lâmpada na seção de clareza (25/10/2026)
+
+- A lâmpada substitui os anéis e a estrela no estágio 12, mantendo o mesmo espaço e a coreografia
+- Contorno de vidro em malha triangular dourada, filamento incandescente, hastes internas e base rosqueada azul
+- Forma estática, sem rotação ou flutuação automática
+- Referências visuais: [lâmpada em wireframe](https://llllline.com/pt/incandescent-lamp-3d-model) e [estrutura de uma lâmpada no Smithsonian](https://americanhistory.si.edu/lighting/tech/inc.htm); geometria original criada no projeto
+
+## Revisão 12 — movimento próprio dos elementos (25/10/2026)
+
+- Removidas a flutuação do conjunto, a oscilação das partículas, a rotação dos triângulos e a deriva do fundo
+- Núcleo e linhas das órbitas ficam fixos; os elétrons seguem suas órbitas continuamente, inclusive com o átomo completo
+- Páginas acompanham a rolagem, faíscas seguem o percurso do livro, água e fumaça mantêm seus fluxos
+- Folhas, nuvens e iluminação ficam estáveis; o hover só reage ao ponteiro, sem ondulação por tempo
+- Layout e coreografia da rolagem preservados
+
+## Revisão 11 — Saturno antes dos projetos (25/10/2026)
+
+- Saturno substitui o encontro dos fios azul e amarelo no estágio 7, com globo facetado, faixas atmosféricas, 24 anéis concêntricos e pequenos fragmentos geométricos dourados
+- Os anéis mantêm os índices das partículas do livro e o globo mantém os do átomo; após uma pausa entre 7 e 7,35, a divisão termina em 7,9 e se recompõe ao rolar para cima
+- A largura dos anéis se adapta à coluna de desktop e à tela do celular; o shader da corrente anterior foi removido
+
+## Revisão 10 — livro no loading (25/10/2026)
+
+- O loading monta um livro de partículas com as mesmas proporções, abertura e curvatura das páginas do livro dos projetos
+- Ao concluir o carregamento real, o livro se comprime para o centro em 0,65 s; só depois o fundo preto desaparece em um fade de 0,95 s
+- A sequência usa uma timeline GSAP com escopo e limpeza no React; contador, desbloqueio da página e saída também funcionam sem canvas 2D
+
+## Revisão 9 — copy, raízes e conexões (25/10/2026)
+
+- Headline “Conhecimento que move seu negócio” e copy sem pontos finais
+- Títulos dimensionados pela largura da coluna, com quebra de palavras longas e correção do botão que alargava a abertura em 320 px
+- Raízes com volume de atração mais profundo, 420 atratores e 25% das partículas da árvore, com linhas nas ramificações e enquadramento da copa até as pontas
+- A árvore acompanha processo e perfil; nas perguntas, dá lugar a uma esfera de anéis orbitais com um núcleo geométrico no mesmo espaço
+- Seção da Lia removida e figura substituída no atlas; contato passa ao estágio 13 e mantém a cena final
+
 ## Revisão 8 — repouso e cena inteira
 
 - **Repouso** (`particles/stillness.ts`): o movimento involuntário (flutuação de vácuo do conjunto e de cada partícula, órbitas, balanço, água, fumaça, tombo dos triângulos) segue um relógio ambiente `u_clock`. Ele desacelera até parar em cerca de 0,5 s quando a forma está completa (progresso inteiro, sem explosão e sem a semente reunida) e retoma de onde parou ao começar uma transição. Hover, scroll, explosões e correntes não usam esse relógio. Só os estilhaços do fundo continuam à deriva.
@@ -72,12 +107,12 @@ Pedido do Antonio (24/10/2026), com 14 imagens de referência, guardadas em [ref
 | 2 | Linha do manifesto | Nuvem curta → corrente |
 | 3–5 | Trajetória | Lorenz, treliça, rede |
 | 6 | Desafios | Cubo |
-| 7 | Projetos (título) | O cubo explode; fila indiana até o centro, dois fios torcidos que se dividem em quente e frio |
+| 7 | Projetos (título) | O cubo explode e forma Saturno; os anéis se tornam o livro e o globo se torna o átomo |
 | 8–9 | Projeto 01, 02 | Livro semiaberto (vermelho, âmbar, branco, com fagulhas) no alto à direita e átomo (azul e roxo) embaixo à esquerda; uma folha vira por projeto |
 | 10 | Processo | Os dois se juntam no centro, descem e chovem para baixo, formando a semente; a Árvore da Vida cresce de dentro para fora, em espiral de galáxia |
-| 11–12 | Quem constrói, FAQ | Árvore com as 10 sefirot e os 22 caminhos |
-| 13 | Lia | A figura da Lia |
-| 14 | Contato | A cena final: cachoeira, casa e casal, formada a partir do casal ([particle-finale.md](particle-finale.md)) |
+| 11 | Quem constrói | Árvore com raízes profundas, as 10 sefirot e os 22 caminhos |
+| 12 | Perguntas | Esfera de conexões, no espaço antes ocupado pela árvore |
+| 13 | Contato | A cena final: cachoeira, casa e casal, formada a partir do casal ([particle-finale.md](particle-finale.md)) |
 
 ### Formas novas
 
@@ -298,3 +333,33 @@ A skill img2threejs orientou decomposição, contrato de qualidade e inspeção 
 Os testes de interação congelam apenas o relógio do giro ambiente; a simulação continua com seu relógio independente. Comparações de retorno esperam a mola se acomodar e toleram apenas pequenas diferenças de rasterização. Há cobertura específica para hover desligado na nuvem, inércia após parar o scroll e aumento da região de hover com a velocidade do ponteiro. Esse último teste falha quando o ganho de velocidade é zerado.
 
 Nenhum deploy, recurso, conta ou configuração Cloudflare foi alterado.
+
+
+### Soluções sem seleção
+
+Os três serviços agora aparecem como blocos estáticos, com títulos grandes alternando entre as colunas esquerda e direita Nos estágios 6, 6.2 e 6.4, o cubo permanece completo e ocupa a coluna livre Em telas menores que 1100 px, a figura fica acima da copy A fragmentação para Saturno começa apenas depois do terceiro bloco
+
+
+### Árvore ampliada e transições mais longas
+
+A árvore usa escala 1.1 no desktop (antes 0.85) e 1 no mobile (antes 0.78), com posição mais baixa A formação ocupa 9.75–10.85, a pausa completa fica em 10.85–11.1 e a lâmpada se forma entre 11.1–12 O livro e o átomo também descem e se formam por mais tempo, entre 7.15–8, chegando completos ao primeiro projeto O livro usa escala 1 em vez de 1.25 no desktop para abrir espaço entre o cabeçalho e o título No mobile, seus centros já são absolutos: o grupo não soma novamente o deslocamento da área superior
+
+
+### Leitura centralizada no tablet e no mobile
+
+Até 1099 px, os textos usam uma coluna central de até 680 px, com botões e links de pelo menos 44 px de altura O tablet compartilha a posição superior das figuras usada no celular, incluindo a âncora da copy a 52% da tela O retrato fica limitado a 200 px e o fundo fica mais discreto para favorecer a leitura O desktop mantém suas colunas alternadas
+
+
+### Tipografia mais forte e sem painéis de fundo
+
+Manrope variável substitui a combinação anterior de fontes, hospedada localmente em WOFF2 Os títulos e botões usam peso 800, o corpo usa 600 e as perguntas usam 700 Os gradientes escuros atrás dos blocos de texto foram removidos, com texto de apoio em branco suave para melhorar a visibilidade A licença está em public/fonts/MANROPE-OFL.txt
+
+## Ajuste de scroll e enquadramento — 25/10/2026
+
+A paisagem da casa e cachoeira abre a página, com sua camada de detalhes. Ela se transforma no nó no primeiro trecho de scroll; o contato mantém a lâmpada. O atlas continua na mesma ordem e o arquivo de formas existente é preservado: a simulação mistura a paisagem diretamente na abertura.
+
+Celular e tablet passam a alinhar o texto a 18% da viewport, com as figuras abaixo. O tamanho considera o raio real de cada malha, largura disponível, altura e perspectiva. A câmera conserva uma leve inclinação e uma resposta menor ao mouse. Lorenz se completa em f=2.65, permanece inteiro até f=3.4, e a treliça chega gradualmente até f=3.95. Os centros descem em diagonais curtas, com scroll reversível.
+
+As seções de capítulos e soluções passam de 112vh a 78svh. Margens e alturas das demais seções também foram reduzidas, mantendo espaço para a leitura e a figura. Na prévia de 319×816, a altura total caiu de 14.221 px para aproximadamente 10.500 px.
+
+A regressão está em tests/compact-scroll.spec.ts: abertura, permanência do Lorenz, progressão até a treliça, descida diagonal, posição do texto, ausência de overflow e capturas em 320, 390, 768, 1024, 1440 e 1920 px.

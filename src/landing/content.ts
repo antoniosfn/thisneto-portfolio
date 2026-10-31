@@ -2,113 +2,98 @@ export const profile = {
   name: "Antonio Neto",
   linkedin: "https://www.linkedin.com/in/antoniosfn",
   github: "https://github.com/antoniosfn",
-  headline: ["Conecte o que sabe.", "Construa o que falta."],
+  headline: ["Menos tarefas", "Mais tempo", "para crescer"],
   intro:
-    "Busca com IA, automações e aplicações que ligam o conhecimento da sua empresa a quem precisa dele.",
-  invitation: "Vamos conectar as ideias",
+    "IA e software para automatizar rotinas e encontrar respostas nos seus dados",
+  invitation: "Falar do meu projeto",
 };
 
 export const chapters = [
   {
-    title: "Começar pela lógica.",
-    body: "Matemática para ver as relações antes de escolher a ferramenta.",
+    title: "Encontre o que trava",
+    body: "Mapeio a rotina e os dados antes de propor a solução",
     symbol: "∑",
   },
   {
-    title: "Dar forma ao raciocínio.",
-    body: "Engenharia de Computação: a teoria ganha interface, integração e dados.",
+    title: "Conecte o que já funciona",
+    body: "Integro sistemas para a informação circular sem retrabalho",
     symbol: "{ }",
   },
   {
-    title: "Fazer a tecnologia trabalhar.",
-    body: "Busca semântica, agentes de IA e automações que tornam o conhecimento acessível.",
+    title: "Coloque a IA para trabalhar",
+    body: "Busca inteligente e automações aplicadas às tarefas da sua equipe",
     symbol: "↗",
   },
 ];
 
-export const challenges = [
+export const solutions = [
   {
-    id: "conhecimento",
-    label: "Conhecimento disperso",
-    title: "Sua empresa sabe mais do que consegue encontrar.",
-    body: "A busca por contexto conecta o que está separado em documentos e sistemas.",
-    approach: "Busca semântica + integração de fontes",
+    title: "Encontre respostas nos seus dados",
+    body: "Documentos, pesquisas e informações em uma busca que entende sua pergunta",
   },
   {
-    id: "automacao",
-    label: "Rotinas repetitivas",
-    title: "O tempo da equipe merece um trabalho melhor.",
-    body: "Entender a rotina e suas exceções vem antes de automatizar.",
-    approach: "Python + APIs + execução determinística",
+    title: "Tire o repetitivo da rotina",
+    body: "Automatize coletas, relatórios e integrações para sua equipe ganhar tempo",
   },
   {
-    id: "produto",
-    label: "Uma ideia para tirar do papel",
-    title: "Uma boa ideia precisa encontrar a operação.",
-    body: "Um recorte claro e uma primeira entrega que possa ser avaliada.",
-    approach: "React + serviços + banco de dados",
+    title: "Sua ideia merece sair do papel",
+    body: "Uma aplicação sob medida, começando pelo que resolve seu problema",
   },
 ];
 
 export const projects = [
   {
-    title: "Conhecimento que se encontra.",
+    title: "Busca de conhecimento",
     description:
-      "Busca semântica que reúne produção científica, competências e projetos.",
+      "Encontre pesquisas, competências e projetos em uma única busca",
     tags: ["RAG", "React", "PostgreSQL"],
   },
   {
-    title: "Aprender uma vez. Executar de novo.",
+    title: "Coleta de dados com IA",
     description:
-      "Coleta assistida por IA que cria instruções reutilizáveis para cada fonte.",
+      "Instruções reutilizáveis para repetir coletas sem refazer o processo",
     tags: ["Python", "LLM", "APIs REST"],
   },
 ];
 
 export const steps = [
   {
-    title: "Contexto primeiro.",
-    body: "Entender o processo e definir o problema que vale resolver.",
+    title: "Entender",
+    body: "Identificamos o problema e o resultado esperado",
   },
   {
-    title: "Um recorte viável.",
-    body: "Escolher a primeira entrega com critério.",
+    title: "Planejar",
+    body: "Alinhamos escopo, prazo e investimento",
   },
   {
-    title: "Construir e avaliar.",
-    body: "Desenvolver, testar e comparar com o objetivo.",
+    title: "Construir",
+    body: "Desenvolvemos, testamos e definimos o próximo passo",
   },
 ];
 
 export const faqs = [
   {
-    question: "Preciso saber qual tecnologia usar?",
+    question: "Preciso entender de tecnologia?",
+    answer: "Traga o problema — eu ajudo a definir o caminho técnico",
+  },
+  {
+    question: "Preciso usar IA?",
     answer:
-      "Você pode começar pelo problema de negócio. A tecnologia vem depois.",
+      "Usamos IA quando ela ajuda — integrações e regras simples também resolvem",
   },
   {
-    question: "Todo projeto precisa de inteligência artificial?",
-    answer: "A escolha depende do problema. Quando regras simples resolvem, é isso que uso.",
-  },
-  {
-    question: "Dá para usar os sistemas que já temos?",
-    answer: "Sim. Primeiro avalio APIs, dados e permissões.",
-  },
-  {
-    question: "Como definimos prazo e investimento?",
-    answer: "Pelo escopo e pelos dados. A primeira conversa já dá essa clareza.",
-  },
-  {
-    question: "Posso ver o código dos projetos?",
+    question: "Integra com meus sistemas?",
     answer:
-      "Os dois são profissionais, com código privado. No GitHub há estudos públicos.",
+      "Avaliamos APIs, dados e permissões para confirmar o que pode ser conectado",
+  },
+  {
+    question: "Quanto custa e quanto demora?",
+    answer:
+      "Primeiro entendemos o objetivo — depois alinhamos escopo, prazo e investimento",
+  },
+  {
+    question: "Posso ver o código?",
+    answer:
+      "Os projetos são privados — meu GitHub reúne estudos e experimentos públicos",
   },
 ];
-
-/** Provisional copy: the closing figure of the field presents Lia. */
-export const lia = {
-  title: "Conheça a Lia.",
-  tagline: "Uma agente de IA para empresas.",
-  body: "Matemática, engenharia e IA aplicada, trabalhando pelo conhecimento da sua empresa.",
-  invitation: "Quero conhecer a Lia",
-};

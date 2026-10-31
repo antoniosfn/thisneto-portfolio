@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import "../src/landing/landing.css";
 
 export const metadata: Metadata = {
-  title: "Antonio Neto | IA e software para empresas",
+  title: "Antonio Neto | IA, automação e software",
   description:
-    "Matemática, inteligência artificial e engenharia de software aplicadas aos desafios da sua empresa. Conheça minha trajetória e meus projetos.",
+    "IA e software para automatizar tarefas, conectar sistemas e encontrar respostas nos seus dados — fale sobre seu projeto com Antonio Neto",
   openGraph: {
-    title: "Antonio Neto | IA e software para empresas",
+    title: "Antonio Neto | IA, automação e software",
     description:
-      "Da lógica ao código. Do código ao que importa para o seu negócio.",
+      "Menos tarefas, mais tempo para crescer — IA e software para automatizar rotinas e conectar seus dados",
     locale: "pt_BR",
     type: "website",
   },
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link
           rel="preload"
-          href="/fonts/league-spartan.woff2"
+          href="/fonts/manrope.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"

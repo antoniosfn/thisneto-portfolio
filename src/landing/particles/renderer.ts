@@ -19,7 +19,6 @@ import { createBackdrop } from "./backdrop";
 import { createParticleCamera, frameCamera, parallaxCamera } from "./camera";
 import { createParticleData } from "./data";
 import { SCENE_HEIGHT, SCENE_WIDTH } from "./finale/build";
-import { STILL_EASE, STILL_TOLERANCE, advanceClock } from "./stillness";
 import { loadScene } from "./finale/file";
 import { DETAIL_DRAWN, createDetailLayer } from "./finale/layer";
 import { COUNT, FORM, FORM_LOOK } from "./forms/catalog";
@@ -27,12 +26,18 @@ import type { FormData } from "./forms/compose";
 import { createPyramidGeometry } from "./geometry";
 import { createHoverProbe } from "./hover";
 import { createLines } from "./lines";
-import { PointerMotion, STEP, createPose, easePose, vacuum } from "./motion";
+import { PointerMotion, STEP, createPose, easePose } from "./motion";
 import { createPost } from "./post";
 import { AdaptiveQuality } from "./quality";
 import { particleFragment, particleVertex } from "./shaders/particle";
 import { createSimulation } from "./simulation";
-import { MOBILE_FIGURE_Y, pose as poseAt, type Layout } from "./timeline";
+import {
+  MOBILE_FIGURE_Y,
+  pose as poseAt,
+  ramp,
+  track,
+  type Layout,
+} from "./timeline";
 
 const MOBILE_WIDTH = 760;
 const TABLET_WIDTH = 1100;
@@ -46,7 +51,7 @@ const CENTER = new Vector2();
 // Share of the viewport the whole scene fills: the header covers the top and
 // the footer's text the bottom, and the couple must clear both.
 const SCENE_MARGIN = 0.78;
-// Desktop: the scene takes this share of the width, right of the contact copy,
+// Desktop: the opening scene takes this share of the width, right of the copy,
 // at this distance (world units) from the right edge.
 const SCENE_SIDE_SHARE = 0.56;
 const SCENE_EDGE = 0.35;
@@ -57,7 +62,10 @@ function formLook(progress: number) {
   const a = FORM_LOOK[Math.floor(k)],
     b = FORM_LOOK[Math.ceil(k)],
     t = k - Math.floor(k);
-  return { size: a.size + (b.size - a.size) * t, lines: a.lines + (b.lines - a.lines) * t };
+  return {
+    size: a.size + (b.size - a.size) * t,
+    lines: a.lines + (b.lines - a.lines) * t,
+  };
 }
 const FORWARD = new Vector3(0, 0, 1);
 
@@ -96,13 +104,13 @@ export function createParticleRenderer(
     t_ranks: { value: textures.ranks },
     t_explosion: { value: textures.explosion },
     u_progress: { value: 0 },
+    u_opening: { value: 1 },
     u_explode: { value: 0 },
     u_explodeMix: { value: 0 },
     u_seed: { value: 0 },
     u_page: { value: 0 },
     u_factor: { value: 4.35 },
     u_show: { value: 0 },
-    u_time: { value: 0 },
     u_clock: { value: 0 },
     u_book: { value: new Vector4(0, 0, 0, 1) },
     u_atom: { value: new Vector4(0, 0, 0, 1) },
@@ -152,7 +160,7 @@ export function createParticleRenderer(
   lines.mesh.renderOrder = 1;
   scene.add(backdrop.mesh, particles, lines.mesh);
   const post = createPost(renderer, scene, camera);
-  // The closing scene's detail layer arrives after the field; nothing waits.
+  // The landscape's detail layer arrives after the field; nothing waits.
   let detail: ReturnType<typeof createDetailLayer> | undefined;
   loadScene()
     .then((sceneForm) => {
@@ -171,7 +179,9 @@ export function createParticleRenderer(
       detail.setDrawn(DETAIL_DRAWN[layout]);
       scene.add(...detail.meshes);
     })
-    .catch((error: unknown) => console.error("Closing scene could not be loaded", error));
+    .catch((error: unknown) =>
+      console.error("Closing scene could not be loaded", error),
+    );
 
   const pointer = new PointerMotion();
   const pose = createPose();
@@ -180,9 +190,19 @@ export function createParticleRenderer(
   const toCamera = new Vector3(),
     turn = new Quaternion();
   const extent = new Vector2(14.9, 9.33);
-  let clock = 0,
-    lastSeconds = 0,
-    still = 0;
+  const fitEuler = new Euler(0, 0, 0, "ZYX");
+  const fitRotation = new Matrix4();
+  const fitPoint = new Vector3();
+  // Conservative radii include depth, so portrait screens also fit a tilted form.
+  const radii = forms.map((form) => {
+    let radius = 0;
+    for (let i = 0; i < form.points.length; i += 3)
+      radius = Math.max(
+        radius,
+        Math.hypot(form.points[i], form.points[i + 1], form.points[i + 2]),
+      );
+    return radius;
+  });
   let layout: Layout = "desktop",
     disposed = false,
     lost = false,
@@ -200,12 +220,17 @@ export function createParticleRenderer(
     post.resize(width, height, quality.ratio);
     // Visible extent at z = 0: 2·d·tan(fov/2) high, times the aspect wide.
     extent.copy(frameCamera(camera, width / height));
-    layout = width < MOBILE_WIDTH ? "mobile" : width < TABLET_WIDTH ? "tablet" : "desktop";
+    layout =
+      width < MOBILE_WIDTH
+        ? "mobile"
+        : width < TABLET_WIDTH
+          ? "tablet"
+          : "desktop";
     particles.count = DRAWN[layout];
     view.u_drawn.value = DRAWN[layout];
     probe.setDrawn(DRAWN[layout]);
     detail?.setDrawn(DETAIL_DRAWN[layout]);
-    backdrop.resize(extent, layout === "mobile");
+    backdrop.resize(extent, layout !== "desktop");
     canvas.dataset.pixelRatio = quality.ratio.toFixed(2);
     // A pixel-ratio step mid-scroll must not make the pose jump.
     if (reason !== "quality") posed = false;
@@ -215,19 +240,94 @@ export function createParticleRenderer(
     const text = value.toFixed(3);
     if (canvas.dataset[key] !== text) canvas.dataset[key] = text;
   }
-  function applyPose(frames: number, seconds: number) {
+  function applyPose(frames: number) {
     const progress = read().progress;
     // The first frame jumps straight to the pose.
-    easePose(pose, poseAt(progress, layout), posed ? frames : Infinity);
+    const targetPose = poseAt(progress, layout);
+    // Saturn's broad rings fit the reading column or the phone's full width.
+    const saturnWeight = Math.max(
+      0,
+      1 - Math.abs(targetPose.progress - FORM.saturn),
+    );
+    const saturnFit = Math.min(
+      targetPose.factor,
+      (extent.x * (layout === "desktop" ? 0.44 : 0.86)) / 2.05,
+    );
+    targetPose.factor += (saturnFit - targetPose.factor) * saturnWeight;
+    if (layout !== "desktop") {
+      const a = Math.floor(targetPose.progress);
+      const t = targetPose.progress - a;
+      const radius =
+        radii[a] + (radii[Math.ceil(targetPose.progress)] - radii[a]) * t;
+      // Account for perspective at the nearest point of the bounding sphere.
+      const diameter = Math.min(extent.x * 0.84, extent.y * 0.34);
+      const fit = diameter / (radius * (2 + diameter / 10));
+      targetPose.factor = Math.min(targetPose.factor, fit);
+    } else if (
+      targetPose.progress < FORM.bookAtom ||
+      targetPose.progress >= FORM.tree
+    ) {
+      // Fit the tilted silhouette vertically after lowering it. Sampling the
+      // dense mesh avoids shrinking the desktop forms to a bounding sphere.
+      fitRotation.makeRotationFromEuler(
+        fitEuler.set(...targetPose.rotation, "ZYX"),
+      );
+      const lower = -extent.y * 0.46,
+        upper = extent.y * 0.38;
+      for (
+        let k = Math.floor(targetPose.progress);
+        k <= Math.ceil(targetPose.progress);
+        k++
+      ) {
+        const points = forms[k].points;
+        for (let i = 0; i < points.length; i += 96) {
+          fitPoint.fromArray(points, i).applyMatrix4(fitRotation);
+          const bottom = 10 * fitPoint.y + lower * fitPoint.z;
+          const top = 10 * fitPoint.y + upper * fitPoint.z;
+          if (bottom < -0.0001)
+            targetPose.factor = Math.min(
+              targetPose.factor,
+              (10 * (lower - targetPose.offset[1])) / bottom,
+            );
+          if (top > 0.0001)
+            targetPose.factor = Math.min(
+              targetPose.factor,
+              (10 * (upper - targetPose.offset[1])) / top,
+            );
+        }
+      }
+    }
+    // The three service beats reserve half the screen for copy, or stack on tablets/phones.
+    const solutionWeight = ramp(progress, 5.7, 6) - ramp(progress, 6.4, 6.7);
+    if (solutionWeight > 0) {
+      const side = layout === "desktop";
+      const direction = track(progress, [
+        [6.04, 1],
+        [6.16, -1],
+        [6.24, -1],
+        [6.36, 1],
+      ]);
+      const x = side ? extent.x * 0.25 * direction : 0;
+      const y = side ? -0.4 : MOBILE_FIGURE_Y;
+      const fit = Math.min(
+        targetPose.factor,
+        (extent.x * (side ? 0.4 : 0.86)) / 1.5,
+        (extent.y * (side ? 0.65 : 0.3)) / 1.5,
+      );
+      targetPose.offset[0] += (x - targetPose.offset[0]) * solutionWeight;
+      targetPose.offset[1] += (y - targetPose.offset[1]) * solutionWeight;
+      targetPose.factor += (fit - targetPose.factor) * solutionWeight;
+    }
+    easePose(pose, targetPose, posed ? frames : Infinity);
     posed = true;
-    const shown = vacuum(pose, clock);
-    // Into the closing scene the size and place blend to where the whole
-    // picture fits beside (desktop) or below (smaller screens) the contact copy.
+    const shown = { offset: [...pose.offset], rotation: pose.rotation };
+    // The opening picture fits beside (desktop) or below (stacked) the copy.
     const sceneFit = fitScene();
     const factor = pose.factor + (sceneFit.factor - pose.factor) * pose.scene;
     shown.offset[0] += (sceneFit.x - shown.offset[0]) * pose.scene;
     shown.offset[1] += (sceneFit.y - shown.offset[1]) * pose.scene;
     shared.u_progress.value = pose.progress;
+    shared.u_opening.value = pose.scene;
     shared.u_explode.value = pose.explode;
     shared.u_explodeMix.value = pose.explodeMix;
     shared.u_seed.value = pose.seed;
@@ -235,44 +335,71 @@ export function createParticleRenderer(
     shared.u_factor.value = factor;
     // Book and atom are placed in world units; the field frame is ÷ factor.
     const f = Math.max(0.01, factor);
-    shared.u_book.value.set(pose.book[0] / f, pose.book[1] / f, pose.book[2] / f, pose.book[3]);
-    shared.u_atom.value.set(pose.atom[0] / f, pose.atom[1] / f, pose.atom[2] / f, pose.atom[3]);
+    shared.u_book.value.set(
+      pose.book[0] / f,
+      pose.book[1] / f,
+      pose.book[2] / f,
+      pose.book[3],
+    );
+    shared.u_atom.value.set(
+      pose.atom[0] / f,
+      pose.atom[1] / f,
+      pose.atom[2] / f,
+      pose.atom[3],
+    );
     face(shared.u_bookFace.value, pose.book, pose.offset);
     face(shared.u_atomFace.value, pose.atom, pose.offset);
     view.u_offset.value.fromArray(shown.offset);
     euler.set(shown.rotation[0], shown.rotation[1], shown.rotation[2], "ZYX");
     view.u_rot.value.setFromMatrix4(rotation4.makeRotationFromEuler(euler));
     lines.update(pose.progress);
+    lines.mesh.visible &&= pose.scene < 0.01;
     detail?.update(pose.detail);
-    const look = formLook(pose.progress);
+    const regularLook = formLook(pose.progress);
+    const openingLook = FORM_LOOK[FORM.finale];
+    const look = {
+      size: regularLook.size + (openingLook.size - regularLook.size) * pose.scene,
+      lines:
+        regularLook.lines + (openingLook.lines - regularLook.lines) * pose.scene,
+    };
     view.u_scale.value = SCALE[layout] * look.size;
     view.u_lineGain.value = look.lines;
     publish("sectionProgress", progress);
     publish("explode", pose.explode);
     publish("progress", pose.progress);
+    publish("opening", pose.scene);
+    publish("figureY", shown.offset[1]);
+    publish("factor", factor);
   }
   /**
-   * Where the closing scene stands, as `object-fit: contain` in the free area:
-   * on desktop the right 56% beside the contact copy, hugging the right edge;
+   * Where the opening scene stands, as `object-fit: contain` in the free area:
+   * on desktop the right 56% beside the copy, hugging the right edge;
    * on smaller screens the whole width, below the copy.
    */
   function fitScene() {
     const side = layout === "desktop";
     const factor = Math.min(
       (extent.x * (side ? SCENE_SIDE_SHARE : SCENE_MARGIN)) / SCENE_WIDTH,
-      (extent.y * SCENE_MARGIN) / SCENE_HEIGHT,
+      (extent.y * (side ? 0.62 : 0.34)) / SCENE_HEIGHT,
     );
     return {
       factor,
       x: side ? extent.x / 2 - (SCENE_WIDTH * factor) / 2 - SCENE_EDGE : 0,
-      // Smaller screens: the upper half, above the contact copy.
-      y: side ? 0.45 : MOBILE_FIGURE_Y - 0.2,
+      y: side ? -0.7 : -0.75,
     };
   }
   /** Turn a group placed off-centre so it faces the camera, as if centred. */
-  function face(out: Matrix3, at: readonly number[], offset: readonly number[]) {
+  function face(
+    out: Matrix3,
+    at: readonly number[],
+    offset: readonly number[],
+  ) {
     toCamera
-      .set(-(at[0] + offset[0]), -(at[1] + offset[1]), camera.position.z - (at[2] + offset[2]))
+      .set(
+        -(at[0] + offset[0]),
+        -(at[1] + offset[1]),
+        camera.position.z - (at[2] + offset[2]),
+      )
       .normalize();
     turn.setFromUnitVectors(FORWARD, toCamera);
     out.setFromMatrix4(rotation4.makeRotationFromQuaternion(turn));
@@ -284,10 +411,19 @@ export function createParticleRenderer(
     // Hover fades out while the field is exploded: |explode − 1|.
     view.u_hoverGain.value = Math.abs(shared.u_explode.value - 1);
     // Same term the shader adds to the hover radius: max(|Δx|, |Δy|).
-    publish("pointerSpeed", Math.max(Math.abs(pointer.delta.x), Math.abs(pointer.delta.y)));
+    publish(
+      "pointerSpeed",
+      Math.max(Math.abs(pointer.delta.x), Math.abs(pointer.delta.y)),
+    );
     publish("hoverGain", view.u_pointer.value * view.u_hoverGain.value);
     parallaxCamera(camera, pointer.isActive ? pointer.target : CENTER, frames);
-    probe.update(camera, pointer.mouse, pointer.isActive, view.u_rayOrigin.value, view.u_rayDir.value);
+    probe.update(
+      camera,
+      pointer.mouse,
+      pointer.isActive,
+      view.u_rayOrigin.value,
+      view.u_rayDir.value,
+    );
     publish("hoverHit", probe.hit ? 1 : 0);
   }
   function draw(time: number) {
@@ -299,27 +435,13 @@ export function createParticleRenderer(
     previousTime = now;
     const frames = Math.max(0, delta) / STEP;
     const seconds = time / 1000;
-    shared.u_time.value = seconds;
-    applyPose(frames, seconds);
-    // Involuntary motion (the vacuum float, orbits, sway, water, smoke…) rests
-    // while a form is complete; hover, scroll and transitions keep working.
-    const formed =
-      show === 1 &&
-      Math.abs(pose.progress - Math.round(pose.progress)) < STILL_TOLERANCE &&
-      pose.explode < STILL_TOLERANCE &&
-      // u_seed stays at 1 once the tree has grown from it: only the gathering
-      // before the tree (progress still below it) is "not formed".
-      (pose.seed < STILL_TOLERANCE || pose.progress > FORM.tree - STILL_TOLERANCE);
-    still += ((formed ? 1 : 0) - still) * (1 - (1 - STILL_EASE) ** frames);
-    // Driven by the animation timestamp, like u_time: a page that pins that
-    // clock freezes the ambient motion too.
-    clock = advanceClock(clock, Math.min(Math.max(0, seconds - lastSeconds), 0.1), still);
-    lastSeconds = seconds;
-    shared.u_clock.value = clock;
+    applyPose(frames);
+    // Time drives only each element's own path, without moving the whole figure
+    shared.u_clock.value = seconds;
     show = Math.min(1, show + Math.max(0, delta) / 1.2);
     shared.u_show.value = show;
     if (show === 1) canvas.dataset.entered = "true";
-    backdrop.update(seconds, pointer.target, pointer.isActive, frames);
+    backdrop.update(pointer.target, pointer.isActive, frames);
     accumulator += Math.max(0, delta);
     let iterations = 0;
     // At most 3 catch-up steps: a hitch never turns into a burst of work.
@@ -343,7 +465,10 @@ export function createParticleRenderer(
   }
   function move(event: PointerEvent) {
     if (event.pointerType !== "mouse" || !event.isPrimary) return;
-    pointer.move((event.clientX / innerWidth) * 2 - 1, 1 - (event.clientY / innerHeight) * 2);
+    pointer.move(
+      (event.clientX / innerWidth) * 2 - 1,
+      1 - (event.clientY / innerHeight) * 2,
+    );
     requestDraw();
   }
   function leave() {

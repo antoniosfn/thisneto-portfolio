@@ -12,16 +12,16 @@ export const FORM = {
   truss: 2,
   neural: 3,
   cube: 4,
-  stream: 5,
+  saturn: 5,
   bookAtom: 6,
   tree: 7,
-  woman: 8,
+  bulb: 8,
   finale: 9,
 } as const;
 export const FORM_COUNT = Object.keys(FORM).length;
 
 /**
- * Per-form particle size and line strength. Fine figures (the tree, Lia) need
+ * Per-form particle size and line strength. Fine figures (the tree, bulb) need
  * smaller particles so their features resolve, and carry their shape in the
  * lines of light, as the references' wireframe mesh does.
  */
@@ -31,15 +31,14 @@ export const FORM_LOOK: { size: number; lines: number }[] = [
   { size: 1, lines: 1 }, // truss
   { size: 1, lines: 1 }, // neural
   { size: 1, lines: 1 }, // cube
-  { size: 0.9, lines: 1 }, // stream
+  { size: 0.62, lines: 1.6 }, // Saturn: fine facets and concentric rings
   { size: 0.82, lines: 1.3 }, // book and atom
   { size: 0.8, lines: 1.4 }, // tree
-  { size: 0.55, lines: 2.6 }, // Lia
+  { size: 0.66, lines: 1.7 }, // glass bulb, screw base and filament
   // The closing scene: each region scales this (motion.w), from the couple's
   // fine strokes to the leaves' large triangles.
   { size: 0.8, lines: 1.2 }, // finale
 ];
-
 
 /**
  * Per-particle motion, read by the simulation shader (see shaders/motion.ts).
@@ -53,8 +52,7 @@ export const MOTION = {
   NUCLEUS: 4,
   ORBIT: 5,
   ELECTRON: 6,
-  STREAM_WARM: 7,
-  STREAM_COOL: 8,
+  // 7 and 8 belonged to the retired forked stream; keep later ids stable.
   SEPHIRA: 9,
   LEAF: 10,
   HAIR: 11,
@@ -90,11 +88,5 @@ export const BOOK = {
 } as const;
 
 /** The seed the tree grows from: the top of the roots, in the field frame. */
-export const TREE_SCALE = 0.98;
+export const TREE_SCALE = 0.82;
 export const TREE_SEED = [0, -0.58 * TREE_SCALE, 0] as const;
-
-/** Stream: where it enters (the cube's place) and where it forks. */
-export const STREAM = {
-  start: [0.6, -0.45, 0] as const,
-  forkAt: 0.46, // share of the path before the fork
-} as const;

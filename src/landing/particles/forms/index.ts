@@ -6,10 +6,10 @@ import { finale } from "./finale";
 import { knot } from "./knot";
 import { lorenz } from "./lorenz";
 import { neural } from "./neural";
-import { stream } from "./stream";
+import { saturn } from "./saturn";
 import { tree } from "./tree";
 import { truss } from "./truss";
-import { woman } from "./woman";
+import { bulb } from "./bulb";
 
 /** Builders in atlas order (see FORM). Build-time only: run `npm run particles`. */
 export const FORM_BUILDERS: ((count: number, seed: number) => FormData)[] = [
@@ -18,10 +18,10 @@ export const FORM_BUILDERS: ((count: number, seed: number) => FormData)[] = [
   truss,
   neural,
   cube,
-  stream,
+  saturn,
   bookAtom,
   tree,
-  woman,
+  bulb,
   finale,
 ];
 

@@ -22,7 +22,7 @@ uniform float u_hoverGain; // the shader's hover multiplier: |explode − 1|
 const float HOVER_RADIUS=${HOVER.radius};
 const float HOVER_DEPTH=${HOVER.depth};
 
-vec3 hover(vec3 world,vec4 rnd,float time,out float glow) {
+vec3 hover(vec3 world,vec4 rnd,out float glow) {
   glow=0.;
   float front=texture2D(t_hit,vec2(.5)).x;
   if(u_pointer<.5||front>${HOVER.far / 2}.) return world;
@@ -40,7 +40,7 @@ vec3 hover(vec3 world,vec4 rnd,float time,out float glow) {
   vec3 out_=perp/max(dist,1e-4);
   vec3 swirl=cross(u_rayDir,out_);
   world+=out_*w*(.42+rnd.x*.3)+u_rayDir*w*(.35+rnd.y*.35)
-    +swirl*w*sin(time*(.7+rnd.y*2.))*.25;
+    +swirl*w*min(length(u_delta),1.)*.25;
   glow=w;
   return world;
 }

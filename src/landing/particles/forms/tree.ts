@@ -33,19 +33,52 @@ const SEFIROT: [number, number, number][] = [
   [0, -0.42, 0], // Malkuth
 ];
 const PATHS = [
-  [0, 1], [0, 2], [0, 5], [1, 2], [1, 5], [1, 3], [2, 5], [2, 4],
-  [3, 4], [3, 5], [3, 6], [4, 5], [4, 7], [5, 6], [5, 8], [5, 7],
-  [6, 7], [6, 8], [6, 9], [7, 8], [7, 9], [8, 9],
+  [0, 1],
+  [0, 2],
+  [0, 5],
+  [1, 2],
+  [1, 5],
+  [1, 3],
+  [2, 5],
+  [2, 4],
+  [3, 4],
+  [3, 5],
+  [3, 6],
+  [4, 5],
+  [4, 7],
+  [5, 6],
+  [5, 8],
+  [5, 7],
+  [6, 7],
+  [6, 8],
+  [6, 9],
+  [7, 8],
+  [7, 9],
+  [8, 9],
 ];
 
 function pillarTone(pillar: number, out: Color) {
-  return pillar > 0 ? out.copy(TEAL).lerp(CYAN, 0.4) : pillar < 0 ? out.copy(GOLD) : out.copy(WHITE).lerp(VIOLET, 0.25);
+  return pillar > 0
+    ? out.copy(TEAL).lerp(CYAN, 0.4)
+    : pillar < 0
+      ? out.copy(GOLD)
+      : out.copy(WHITE).lerp(VIOLET, 0.25);
 }
 
-function inEllipsoid(salt: number, count: number, centre: Vector3, radius: Vector3, keep: (v: Vector3) => boolean) {
+function inEllipsoid(
+  salt: number,
+  count: number,
+  centre: Vector3,
+  radius: Vector3,
+  keep: (v: Vector3) => boolean,
+) {
   const out: Vector3[] = [];
   for (let i = 0; out.length < count && i < count * 20; i++) {
-    const v = new Vector3(random(i, salt) * 2 - 1, random(i, salt + 1) * 2 - 1, random(i, salt + 2) * 2 - 1);
+    const v = new Vector3(
+      random(i, salt) * 2 - 1,
+      random(i, salt + 1) * 2 - 1,
+      random(i, salt + 2) * 2 - 1,
+    );
     if (v.lengthSq() > 1) continue;
     v.multiply(radius).add(centre);
     if (keep(v)) out.push(v);
@@ -54,12 +87,20 @@ function inEllipsoid(salt: number, count: number, centre: Vector3, radius: Vecto
 }
 
 function grow() {
-  const trunk = Array.from({ length: 18 }, (_, k) =>
-    new Vector3(Math.sin(k * 0.4) * 0.012, SEED.y + (k / 17) * 0.52, 0),
+  const trunk = Array.from(
+    { length: 18 },
+    (_, k) =>
+      new Vector3(Math.sin(k * 0.4) * 0.012, SEED.y + (k / 17) * 0.52, 0),
   );
   const crown = colonize({
     start: trunk,
-    attractors: inEllipsoid(11, 520, new Vector3(0, 0.38, 0), new Vector3(1.0, 0.55, 0.45), (v) => v.y > -0.08),
+    attractors: inEllipsoid(
+      11,
+      520,
+      new Vector3(0, 0.38, 0),
+      new Vector3(1.0, 0.55, 0.45),
+      (v) => v.y > -0.08,
+    ),
     step: 0.034,
     influence: 0.34,
     kill: 0.085,
@@ -68,20 +109,30 @@ function grow() {
   });
   const roots = colonize({
     start: [SEED.clone(), new Vector3(0, SEED.y - 0.07, 0)],
-    attractors: inEllipsoid(21, 220, new Vector3(0, -0.85, 0), new Vector3(0.95, 0.12, 0.35), (v) => v.y < SEED.y - 0.06),
+    attractors: inEllipsoid(
+      21,
+      420,
+      new Vector3(0, -0.91, 0),
+      new Vector3(1.12, 0.48, 0.42),
+      (v) => v.y < SEED.y - 0.06,
+    ),
     step: 0.034,
-    influence: 0.4,
+    influence: 0.46,
     kill: 0.085,
     bias: new Vector3(0, -0.2, 0),
-    iterations: 200,
+    iterations: 280,
   });
   // Pipe model (Shinozaki, 1964): a branch's cross-section is the sum of its
   // children's; exponent 2 keeps area, below 2 fattens the trunk.
   thicken(crown, 0.011, 1.85);
-  thicken(roots, 0.011, 1.85);
+  thicken(roots, 0.014, 1.85);
   // The trunk flares towards the roots, as in the reference.
   crown.forEach((node) => {
-    if (node.at.y < -0.05) node.radius = Math.max(node.radius, 0.085 + 0.09 * ((-0.05 - node.at.y) / 0.53));
+    if (node.at.y < -0.05)
+      node.radius = Math.max(
+        node.radius,
+        0.085 + 0.09 * ((-0.05 - node.at.y) / 0.53),
+      );
   });
   return { crown, roots };
 }
@@ -97,7 +148,12 @@ function limbs(nodes: Branch[]) {
   const limb = new Array<number>(nodes.length).fill(-1);
   nodes.forEach((node, i) => {
     if (node.parent < 0) return;
-    limb[i] = nodes[node.parent].radius > THICK ? (node.radius > THICK ? -1 : i) : limb[node.parent];
+    limb[i] =
+      nodes[node.parent].radius > THICK
+        ? node.radius > THICK
+          ? -1
+          : i
+        : limb[node.parent];
   });
   return limb;
 }
@@ -106,7 +162,9 @@ function segments(nodes: Branch[]) {
   const parts: BufferGeometry[] = [];
   nodes.forEach((node) => {
     if (node.parent < 0) return;
-    parts.push(strut(nodes[node.parent].at, node.at, Math.max(0.013, node.radius), 7));
+    parts.push(
+      strut(nodes[node.parent].at, node.at, Math.max(0.013, node.radius), 7),
+    );
   });
   return merge(parts);
 }
@@ -114,7 +172,8 @@ function segments(nodes: Branch[]) {
 /** Nearest network node for every sampled point (grid lookup). */
 function nearestNodes(points: Float32Array, nodes: Branch[]) {
   const cell = 0.06;
-  const key = (x: number, y: number, z: number) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
+  const key = (x: number, y: number, z: number) =>
+    `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
   const grid = new Map<string, number[]>();
   nodes.forEach((n, i) => {
     const k = key(n.at.x, n.at.y, n.at.z);
@@ -130,7 +189,9 @@ function nearestNodes(points: Float32Array, nodes: Branch[]) {
       for (let dx = -r; dx <= r; dx++)
         for (let dy = -r; dy <= r; dy++)
           for (let dz = -r; dz <= r; dz++)
-            for (const j of grid.get(key(p.x + dx * cell, p.y + dy * cell, p.z + dz * cell)) ?? []) {
+            for (const j of grid.get(
+              key(p.x + dx * cell, p.y + dy * cell, p.z + dz * cell),
+            ) ?? []) {
               const d = nodes[j].at.distanceToSquared(p);
               if (d < bestD) {
                 bestD = d;
@@ -143,13 +204,24 @@ function nearestNodes(points: Float32Array, nodes: Branch[]) {
 }
 
 export function tree(count: number, seed: number) {
-  const [nCrown, nRoots, nLeaves, nSefirot, nPaths, nSparkle] = budget(count, [31, 12, 32, 12, 9, 4]);
+  const [nCrown, nRoots, nLeaves, nSefirot, nPaths, nSparkle] = budget(
+    count,
+    [30, 25, 23, 10, 9, 3],
+  );
   const { crown, roots } = grow();
-  const maxLength = Math.max(...crown.map((n) => n.length));
+  const maxLength = Math.max(
+    ...crown.map((n) => n.length),
+    ...roots.map((n) => n.length),
+  );
   const crownLimb = limbs(crown),
     rootLimb = limbs(roots);
 
-  const network = (nodes: Branch[], limb: number[], n: number, salt: number): Part => {
+  const network = (
+    nodes: Branch[],
+    limb: number[],
+    n: number,
+    salt: number,
+  ): Part => {
     const points = samplePoints(segments(nodes), n, seed + salt);
     const near = nearestNodes(points, nodes);
     return {
@@ -166,24 +238,38 @@ export function tree(count: number, seed: number) {
       },
       emission: (i) => (random(i, 4) < 0.03 ? 0.6 : 0.1),
       rank: (i) => nodes[near[i]].length / maxLength,
+      lines: { k: 2, maxLength: 0.035 },
     };
   };
 
   // Crown dissolving into particles around every tip.
-  const tips = crown.map((n, i) => [n, i] as const).filter(([n]) => !n.children.length);
+  const tips = crown
+    .map((n, i) => [n, i] as const)
+    .filter(([n]) => !n.children.length);
   const leafTip = (i: number) => tips[Math.floor(random(i, 30) * tips.length)];
   const leaves = new Float32Array(nLeaves * 3);
   for (let i = 0; i < nLeaves; i++) {
     const [tip] = leafTip(i);
     const halo = random(i, 31) < 0.3;
-    leaves.set(cloud(1, tip.at, new Vector3(1, 1, 1).multiplyScalar(halo ? 0.17 : 0.07), 32 + i * 9), i * 3);
+    leaves.set(
+      cloud(
+        1,
+        tip.at,
+        new Vector3(1, 1, 1).multiplyScalar(halo ? 0.17 : 0.07),
+        32 + i * 9,
+      ),
+      i * 3,
+    );
   }
 
   // Sefirot: star tetrahedron inside an icosahedron, all edges glowing.
   const centres = SEFIROT.map(([x, y]) => new Vector3(x, y, 0.06));
   const sefira = centres.map((c, k) => {
     const size = k === 9 ? 0.09 : k === 0 ? 0.08 : 0.072;
-    return merge([edgeFrame("star", c, size, 0.003, 0.3), edgeFrame("icosa", c, size * 0.78, 0.0025, 0.1)]);
+    return merge([
+      edgeFrame("star", c, size, 0.003, 0.3),
+      edgeFrame("icosa", c, size * 0.78, 0.0025, 0.1),
+    ]);
   });
   const sefiraPoints = samplePoints(merge(sefira), nSefirot, seed + 5);
   const nearestSefira = (p: Vector3) => {
@@ -198,8 +284,14 @@ export function tree(count: number, seed: number) {
     nPaths,
     seed + 6,
   );
-  const reach = (y: number) => Math.min(1, Math.max(0, (y - SEED.y) / (0.95 - SEED.y)));
-  const sparkles = cloud(nSparkle, new Vector3(0, 0.35, 0), new Vector3(1.05, 0.65, 0.5), 400);
+  const reach = (y: number) =>
+    Math.min(1, Math.max(0, (y - SEED.y) / (0.95 - SEED.y)));
+  const sparkles = cloud(
+    nSparkle,
+    new Vector3(0, 0.35, 0),
+    new Vector3(1.05, 0.65, 0.5),
+    400,
+  );
 
   const form = emptyForm("tree", count);
   fill(
@@ -217,12 +309,17 @@ export function tree(count: number, seed: number) {
           if (random(i, 33) < 0.1) out.lerp(WHITE, 0.7);
         },
         emission: (i) => (random(i, 33) < 0.1 ? 0.5 : 0.1),
-        rank: (i) => Math.min(1, leafTip(i)[0].length / maxLength + 0.05 + 0.08 * random(i, 34)),
+        rank: (i) =>
+          Math.min(
+            1,
+            leafTip(i)[0].length / maxLength + 0.05 + 0.08 * random(i, 34),
+          ),
         motion: (i) => [MOTION.LEAF, random(i, 35), 0, 0],
       },
       {
         points: sefiraPoints,
-        color: (_i, p, out) => pillarTone(SEFIROT[nearestSefira(p)][2], out).lerp(WHITE, 0.2),
+        color: (_i, p, out) =>
+          pillarTone(SEFIROT[nearestSefira(p)][2], out).lerp(WHITE, 0.2),
         emission: () => 0.55,
         rank: (_i, p) => reach(p.y) * 0.9 + 0.05,
         motion: (_i, p) => [MOTION.SEPHIRA, nearestSefira(p) / 9, 0, 0],
@@ -231,7 +328,10 @@ export function tree(count: number, seed: number) {
       {
         points: pathPoints,
         color: (_i, p, out) => {
-          pillarTone(Math.abs(p.x) > 0.12 ? Math.sign(p.x) : 0, out).lerp(WHITE, 0.55);
+          pillarTone(Math.abs(p.x) > 0.12 ? Math.sign(p.x) : 0, out).lerp(
+            WHITE,
+            0.55,
+          );
         },
         emission: () => 0.5,
         rank: (_i, p) => reach(p.y) * 0.9 + 0.08,
@@ -239,7 +339,10 @@ export function tree(count: number, seed: number) {
       },
       {
         points: sparkles,
-        color: (i, _p, out) => out.copy([VIOLET, GOLD, TEAL, MAGENTA][Math.floor(random(i, 36) * 4)]),
+        color: (i, _p, out) =>
+          out.copy(
+            [VIOLET, GOLD, TEAL, MAGENTA][Math.floor(random(i, 36) * 4)],
+          ),
         emission: () => 0.2,
         rank: (i) => 0.5 + 0.5 * random(i, 37),
         motion: (i) => [MOTION.LEAF, random(i, 38), 0, 0],

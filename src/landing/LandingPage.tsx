@@ -1,21 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { sectionProgress } from "./particles/timeline";
 import { revealText } from "./text-reveal";
-import {
-  challenges,
-  chapters,
-  faqs,
-  lia,
-  profile,
-  projects,
-  steps,
-} from "./content";
+import { solutions, chapters, faqs, profile, projects, steps } from "./content";
 import Loader from "./Loader";
 import ParticleField, { type ParticleController } from "./ParticleField";
 
@@ -27,10 +19,9 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * 0.075 per 60 Hz frame and the same time constant at any refresh rate.
  */
 const SCROLL_LERP = -Math.log(1 - 0.075);
-// Phones (same breakpoint as the layout CSS): the copy's top sits at 52% of the
-// viewport, below the figure in the upper half.
-const MOBILE_COPY_WIDTH = 680;
-const MOBILE_COPY_ALIGN = 0.52;
+// Tablets and phones: copy enters above the figure's reserved lower area.
+const STACKED_COPY_WIDTH = 1099;
+const STACKED_COPY_ALIGN = 0.18;
 
 function Arrow() {
   return <span aria-hidden="true">↗</span>;
@@ -69,10 +60,6 @@ export default function LandingPage() {
   });
   const lenis = useRef<Lenis | null>(null);
   const headerBackdrop = useRef<HTMLDivElement>(null);
-  const [challengeId, setChallengeId] = useState(challenges[0].id);
-  const selectedChallenge =
-    challenges.find((challenge) => challenge.id === challengeId) ??
-    challenges[0];
 
   useGSAP(
     () => {
@@ -89,18 +76,18 @@ export default function LandingPage() {
         stops = sections.map((section, index) => {
           if (index === 0) return 0;
           // data-particle-align: the copy's top sits at that viewport fraction.
-          // On phones every beat does: the figure owns the top half, the copy
-          // the lower half, so text never sits on the complete figure.
+          // On tablets and phones the copy owns the upper area, while the
+          // complete figure settles below it.
           const align =
             Number(section.dataset.particleAlign) ||
-            (window.innerWidth <= MOBILE_COPY_WIDTH ? MOBILE_COPY_ALIGN : 0);
+            (window.innerWidth <= STACKED_COPY_WIDTH ? STACKED_COPY_ALIGN : 0);
           const first = section.firstElementChild as HTMLElement | null;
           if (align && first)
             return layoutTop(first) - window.innerHeight * align;
           // Otherwise the copy block is centered in the viewport.
           const content =
             section.querySelector<HTMLElement>(
-              ".section-split, .section-heading",
+              ".section-split, .section-heading, .solution-copy",
             ) ?? section;
           const height = content.getBoundingClientRect().height;
           return (
@@ -158,7 +145,7 @@ export default function LandingPage() {
           ScrollTrigger.refresh();
         });
       };
-      // Details, challenge copy, fonts and images can all move later sections.
+      // Details, fonts and images can all move later sections.
       const observer = new ResizeObserver(refresh);
       if (root.current) observer.observe(root.current);
       document.fonts.ready.then(refresh);
@@ -229,16 +216,16 @@ export default function LandingPage() {
           <span>Antonio Neto</span>
         </a>
         <nav aria-label="Navegação principal">
-          <a href="#manifesto">Manifesto</a>
-          <a href="#projetos">Projetos</a>
-          <a href="#processo">Processo</a>
+          <a href="#solucoes">Soluções</a>
+          <a href="#projetos">Na prática</a>
+          <a href="#processo">Como funciona</a>
         </nav>
         <a
           className="button button-primary header-cta"
           href="#contato"
           onClick={(event) => handleJump(event, "#contato")}
         >
-          Vamos conversar <Arrow />
+          Falar do projeto <Arrow />
         </a>
       </header>
 
@@ -246,10 +233,9 @@ export default function LandingPage() {
         <section className="hero scene" id="inicio" data-particle-stage="0">
           <div className="hero-copy reveal">
             <h1 id="hero-title">
-              <span>Conecte</span>
-              <span>o que sabe.</span>
-              <span>Construa</span>
-              <span>o que falta.</span>
+              {profile.headline.map((line) => (
+                <span key={line}>{line}</span>
+              ))}
             </h1>
           </div>
           <div className="hero-intro reveal">
@@ -272,31 +258,30 @@ export default function LandingPage() {
           data-particle-stage="1"
         >
           <div className="section-split reveal">
-            <h2>Antes de construir, entender.</h2>
+            <h2>Resolva o que trava sua equipe</h2>
             <div>
               <p>
-                Dados, documentos e sistemas contam partes da mesma história. Eu
-                conecto essas partes e transformo o problema em software que
-                pode ser usado e evoluído.
+                Identifico gargalos e conecto dados e sistemas para simplificar
+                o trabalho
               </p>
             </div>
           </div>
           <p
             className="manifesto-line reveal"
             data-particle-stage="2"
-            aria-label="Contexto, clareza e aplicação"
+            aria-label="Entender, conectar e resolver"
           >
-            <span>contexto</span>
+            <span>entender</span>
             <i>→</i>
-            <span>clareza</span>
+            <span>conectar</span>
             <i>→</i>
-            <span>aplicação</span>
+            <span>resolver</span>
           </p>
         </section>
 
         <section className="journey scene" id="trajetoria">
           <header className="section-heading reveal">
-            <h2>Três perspectivas. Um mesmo raciocínio.</h2>
+            <h2>Do problema à solução</h2>
           </header>
           <div className="chapter-list">
             {chapters.map((chapter, index) => (
@@ -317,49 +302,24 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section
-          className="business scene"
-          id="solucoes"
-          data-particle-stage="6"
-        >
-          <header className="section-heading reveal">
-            <h2>Tecnologia começa pelo problema.</h2>
-          </header>
-          <div className="challenge-layout reveal">
-            <fieldset className="challenge-options">
-              <legend className="visually-hidden">
-                Escolha um ponto de partida
-              </legend>
-              {challenges.map((challenge) => (
-                <label
-                  className={`challenge-option${challenge.id === challengeId ? " is-selected" : ""}`}
-                  key={challenge.id}
-                >
-                  <input
-                    type="radio"
-                    name="challenge"
-                    value={challenge.id}
-                    checked={challenge.id === challengeId}
-                    onChange={() => setChallengeId(challenge.id)}
-                    suppressHydrationWarning
-                  />
-                  <span>{challenge.label}</span>
-                </label>
-              ))}
-            </fieldset>
-            <div className="challenge-response" aria-live="polite">
-              <h3>{selectedChallenge.title}</h3>
-              <p>{selectedChallenge.body}</p>
-              <p className="approach">
-                <strong>{selectedChallenge.approach}</strong>
-              </p>
-            </div>
-          </div>
+        <section className="business scene" id="solucoes" aria-label="Soluções">
+          {solutions.map((solution, index) => (
+            <article
+              className="solution"
+              key={solution.title}
+              data-particle-stage={6 + index * 0.2}
+            >
+              <div className="solution-copy reveal">
+                <h2>{solution.title}</h2>
+                <p>{solution.body}</p>
+              </div>
+            </article>
+          ))}
         </section>
 
         <section className="work scene" id="projetos" data-particle-stage="7">
           <header className="section-heading reveal">
-            <h2>Conhecimento que encontra uma forma útil.</h2>
+            <h2>Veja na prática</h2>
           </header>
           <div className="project-list">
             {projects.map((project, index) => (
@@ -378,9 +338,13 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="method scene" id="processo" data-particle-stage="10">
+        <section
+          className="method scene"
+          id="processo"
+          data-particle-stage="10"
+        >
           <header className="section-heading reveal">
-            <h2>Do contexto à entrega.</h2>
+            <h2>Do objetivo à entrega</h2>
           </header>
           <div className="method-steps">
             {steps.map((step) => (
@@ -397,10 +361,10 @@ export default function LandingPage() {
             <img src="/images/antonio-neto.jpg" alt="Retrato de Antonio Neto" />
           </figure>
           <div className="profile-copy reveal">
-            <h2>Matemática no raciocínio. Engenharia na execução.</h2>
+            <h2>Quem constrói com você</h2>
             <p>
-              Pesquisa aplicada, IA e software, com curiosidade para investigar
-              e disciplina para entregar.
+              Sou Antonio Neto e uno matemática, engenharia e IA para resolver
+              problemas de negócio
             </p>
             <div className="profile-links">
               <a href={profile.linkedin} target="_blank" rel="noreferrer">
@@ -415,7 +379,7 @@ export default function LandingPage() {
 
         <section className="faq scene" id="perguntas" data-particle-stage="12">
           <header className="section-heading reveal">
-            <h2>Clareza antes do compromisso.</h2>
+            <h2>Antes de começar</h2>
           </header>
           <div className="faq-list reveal">
             {faqs.map((faq) => (
@@ -430,32 +394,13 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="lia scene" id="lia" data-particle-stage="13">
-          <div className="section-split reveal">
-            <div className="lia-copy">
-              <h2>{lia.title}</h2>
-              <p className="lia-tagline">{lia.tagline}</p>
-              <p>{lia.body}</p>
-              <a
-                className="button button-primary"
-                href="#contato"
-                onClick={(event) => handleJump(event, "#contato")}
-              >
-                {lia.invitation} <Arrow />
-              </a>
-            </div>
-          </div>
-        </section>
-
         <section
           className="contact scene"
           id="contato"
-          data-particle-stage="14"
-          // The contact copy starts just below the middle of the screen.
-          data-particle-align="0.56"
+          data-particle-stage="13"
           tabIndex={-1}
         >
-          <h2 className="reveal">O que você quer fazer funcionar?</h2>
+          <h2 className="reveal">Conte seu desafio</h2>
           <div className="contact-actions reveal">
             <a
               className="button button-primary"
@@ -463,7 +408,7 @@ export default function LandingPage() {
               target="_blank"
               rel="noreferrer"
             >
-              Conversar no LinkedIn <Arrow />
+              Falar no LinkedIn <Arrow />
             </a>
             <a
               className="text-link"
@@ -471,7 +416,7 @@ export default function LandingPage() {
               target="_blank"
               rel="noreferrer"
             >
-              Explorar o GitHub <Arrow />
+              Ver estudos no GitHub <Arrow />
             </a>
           </div>
         </section>

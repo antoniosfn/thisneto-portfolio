@@ -32,7 +32,7 @@ const HERO: { heading: Timing; body: Timing; action: gsap.TweenVars } = {
 const START = "top bottom";
 const HEADINGS = "h1, h2, h3";
 const TEXT = `${HEADINGS}, p, dt, figcaption, .eyebrow`;
-const DYNAMIC = "details, .challenge-layout";
+const DYNAMIC = "details";
 
 function textBlocks(blocks: HTMLElement[]) {
   const found = new Set<HTMLElement>();
@@ -41,7 +41,7 @@ function textBlocks(blocks: HTMLElement[]) {
       ? [block]
       : [...block.querySelectorAll<HTMLElement>(TEXT)];
     for (const element of candidates) {
-      // Leaves only. Text React rewrites (FAQ answers, the challenge copy) is
+      // Leaves only. Text React rewrites (FAQ answers) is
       // left whole: splitting it would detach the nodes React updates.
       if (element.querySelector(TEXT) || element.closest(DYNAMIC)) continue;
       // Line wrappers would collapse a flex or grid layout into one block.

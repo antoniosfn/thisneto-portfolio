@@ -17,6 +17,7 @@ uniform sampler2D t_params;
 uniform sampler2D t_ranks;
 uniform float u_progress;
 uniform float u_seed;
+uniform float u_opening;
 ${motion}
 
 vec3 formPoint(vec2 coord,float k,out float rank) {
@@ -41,7 +42,8 @@ vec3 morphTarget(vec2 coord,vec4 rnd,out float flow) {
     value=mix(value,next,st);
     flow=max(flow,st*(1.-st)*4.);
   }
-  return value;
+  vec3 opening=formPoint(coord,FINALE,rank);
+  return mix(value,opening,u_opening);
 }
 `;
 
@@ -69,10 +71,7 @@ vec3 target(vec2 coord) {
   // Fragments never wander: while in flight or dispersed they ride a slow
   // current, so the move to the next form reads as one organised flow.
   float drift=flow+e*(1.-e)*2.4+e*.3;
-  if(drift>.002) p+=curl(p*.16+vec3(0.,u_clock*.05,0.))*drift*FLOW;
-  // Vacuum: a slow, involuntary float of every particle.
-  vec3 ph=vec3(param.x,param.y,rank.z)*6.2832;
-  p+=vec3(sin(u_clock*.47+ph.x),cos(u_clock*.39+ph.y),sin(u_clock*.33+ph.z))*.018;
+  if(drift>.002) p+=curl(p*.16)*drift*FLOW;
   return p;
 }
 `;
@@ -140,16 +139,12 @@ void main() {
   }
   float near=1.-smoothstep(.25,.5,abs(u_progress-kNear));
   float type=m.x, alpha=1.;
-  // Sefirot, chakras and electrons breathe.
-  if(abs(type-M_SEPHIRA)<.5||abs(type-M_CHAKRA)<.5||abs(type-M_ELECTRON)<.5)
-    look.a*=mix(1.,.62+.38*sin(u_clock*2.2+rnd.y*6.2832+m.y*4.),near);
   // Sparks fade in as they leave the book and out before they recycle.
   if(abs(type-M_SPARK)<.5) {
     float h=sparkHeight(m);
     alpha=mix(1.,smoothstep(0.,.08,h)*(1.-smoothstep(.7,.92,h)),near);
   }
-  // The closing scene: water, river and smoke cycle in and out; the moon,
-  // the windows and the couple breathe.
+  // Water, river and smoke fade only as they follow their paths.
   if(type>M_RING+.5) {
     float sceneAlpha,glow;
     sceneAnimate(vec3(0.),m,u_clock,sceneAlpha,glow);
@@ -160,6 +155,13 @@ void main() {
   float seedGlow=u_seed*(1.-treeArrival);
   look.rgb=mix(look.rgb,vec3(1.,.92,.8),seedGlow*.35);
   look.a=max(look.a,seedGlow*.6);
+  // The landscape now opens the site; use its colour and local motion there.
+  vec4 opening=slot(t_color,vUv,FINALE);
+  float openingAlpha,openingGlow;
+  sceneAnimate(vec3(0.),slot(t_motion,vUv,FINALE),u_clock,openingAlpha,openingGlow);
+  opening.a*=openingGlow;
+  look=mix(look,opening,u_opening);
+  alpha=mix(alpha,openingAlpha,u_opening);
   // Float target: alpha rides in the integer part of .a (see decodeLook).
   gl_FragColor=vec4(look.rgb,min(look.a,1.)+2.*floor(alpha*100.+.5));
 }
