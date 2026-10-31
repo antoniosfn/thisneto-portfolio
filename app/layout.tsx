@@ -1,15 +1,34 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Barlow_Condensed, IBM_Plex_Mono, Inter } from "next/font/google";
 import "../src/landing/landing.css";
+import { SITE_URL } from "./site";
+
+// Precision-tool direction: condensed display, neutral body, mono metadata.
+const display = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-display",
+});
+const body = Inter({ subsets: ["latin"], variable: "--font-body" });
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
-  title: "Antonio Neto | IA e software para empresas",
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
+  title: "Antonio Neto | IA, automação e software",
   description:
-    "Matemática, inteligência artificial e engenharia de software aplicadas aos desafios da sua empresa. Conheça minha trajetória e meus projetos.",
+    "IA e software para automatizar tarefas, conectar sistemas e encontrar respostas nos seus dados — fale sobre seu projeto com Antonio Neto",
   openGraph: {
-    title: "Antonio Neto | IA e software para empresas",
+    title: "Antonio Neto | IA, automação e software",
     description:
-      "Da lógica ao código. Do código ao que importa para o seu negócio.",
+      "Menos tarefas, mais tempo para crescer — IA e software para automatizar rotinas e conectar seus dados",
+    url: "/",
+    siteName: "Antonio Neto",
     locale: "pt_BR",
     type: "website",
   },
@@ -20,17 +39,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // Browser extensions (e.g. Grabit) inject attributes on <html> before React
     // hydrates; this ignores mismatches on this element's own attributes only.
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#e5e7eb" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link
-          rel="preload"
-          href="/fonts/space-grotesk.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {/* Without JavaScript nothing loads behind the loading screen: skip it. */}
+        <noscript>
+          <style>{".site-loader{display:none}"}</style>
+        </noscript>
       </head>
       <body>{children}</body>
     </html>

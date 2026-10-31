@@ -1,20 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
-import { sectionProgress } from "./particle-timeline";
+import { sectionProgress } from "./particles/timeline";
 import { revealText } from "./text-reveal";
-import {
-  challenges,
-  chapters,
-  faqs,
-  profile,
-  projects,
-  steps,
-} from "./content";
+import { solutions, chapters, faqs, profile, projects, steps } from "./content";
+import Loader from "./Loader";
 import ParticleField, { type ParticleController } from "./ParticleField";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -25,17 +19,35 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  * 0.075 per 60 Hz frame and the same time constant at any refresh rate.
  */
 const SCROLL_LERP = -Math.log(1 - 0.075);
+// Tablets and phones: copy enters above the figure's reserved lower area.
+const STACKED_COPY_WIDTH = 1099;
+const STACKED_COPY_ALIGN = 0.18;
 
 function Arrow() {
   return <span aria-hidden="true">↗</span>;
 }
 
+/**
+ * The mark: a seed that grows into a tree. One stroke rises from the amber
+ * seed and opens into three branches, each ending in a node, as the Tree of
+ * Life of the particle field. Geometry shared with Loader.tsx (MARK_PATHS).
+ */
 function BrandMark() {
   return (
     <span className="brand-mark" aria-hidden="true">
-      <i />
-      <i />
-      <i />
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 17.4V11.2M12 11.2C12 8.6 9.4 7.6 6.4 5.6M12 11.2C12 8.6 14.6 7.6 17.6 5.6M12 11.2V3.6"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle className="mark-seed" cx="12" cy="19.8" r="2.5" />
+        <circle className="mark-node" cx="6.4" cy="5.6" r="1.6" />
+        <circle className="mark-node" cx="17.6" cy="5.6" r="1.6" />
+        <circle className="mark-node" cx="12" cy="3.6" r="1.6" />
+      </svg>
     </span>
   );
 }
@@ -48,10 +60,6 @@ export default function LandingPage() {
   });
   const lenis = useRef<Lenis | null>(null);
   const headerBackdrop = useRef<HTMLDivElement>(null);
-  const [challengeId, setChallengeId] = useState(challenges[0].id);
-  const selectedChallenge =
-    challenges.find((challenge) => challenge.id === challengeId) ??
-    challenges[0];
 
   useGSAP(
     () => {
@@ -68,14 +76,18 @@ export default function LandingPage() {
         stops = sections.map((section, index) => {
           if (index === 0) return 0;
           // data-particle-align: the copy's top sits at that viewport fraction.
-          const align = Number(section.dataset.particleAlign);
+          // On tablets and phones the copy owns the upper area, while the
+          // complete figure settles below it.
+          const align =
+            Number(section.dataset.particleAlign) ||
+            (window.innerWidth <= STACKED_COPY_WIDTH ? STACKED_COPY_ALIGN : 0);
           const first = section.firstElementChild as HTMLElement | null;
           if (align && first)
             return layoutTop(first) - window.innerHeight * align;
           // Otherwise the copy block is centered in the viewport.
           const content =
             section.querySelector<HTMLElement>(
-              ".section-split, .section-heading",
+              ".section-split, .section-heading, .solution-copy, .stage-copy",
             ) ?? section;
           const height = content.getBoundingClientRect().height;
           return (
@@ -133,7 +145,7 @@ export default function LandingPage() {
           ScrollTrigger.refresh();
         });
       };
-      // Details, challenge copy, fonts and images can all move later sections.
+      // Details, fonts and images can all move later sections.
       const observer = new ResizeObserver(refresh);
       if (root.current) observer.observe(root.current);
       document.fonts.ready.then(refresh);
@@ -189,6 +201,7 @@ export default function LandingPage() {
       </a>
       <div className="reading-progress" ref={progress} aria-hidden="true" />
       <ParticleField controller={particleController} />
+      <Loader />
 
       <div className="header-backdrop" ref={headerBackdrop} aria-hidden="true">
         <div />
@@ -203,34 +216,35 @@ export default function LandingPage() {
           <span>Antonio Neto</span>
         </a>
         <nav aria-label="Navegação principal">
-          <a href="#manifesto">Manifesto</a>
-          <a href="#projetos">Projetos</a>
-          <a href="#processo">Processo</a>
+          <a href="#solucoes">Soluções</a>
+          <a href="#processo">Como funciona</a>
+          <a href="#projetos">Na prática</a>
+          <a href="#sobre">Sobre</a>
         </nav>
         <a
           className="button button-primary header-cta"
           href="#contato"
           onClick={(event) => handleJump(event, "#contato")}
         >
-          Vamos conversar <Arrow />
+          Falar do projeto <Arrow />
         </a>
       </header>
 
       <main id="conteudo">
-        <section className="hero scene" id="inicio" data-particle-stage="0">
+        <section
+          className="hero tone-light"
+          id="inicio"
+          data-particle-stage="0"
+        >
+          <p className="eyebrow reveal">IA · automação · software sob medida</p>
           <div className="hero-copy reveal">
-            <p className="kicker">Matemática · IA aplicada · Engenharia</p>
             <h1 id="hero-title">
-              <span>Conecte</span>
-              <span>o que sabe.</span>
-              <span>Construa</span>
-              <span>o que falta.</span>
+              {profile.headline.map((line) => (
+                <span key={line}>{line}</span>
+              ))}
             </h1>
           </div>
           <div className="hero-intro reveal">
-            <p className="eyebrow">
-              INFORMAÇÃO DISPERSA. POSSIBILIDADES CONECTADAS.
-            </p>
             <p>{profile.intro}</p>
             <div className="hero-action">
               <a
@@ -240,255 +254,245 @@ export default function LandingPage() {
               >
                 {profile.invitation} <Arrow />
               </a>
+              <a
+                className="button button-secondary"
+                href="#projetos"
+                onClick={(event) => handleJump(event, "#projetos")}
+              >
+                Ver projetos <Arrow />
+              </a>
             </div>
-          </div>
-          <div className="scroll-cue" aria-hidden="true">
-            <span>Scroll para explorar</span>
-            <i />
           </div>
         </section>
 
         <section
-          className="manifesto scene"
-          id="manifesto"
+          className="journey tone-dark"
+          id="trajetoria"
           data-particle-stage="1"
         >
-          <div className="section-split reveal">
-            <h2>Antes de construir, entender.</h2>
-            <div>
-              <p className="eyebrow">01 / MANIFESTO</p>
-              <p>
-                Dados, documentos e sistemas contam partes da mesma história. Eu
-                conecto essas partes, identifico o que trava o trabalho e
-                transformo o problema em software que possa ser usado, avaliado
-                e evoluído.
-              </p>
+          <div className="stage">
+            <div className="stage-copy reveal">
+              <p className="eyebrow">01 — Do problema à solução</p>
+              <ol className="chapter-list">
+                {chapters.map((chapter) => (
+                  <li className="chapter" key={chapter.title}>
+                    <h3>{chapter.title}</h3>
+                    <p>{chapter.body}</p>
+                  </li>
+                ))}
+              </ol>
             </div>
+          </div>
+        </section>
+
+        <section
+          className="manifesto tone-light"
+          id="manifesto"
+          data-particle-stage="2"
+        >
+          <div className="section-split reveal">
+            <p className="eyebrow">02 — Manifesto</p>
+            <h2>Resolva o que trava sua equipe</h2>
+            <p>
+              Identifico gargalos e conecto dados e sistemas para simplificar o
+              trabalho
+            </p>
           </div>
           <p
             className="manifesto-line reveal"
-            data-particle-stage="2"
-            aria-label="Contexto, clareza e aplicação"
+            aria-label="Entender, conectar e resolver"
           >
-            <span>contexto</span>
+            <span>entender</span>
             <i>→</i>
-            <span>clareza</span>
+            <span>conectar</span>
             <i>→</i>
-            <span>aplicação</span>
+            <span>resolver</span>
           </p>
         </section>
 
-        <section className="journey scene" id="trajetoria">
-          <header className="section-heading reveal">
-            <p className="eyebrow">02 / TRAJETÓRIA</p>
-            <h2>Três perspectivas. Um mesmo raciocínio.</h2>
-          </header>
-          <div className="chapter-list">
-            {chapters.map((chapter) => (
+        <section
+          className="business tone-dark"
+          id="solucoes"
+          aria-label="Soluções"
+        >
+          <div className="stage">
+            {solutions.map((solution, index) => (
               <article
-                className="chapter reveal"
-                key={chapter.number}
-                data-particle-stage={2 + Number(chapter.number)}
+                className="solution"
+                key={solution.title}
+                data-particle-stage={3 + index}
               >
-                <span className="chapter-number">{chapter.number}</span>
-                <div className="chapter-copy">
-                  <p className="eyebrow">{chapter.label}</p>
-                  <h3>{chapter.title}</h3>
-                  <p>{chapter.body}</p>
-                  <span className="chapter-note">{chapter.note}</span>
+                <div className="solution-copy reveal">
+                  <p className="eyebrow">
+                    03 — Solução {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <h2>{solution.title}</h2>
+                  <p>{solution.body}</p>
                 </div>
-                <span className="chapter-symbol" aria-hidden="true">
-                  {chapter.symbol}
-                </span>
               </article>
             ))}
           </div>
         </section>
 
         <section
-          className="business scene"
-          id="solucoes"
+          className="method tone-light"
+          id="processo"
           data-particle-stage="6"
         >
           <header className="section-heading reveal">
-            <p className="eyebrow">03 / DESAFIOS</p>
-            <h2>Tecnologia começa pelo problema.</h2>
+            <p className="eyebrow">04 — Como funciona</p>
+            <h2>Do objetivo à entrega</h2>
           </header>
-          <div className="challenge-layout reveal">
-            <fieldset className="challenge-options">
-              <legend>Escolha um ponto de partida</legend>
-              {challenges.map((challenge) => (
-                <label
-                  className={`challenge-option${challenge.id === challengeId ? " is-selected" : ""}`}
-                  key={challenge.id}
-                >
-                  <input
-                    type="radio"
-                    name="challenge"
-                    value={challenge.id}
-                    checked={challenge.id === challengeId}
-                    onChange={() => setChallengeId(challenge.id)}
-                    suppressHydrationWarning
-                  />
-                  <span>{challenge.number}</span>
-                  <span>{challenge.label}</span>
-                </label>
-              ))}
-            </fieldset>
-            <div className="challenge-response" aria-live="polite">
-              <p className="eyebrow">UMA APLICAÇÃO POSSÍVEL</p>
-              <h3>{selectedChallenge.title}</h3>
-              <p>{selectedChallenge.body}</p>
-              <p className="approach">
-                <span>Abordagem</span>
-                <strong>{selectedChallenge.approach}</strong>
-              </p>
+          <ol className="method-steps">
+            {steps.map((step, index) => (
+              <li className="method-step reveal" key={step.title}>
+                <span className="method-number" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section
+          className="work tone-dark"
+          id="projetos"
+          data-particle-stage="7"
+        >
+          <div className="stage">
+            <div className="stage-copy reveal">
+              <p className="eyebrow">05 — Na prática</p>
+              <h2>Veja na prática</h2>
+              <div className="project-list">
+                {projects.map((project) => (
+                  <article className="project" key={project.title}>
+                    <h3>{project.title}</h3>
+                    <p>{project.description}</p>
+                    <p className="project-tags">{project.tags.join(" · ")}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="work scene" id="projetos" data-particle-stage="7">
-          <header className="section-heading reveal">
-            <p className="eyebrow">04 / TRABALHO SELECIONADO</p>
-            <h2>Conhecimento que encontra uma forma útil.</h2>
-          </header>
-          <div className="project-list">
-            {projects.map((project) => (
-              <article className="project reveal" key={project.number}>
-                <div className="project-index">
-                  <span>{project.number}</span>
-                  <p>{project.kind}</p>
-                </div>
-                <div className="project-copy">
-                  <h3>{project.title}</h3>
-                  <p>{project.description}</p>
-                  <p className="project-benefit">{project.benefit}</p>
-                  <dl>
-                    <div>
-                      <dt>Contribuição</dt>
-                      <dd>{project.contribution}</dd>
-                    </div>
-                    <div>
-                      <dt>Tecnologias</dt>
-                      <dd>{project.tags.join(" · ")}</dd>
-                    </div>
-                  </dl>
-                  <details>
-                    <summary>
-                      Ver contexto do projeto <span aria-hidden="true">+</span>
-                    </summary>
-                    <p>{project.detail}</p>
-                    <small>Projeto profissional · Código privado</small>
-                  </details>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="method scene" id="processo" data-particle-stage="8">
-          <header className="section-heading reveal">
-            <p className="eyebrow">05 / PROCESSO</p>
-            <h2>Do contexto à entrega.</h2>
-          </header>
-          <div className="method-steps">
-            {steps.map((step) => (
-              <article className="method-step reveal" key={step.number}>
-                <span>{step.number}</span>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-                <small>{step.output}</small>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="profile scene" id="sobre" data-particle-stage="9">
+        <section
+          className="profile tone-light"
+          id="sobre"
+          data-particle-stage="8"
+        >
           <figure className="profile-portrait reveal">
             <img src="/images/antonio-neto.jpg" alt="Retrato de Antonio Neto" />
-            <figcaption>Antonio Neto · IA & Software</figcaption>
           </figure>
-          <div className="profile-copy reveal">
-            <p className="eyebrow">06 / QUEM CONSTRÓI</p>
-            <h2>Matemática no raciocínio. Engenharia na execução.</h2>
+          <div className="profile-copy section-split reveal">
+            <p className="eyebrow">06 — Sobre</p>
+            <h2>Quem constrói com você</h2>
             <p>
-              Trabalho na interseção entre pesquisa aplicada, inteligência
-              artificial e desenvolvimento de software — com curiosidade para
-              investigar e disciplina para transformar ideias em sistemas reais.
+              Sou Antonio Neto e uno matemática, engenharia e IA para resolver
+              problemas de negócio
             </p>
             <div className="profile-links">
-              <a href={profile.linkedin} target="_blank" rel="noreferrer">
+              <a
+                className="button button-secondary"
+                href={profile.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 LinkedIn <Arrow />
               </a>
-              <a href={profile.github} target="_blank" rel="noreferrer">
+              <a
+                className="button button-secondary"
+                href={profile.github}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 GitHub <Arrow />
               </a>
             </div>
           </div>
         </section>
 
-        <section className="faq scene" id="perguntas" data-particle-stage="10">
-          <header className="section-heading reveal">
-            <p className="eyebrow">07 / PERGUNTAS</p>
-            <h2>Clareza antes do compromisso.</h2>
-          </header>
-          <div className="faq-list reveal">
-            {faqs.map((faq, index) => (
-              <details key={faq.question}>
-                <summary>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  {faq.question}
-                  <i aria-hidden="true">+</i>
-                </summary>
-                <p>{faq.answer}</p>
-              </details>
-            ))}
+        <section
+          className="faq tone-dark"
+          id="perguntas"
+          data-particle-stage="9"
+        >
+          <div className="stage">
+            <div className="stage-copy">
+              <header className="reveal">
+                <p className="eyebrow">07 — Perguntas</p>
+                <h2>Antes de começar</h2>
+              </header>
+              <div className="faq-list reveal">
+                {faqs.map((faq) => (
+                  <details key={faq.question}>
+                    <summary>
+                      {faq.question}
+                      <i aria-hidden="true">+</i>
+                    </summary>
+                    <p>{faq.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
         <section
-          className="contact scene"
+          className="contact tone-light"
           id="contato"
-          data-particle-stage="11"
-          // Dala's footer copy starts just below the reformed logo (≈0.54 H).
-          data-particle-align="0.56"
+          data-particle-stage="10"
           tabIndex={-1}
         >
-          <p className="eyebrow reveal">08 / PRÓXIMA CONVERSA</p>
-          <h2 className="reveal">O que você quer fazer funcionar?</h2>
+          <div className="section-split reveal">
+            <p className="eyebrow">08 — Contato</p>
+            <h2>Conte seu desafio</h2>
+          </div>
           <div className="contact-actions reveal">
             <a
               className="button button-primary"
               href={profile.linkedin}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
-              Conversar no LinkedIn <Arrow />
+              Falar no LinkedIn <Arrow />
             </a>
             <a
-              className="text-link"
+              className="button button-secondary"
               href={profile.github}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
-              Explorar o GitHub <Arrow />
+              Ver estudos no GitHub <Arrow />
             </a>
           </div>
         </section>
-      </main>
 
-      <footer className="site-footer">
-        <a
-          className="wordmark"
-          href="#inicio"
-          onClick={(event) => handleJump(event, "#inicio")}
+        <section
+          className="closing tone-dark"
+          id="fechamento"
+          aria-label="Encerramento"
+          data-particle-stage="11"
         >
-          <BrandMark />
-          <span>Antonio Neto</span>
-        </a>
-        <p>IA aplicada e engenharia de software para problemas que importam.</p>
-        <span>© {new Date().getFullYear()}</span>
-      </footer>
+          <div className="stage">
+            <footer className="site-footer">
+              <a
+                className="wordmark"
+                href="#inicio"
+                onClick={(event) => handleJump(event, "#inicio")}
+              >
+                <BrandMark />
+                <span>Antonio Neto</span>
+              </a>
+              <span>
+                IA, automação e software · © {new Date().getFullYear()}
+              </span>
+            </footer>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

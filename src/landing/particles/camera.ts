@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Vector2 } from "three";
-import { ease } from "./particle-motion";
+import { ease } from "./motion";
 
 /**
  * Dala's particle camera, as constructed in its bundle: a 50° vertical field of
@@ -10,9 +10,10 @@ import { ease } from "./particle-motion";
  */
 export const CAMERA_DISTANCE = 10;
 export const CAMERA_FOV = 50;
-/** Dala's particle object sits at y = −1.19 in front of the camera. */
-export const OBJECT_Y = -1.19;
-const PARALLAX = { x: 0.05, y: -0.075, ease: 0.1 } as const;
+// A stable, slightly raised view also reads well without a pointer on touch.
+const REST_PITCH = 0.015;
+const REST_YAW = 0.006;
+const PARALLAX = { x: 0.025, y: -0.04, ease: 0.1 } as const;
 
 export function createParticleCamera() {
   const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 30);
@@ -28,13 +29,15 @@ export function frameCamera(camera: PerspectiveCamera, aspect: number) {
   return new Vector2(height * aspect, height);
 }
 
-/** Dala's pointer parallax: up to 0.075 rad of yaw and 0.05 rad of pitch. */
+/** Gentle pointer parallax around the default view. */
 export function parallaxCamera(
   camera: PerspectiveCamera,
   pointer: Vector2,
   frames: number,
 ) {
   const k = ease(PARALLAX.ease, frames);
-  camera.rotation.y += (PARALLAX.y * pointer.x - camera.rotation.y) * k;
-  camera.rotation.x += (PARALLAX.x * pointer.y - camera.rotation.x) * k;
+  camera.rotation.y +=
+    (REST_YAW + PARALLAX.y * pointer.x - camera.rotation.y) * k;
+  camera.rotation.x +=
+    (REST_PITCH + PARALLAX.x * pointer.y - camera.rotation.x) * k;
 }

@@ -12,7 +12,8 @@
     "preview:next": "vite preview --host 127.0.0.1 --outDir ../out --port 3000",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "particles": "node scripts/build-particle-forms.mts"
+    "particles": "node --import ./scripts/ts-resolve.mjs scripts/build-particle-forms.mts",
+    "finale": "node --import ./scripts/ts-resolve.mjs scripts/build-finale.mts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

@@ -6,16 +6,17 @@ import {
   ShaderMaterial,
   Vector2,
 } from "three";
-import { createPyramidGeometry } from "./particle-geometry";
-import { random } from "./particle-shapes";
-import { ease } from "./particle-motion";
-import { backdropVertex, particleFragment } from "./particle-shaders";
+import { createPyramidGeometry } from "./geometry";
+import { random } from "./forms/hash";
+import { ease } from "./motion";
+import { backdropVertex } from "./shaders/backdrop";
+import { particleFragment } from "./shaders/particle";
 
 /**
  * Dala's background layer: 250 triangles spread over the viewport (x, y in
  * [−1, 1] of the visible extent) and over depth z ∈ [0, 9], so those close to
  * the camera become the large foreground shards. Palette and random alpha are
- * Dala's; the pyramid size and spin rate are reconstructed from screenshots.
+ * Dala's; the pyramid size follows the reference screenshots.
  */
 const COUNT = 250;
 const PALETTE = [
@@ -24,7 +25,7 @@ const PALETTE = [
   [40, 116, 100],
   [164, 148, 175],
 ] as const;
-const SCALE = { desktop: 0.05, mobile: 0.075 } as const;
+const SCALE = { desktop: 0.05, mobile: 0.055 } as const;
 // Pyramid extent before the per-layer scale; keeps the screenshot-matched size.
 const EXTENT = 1.5;
 const MOUSE = { gain: 0.25, ease: 0.1 } as const;
@@ -63,7 +64,6 @@ export function createBackdrop() {
     uniforms: {
       u_extent: { value: new Vector2(1, 1) },
       u_mouse: { value: new Vector2() },
-      u_time: { value: 0 },
       u_scale: { value: SCALE.desktop },
     },
     transparent: true,
@@ -82,8 +82,7 @@ export function createBackdrop() {
       material.uniforms.u_extent.value.copy(extent);
       material.uniforms.u_scale.value = mobile ? SCALE.mobile : SCALE.desktop;
     },
-    update(time: number, pointer: Vector2, active: boolean, frames: number) {
-      material.uniforms.u_time.value = time;
+    update(pointer: Vector2, active: boolean, frames: number) {
       // Returns to rest when the pointer leaves, like the camera parallax.
       if (active) shift.copy(pointer).multiplyScalar(MOUSE.gain);
       else shift.set(0, 0);

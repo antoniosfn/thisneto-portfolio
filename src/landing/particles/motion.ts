@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import type { ParticlePose } from "./particle-timeline";
+import type { ParticlePose } from "./timeline";
 
 export const STEP = 1 / 60;
 
@@ -23,13 +23,22 @@ export function ease(perFrame: number, frames: number) {
 export function createPose(): ParticlePose {
   return {
     progress: 0,
-    progress2: 0,
     explode: 0,
+    explodeMix: 0,
+    seed: 0,
+    page: 0,
+    solve: 0,
+    scene: 0,
+    detail: 0,
+    factor: 0,
     offset: [0, 0, 0],
     rotation: [0, 0, 0],
-    factor: 0,
+    book: [0, 0, 0, 1],
+    atom: [0, 0, 0, 1],
   };
 }
+
+const SCALARS = ["progress", "explode", "explodeMix", "seed", "page", "solve", "scene", "detail", "factor"] as const;
 
 /** Move the rendered pose toward the scroll target, as Dala's uniforms do. */
 export function easePose(
@@ -39,13 +48,14 @@ export function easePose(
 ) {
   const k = ease(POSE_EASE, frames),
     r = ease(ROTATION_EASE, frames);
-  current.progress += (target.progress - current.progress) * k;
-  current.progress2 += (target.progress2 - current.progress2) * k;
-  current.explode += (target.explode - current.explode) * k;
-  current.factor += (target.factor - current.factor) * k;
+  for (const key of SCALARS) current[key] += (target[key] - current[key]) * k;
   for (let i = 0; i < 3; i++) {
     current.offset[i] += (target.offset[i] - current.offset[i]) * k;
     current.rotation[i] += (target.rotation[i] - current.rotation[i]) * r;
+  }
+  for (let i = 0; i < 4; i++) {
+    current.book[i] += (target.book[i] - current.book[i]) * k;
+    current.atom[i] += (target.atom[i] - current.atom[i]) * k;
   }
 }
 
