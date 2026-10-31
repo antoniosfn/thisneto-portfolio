@@ -363,3 +363,9 @@ Celular e tablet passam a alinhar o texto a 18% da viewport, com as figuras abai
 As seções de capítulos e soluções passam de 112vh a 78svh. Margens e alturas das demais seções também foram reduzidas, mantendo espaço para a leitura e a figura. Na prévia de 319×816, a altura total caiu de 14.221 px para aproximadamente 10.500 px.
 
 A regressão está em tests/compact-scroll.spec.ts: abertura, permanência do Lorenz, progressão até a treliça, descida diagonal, posição do texto, ausência de overflow e capturas em 320, 390, 768, 1024, 1440 e 1920 px.
+
+## Paisagem no lugar da árvore e nó de volta na hero — 31/10/2026
+
+- A hero volta a abrir com o nó (estágio 0), sem a paisagem
+- A paisagem da casa e cachoeira toma o lugar da árvore em "Quem constrói": forma-se da chuva do livro e do átomo entre 9,75 e 10,85, fica completa até 11,1 e se desfaz na lâmpada até 12
+- A árvore continua no atlas, mas o atlas só passa por ela entre 10,88 e 11,04, enquanto a paisagem cobre o campo, então ela nunca aparece

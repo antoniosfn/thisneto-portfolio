@@ -6,15 +6,19 @@ import { decodeForms } from "../src/landing/particles/forms-file";
 import { BOOK, FORM, MOTION } from "../src/landing/particles/forms/catalog";
 import { BASE_FACTOR, pose } from "../src/landing/particles/timeline";
 
-test("the larger tree holds briefly between longer formation windows", () => {
+test("the landscape takes the tree's place and hides the atlas passing it", () => {
   for (const layout of ["desktop", "tablet", "mobile"] as const) {
     expect(pose(7.575, layout).progress).toBeCloseTo(FORM.saturn + 0.5);
     expect(pose(8, layout).progress).toBe(FORM.bookAtom);
-    expect(pose(9.75, layout).progress).toBe(FORM.bookAtom);
-    expect(pose(10.3, layout).progress).toBeCloseTo(FORM.bookAtom + 0.5);
-    expect(pose(10.85, layout).progress).toBe(FORM.tree);
-    expect(pose(11.1, layout).progress).toBe(FORM.tree);
-    expect(pose(11.55, layout).progress).toBeCloseTo(FORM.tree + 0.5);
+    expect(pose(10.85, layout).progress).toBe(FORM.bookAtom);
+    expect(pose(10.3, layout).scene).toBeCloseTo(0.5);
+    // The atlas crosses the tree only while the landscape covers the field.
+    for (const stage of [10.85, 10.92, 11, 11.1]) {
+      expect(pose(stage, layout).scene).toBe(1);
+    }
+    expect(pose(11.1, layout).progress).toBe(FORM.bulb);
+    expect(pose(11.55, layout).scene).toBeCloseTo(0.5);
+    expect(pose(12, layout).scene).toBe(0);
     expect(pose(12, layout).progress).toBe(FORM.bulb);
   }
   expect(pose(11, "desktop").factor).toBeCloseTo(BASE_FACTOR.desktop * 1.1);

@@ -3,16 +3,16 @@
  * (stage index + scrolled fraction): sums of clamped linear ramps, the grammar
  * read from dala.craftedbygc.com, and keyframe tracks for placement.
  *
- *   f 0  hero            landscape, then the trefoil knot
+ *   f 0  hero            the trefoil knot
  *   f 1  manifesto       knot turns frontal and grows, left of the copy
  *   f 2  manifesto line  brief burst, then an organised current
  *   f 3–5 trajectory     Lorenz, geodesic truss, neural network (left)
  *   f 6–6.4 solutions     the cube alternates opposite the static copy
  *   f 7  projects title  the cube bursts and condenses into golden Saturn
  *   f 8–9 projects       book (top right) and atom (bottom left); a leaf per project
- *   f 10 process         both gather, rain down into a seed; the tree grows
- *   f 11 about          the Tree of Life, with deep roots
- *   f 12 FAQ            the tree becomes a light bulb
+ *   f 10 process         both gather and rain down; the cloud becomes the landscape
+ *   f 11 about          the landscape (house and waterfall) in the right column
+ *   f 12 FAQ            the landscape becomes a light bulb
  *   f 13 contact        the bulb holds beside the invitation
  *
  * Form k of the atlas is shown at u_progress = k. See docs/particle-experience.md.
@@ -59,8 +59,9 @@ export function track(f: number, keys: readonly (readonly [number, number])[]) {
 /**
  * Each form completes as its copy arrives. A centred block enters the viewport
  * (reveal at 85% of its height) about 0.44 stage before its anchor k, and its
- * lines have settled by k − 0.3. The tree is the longer transition: it grows
- * through the process section, holds briefly at 11, then forms the bulb by 12.
+ * lines have settled by k − 0.3. The tree (7) is skipped: the landscape covers
+ * the field from 10.85 to 11.1, and only then does the atlas pass the tree on
+ * its way to the bulb, so the tree is never seen.
  */
 function progress(f: number) {
   return (
@@ -70,8 +71,8 @@ function progress(f: number) {
     ramp(f, 5.4, 5.95) + // cube
     ramp(f, 6.7, 7.0) + // Saturn (7)
     ramp(f, 7.15, 8.0) + // longer formation of book and atom, complete at 8
-    ramp(f, 9.75, 10.85) + // slower growth into the tree (11)
-    ramp(f, 11.1, 12.0) // tree → bulb, which also closes the page
+    ramp(f, 10.88, 10.96) + // tree, hidden under the landscape
+    ramp(f, 10.96, 11.04) // bulb, revealed as the landscape leaves (11.1–12)
   );
 }
 
@@ -117,8 +118,9 @@ function beats(f: number) {
     explodeMix: ramp(f, 8, 8.5),
     seed: ramp(f, 9.62, 9.75),
     page: ramp(f, 8.0, 8.5) + ramp(f, 9.0, 9.3),
-    scene: 1 - ramp(f, 0.15, 0.85),
-    detail: 1 - ramp(f, 0.15, 0.7),
+    // The landscape takes the tree's place in the about section.
+    scene: ramp(f, 9.75, 10.85) - ramp(f, 11.1, 12),
+    detail: ramp(f, 10.1, 10.85) - ramp(f, 11.1, 11.65),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
 }

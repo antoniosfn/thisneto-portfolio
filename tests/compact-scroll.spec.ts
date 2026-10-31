@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 import { FORM } from "../src/landing/particles/forms/catalog";
 import { pose } from "../src/landing/particles/timeline";
 
-test("landscape opens the page and the Lorenz holds before the next descent", () => {
+test("the knot opens the page and the Lorenz holds before the next descent", () => {
   for (const layout of ["desktop", "tablet", "mobile"] as const) {
-    expect(pose(0, layout).scene).toBe(1);
-    expect(pose(0, layout).detail).toBe(1);
+    expect(pose(0, layout).scene).toBe(0);
+    expect(pose(0, layout).progress).toBe(FORM.knot);
     expect(pose(1, layout).scene).toBe(0);
     expect(pose(13, layout).scene).toBe(0);
     expect(pose(13, layout).progress).toBe(FORM.bulb);
@@ -38,7 +38,7 @@ test("compact stages keep complete figures below stacked copy", async ({
   await page.goto("/");
   await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20000 });
   const field = page.locator(".particle-field");
-  await expect(field).toHaveAttribute("data-opening", "1.000");
+  await expect(field).toHaveAttribute("data-opening", "0.000");
   for (const width of [320, 390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => document.fonts.ready);
