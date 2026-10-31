@@ -9,8 +9,8 @@ type Env = { RESEND_API_KEY?: string; CONTACT_TO?: string; CONTACT_FROM?: string
 type Context = { request: Request; env: Env };
 
 const TO = "antoniozdm4@gmail.com";
-// Works before a domain is verified in Resend, but only to the account's email.
-const FROM = "Site tonin.tech <onboarding@resend.dev>";
+// tonin.tech is verified in Resend; the API key may only send from it.
+const FROM = "Site tonin.tech <contato@tonin.tech>";
 const LIMITS = { name: 120, email: 200, company: 120, message: 4000 } as const;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
