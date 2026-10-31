@@ -40,9 +40,11 @@ test("the cube forms right, turns left on its axis while crossing, then bursts",
   expect(solutionWeight(3)).toBe(1);
   expect(solutionWeight(5)).toBe(1);
   expect(track(3, CUBE_CROSSING)).toBe(1);
-  expect(track(4.2, CUBE_CROSSING)).toBeCloseTo(0);
+  expect(track(3.5, CUBE_CROSSING)).toBeCloseTo(0);
+  // Opposite the copy, which sits on the right for solutions two and three.
+  expect(track(4, CUBE_CROSSING)).toBe(-1);
   expect(track(5, CUBE_CROSSING)).toBe(-1);
-  const turn = pose(4.9, "desktop").rotation[1] - pose(3.5, "desktop").rotation[1];
+  const turn = pose(3.85, "desktop").rotation[1] - pose(3.15, "desktop").rotation[1];
   expect(turn).toBeCloseTo(-2 * Math.PI);
   expect(pose(5, "desktop").explode).toBe(0);
   expect(pose(5.6, "desktop").explode).toBe(1);

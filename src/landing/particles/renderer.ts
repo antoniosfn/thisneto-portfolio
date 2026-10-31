@@ -302,18 +302,18 @@ export function createParticleRenderer(
         }
       }
     }
-    // The solutions: the cube forms on the right and crosses to the left on
-    // every screen, as large as the stage allows.
+    // The solutions: the cube stays opposite the copy. Desktop crosses from
+    // the right to the left; stacked screens keep it under the copy.
     const solutionWeight = solutionWeightAt(progress);
     if (solutionWeight > 0) {
       const side = layout === "desktop";
       const direction = track(progress, CUBE_CROSSING);
-      const x = extent.x * (side ? 0.22 : 0.16) * direction;
-      const y = side ? -0.2 : MOBILE_FIGURE_Y;
+      const x = extent.x * (side ? 0.22 : 0.12) * direction;
+      const y = side ? -0.2 : -extent.y * 0.26;
       const fit = Math.min(
         targetPose.factor,
-        (extent.x * (side ? 0.5 : 0.78)) / 1.5,
-        (extent.y * (side ? 0.8 : 0.5)) / 1.5,
+        (extent.x * (side ? 0.5 : 0.7)) / 1.5,
+        (extent.y * (side ? 0.8 : 0.36)) / 1.5,
       );
       targetPose.offset[0] += (x - targetPose.offset[0]) * solutionWeight;
       targetPose.offset[1] += (y - targetPose.offset[1]) * solutionWeight;
