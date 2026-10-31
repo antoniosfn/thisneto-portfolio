@@ -15,7 +15,9 @@ test("every dark section opens on a complete figure", () => {
     for (const stage of [3, 4, 5]) expect(pose(stage, layout).progress).toBe(FORM.cube);
     expect(pose(7, layout).progress).toBe(FORM.bookAtom);
     expect(pose(9, layout).progress).toBe(FORM.saturn);
-    expect(pose(11, layout).scene).toBe(1);
+    // The closing holds the contact form over a quiet cloud.
+    expect(pose(11, layout).scene).toBe(0);
+    expect(pose(11, layout).explode).toBe(1);
   }
 });
 
@@ -26,8 +28,6 @@ test("each figure forms from a cloud while its dark section rises", () => {
       expect(pose(forming, layout).explode).toBeGreaterThan(0);
       expect(pose(forming, layout).explode).toBeLessThan(1);
     }
-    expect(pose(10.75, layout).scene).toBeGreaterThan(0);
-    expect(pose(10.75, layout).scene).toBeLessThan(1);
     // At the anchors: complete.
     for (const dark of [1, 3, 4, 5, 7, 9]) expect(pose(dark, layout).explode).toBe(0);
     // The atlas only changes form inside the cloud.

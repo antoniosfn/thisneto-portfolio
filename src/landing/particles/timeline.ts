@@ -18,7 +18,7 @@
  *   f 8  about (light)       they burst
  *   f 9  FAQ (dark)          Saturn forms, rings spinning
  *   f 10 contact (light)     Saturn bursts
- *   f 11 closing (dark)      the landscape forms, centred
+ *   f 11 closing (dark)      the contact form; the field stays a quiet cloud
  *
  * Form k of the atlas is shown at u_progress = k. See docs/particle-experience.md.
  */
@@ -105,8 +105,7 @@ function explode(f: number) {
     ramp(f, ...FORMS.bookAtom) +
     ramp(f, ...BURSTS.bookAtom) -
     ramp(f, ...FORMS.saturn) +
-    ramp(f, ...BURSTS.saturn) -
-    ramp(f, ...FORMS.landscape)
+    ramp(f, ...BURSTS.saturn)
   );
 }
 
@@ -160,8 +159,9 @@ function beats(f: number) {
     solve:
       0.5 * ramp(f, CUBE_CROSSING[0][0], CUBE_CROSSING[1][0]) +
       0.5 * ramp(f, CUBE_CROSSING[2][0], CUBE_CROSSING[3][0]),
-    scene: ramp(f, ...FORMS.landscape),
-    detail: ramp(f, FORMS.landscape[0] + 0.2, FORMS.landscape[1]),
+    // The closing landscape is retired: the last section holds the form.
+    scene: 0,
+    detail: 0,
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
 }

@@ -8,6 +8,7 @@ import Lenis from "lenis";
 import { sectionProgress } from "./particles/timeline";
 import { revealText } from "./text-reveal";
 import { solutions, chapters, faqs, profile, projects, steps } from "./content";
+import ContactForm from "./ContactForm";
 import Loader from "./Loader";
 import ParticleField, { type ParticleController } from "./ParticleField";
 
@@ -442,13 +443,12 @@ export default function LandingPage() {
 
         <section
           className="contact tone-light"
-          id="contato"
+          id="canais"
           data-particle-stage="10"
-          tabIndex={-1}
         >
           <div className="section-split reveal">
             <p className="eyebrow">08 — Contato</p>
-            <h2>Conte seu desafio</h2>
+            <h2>Vamos conversar</h2>
           </div>
           <div className="contact-actions reveal">
             <a
@@ -472,11 +472,25 @@ export default function LandingPage() {
 
         <section
           className="closing tone-dark"
-          id="fechamento"
-          aria-label="Encerramento"
+          id="contato"
+          aria-labelledby="desafio-titulo"
           data-particle-stage="11"
+          tabIndex={-1}
         >
           <div className="stage">
+            <div className="stage-copy challenge">
+              <header className="reveal">
+                <p className="eyebrow">09 — Seu desafio</p>
+                <h2 id="desafio-titulo">Conte seu desafio</h2>
+                <p className="challenge-lead">
+                  Descreva o que trava sua operação hoje. Respondo pessoalmente,
+                  em até dois dias úteis.
+                </p>
+              </header>
+              <div className="reveal">
+                <ContactForm />
+              </div>
+            </div>
             <footer className="site-footer">
               <a
                 className="wordmark"

@@ -637,12 +637,126 @@ html.lenis body {
   margin-top: 40px;
 }
 
-/* ---------- Closing (landscape, centred) */
+/* ---------- Closing: the big call to action and the contact form */
 .closing .stage {
   display: flex;
   min-height: 110svh;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 72px;
   padding-bottom: 40px;
+}
+.stage-copy.challenge {
+  width: 100%;
+  margin-top: auto;
+}
+.challenge {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 96px);
+  align-items: end;
+  max-width: none;
+}
+.challenge h2 {
+  font-size: clamp(72px, 13vw, 220px);
+  line-height: 0.86;
+}
+.challenge-lead {
+  max-width: 440px;
+  margin-top: 28px;
+  color: var(--fog);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.contact-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 16px;
+}
+.contact-form label {
+  display: grid;
+  gap: 8px;
+}
+.contact-form label > span {
+  color: var(--fog);
+  font-family: var(--font-m);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 10px;
+  background: rgb(0 0 0 / 0.55);
+  color: var(--white);
+  font: inherit;
+  font-size: 16px;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.contact-form textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+.contact-form input:hover,
+.contact-form textarea:hover {
+  border-color: rgb(255 255 255 / 0.4);
+}
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible {
+  border-color: var(--white);
+  outline: 2px solid var(--white);
+  outline-offset: 2px;
+  background: rgb(0 0 0 / 0.75);
+}
+.contact-wide {
+  grid-column: 1 / -1;
+}
+.contact-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.contact-submit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.contact-submit button[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.contact-error {
+  margin: 0;
+  color: #ff9b8a;
+  font-size: 15px;
+}
+.contact-error:empty {
+  display: none;
+}
+.contact-sent {
+  padding: 28px 0;
+  border-top: 1px solid rgb(255 255 255 / 0.3);
+  color: var(--white);
+  font-family: var(--font-d);
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+@media (max-width: 1099px) {
+  .challenge {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .contact-form {
+    grid-template-columns: 1fr;
+  }
 }
 .site-footer {
   display: flex;
