@@ -52,11 +52,21 @@ test("the cube forms right, turns left on its axis while crossing, then bursts",
 
 test("figures are scaled to fill the stage", () => {
   // Fitted down by the renderer from well above the old base scale.
-  expect(pose(1, "desktop").factor).toBeGreaterThan(9);
+  expect(pose(3, "desktop").factor).toBeGreaterThan(9);
   expect(pose(9, "mobile").factor).toBeGreaterThan(6);
   const mobile = pose(7, "mobile");
   expect(mobile.book[3]).toBeGreaterThan(1.5);
   expect(mobile.atom[3]).toBeGreaterThan(1.5);
   expect(mobile.book[1]).toBeGreaterThan(mobile.atom[1]);
   expect(pose(7, "desktop").book[3]).toBeGreaterThan(1.6);
+});
+
+test("the Lorenz holds whole right of the copy and fragments on either side", () => {
+  for (const f of [0.9, 1, 1.1]) {
+    expect(pose(f, "desktop").explode).toBe(0);
+    expect(pose(f, "desktop").offset[0]).toBeCloseTo(2.4);
+  }
+  // Scrolling back up and scrolling on both break it into a cloud.
+  expect(pose(0.5, "desktop").explode).toBe(1);
+  expect(pose(1.5, "desktop").explode).toBe(1);
 });

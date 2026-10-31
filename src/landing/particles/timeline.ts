@@ -69,7 +69,9 @@ export function track(f: number, keys: readonly (readonly [number, number])[]) {
  * screen to its middle between k − 0.5 and k.
  */
 const FORMS = {
-  lorenz: [0.5, 1],
+  // The Lorenz holds whole on both sides of its anchor, so scrolling back
+  // up fragments it just as scrolling on does.
+  lorenz: [0.55, 0.85],
   cube: [2.5, 3],
   bookAtom: [6.5, 7],
   saturn: [8.5, 9],
@@ -77,7 +79,7 @@ const FORMS = {
 } as const;
 /** Bursts: each figure leaves as its section scrolls away. */
 const BURSTS = {
-  lorenz: [1.4, 1.7],
+  lorenz: [1.15, 1.45],
   cube: [5.3, 5.6],
   bookAtom: [7.4, 7.7],
   saturn: [9.4, 9.7],
@@ -161,16 +163,23 @@ function fill(f: number) {
   return f > FORMS.bookAtom[0] - 0.3 && f < FORMS.saturn[0] ? 1 : FILL;
 }
 
+/** Where the Lorenz stands on desktop (field offset) and its scale. */
+const LORENZ_AT = [2.4, -0.35] as const;
+const LORENZ_SCALE = 1.05;
+
 /** Desktop and tablet: figures centred on their stage, copy over them. */
 export function desktopPose(
   f: number,
   layout: Layout = "desktop",
 ): ParticlePose {
   const narrow = layout === "tablet" ? 0.62 : 1;
+  // The Lorenz keeps its place right of the copy, about half the stage tall;
+  // the field recentres in the cloud before the cube forms.
+  const lorenz = 1 - ramp(f, BURSTS.lorenz[1], FORMS.cube[0]);
   return {
     ...beats(f),
-    offset: [0, -0.1, 0],
-    factor: BASE_FACTOR[layout] * fill(f),
+    offset: [LORENZ_AT[0] * narrow * lorenz, -0.1 + (LORENZ_AT[1] + 0.1) * lorenz, 0],
+    factor: BASE_FACTOR[layout] * (fill(f) + (LORENZ_SCALE - fill(f)) * lorenz),
     // Book and atom share the stage, each about half its height.
     book: [2.7 * narrow, 0.9, 0, 1.75],
     atom: [-2.7 * narrow, -0.9, 0, 1.85],
