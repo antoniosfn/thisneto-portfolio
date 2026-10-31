@@ -10,9 +10,8 @@
  *   f 0  hero (light)        cloud, covered
  *   f 1  trajectory (dark)   the Lorenz forms, filling the stage
  *   f 2  manifesto (light)   the Lorenz bursts
- *   f 3–5 solutions (dark)   the cube forms on the right, opposite the copy,
- *                            turns left on its own axis while it crosses to
- *                            the left for the second and third
+ *   f 3–5 solutions (dark)   the cube zigzags opposite the copy (right, left,
+ *                            right), turning once on its axis at each crossing
  *   f 6  process (light)     the cube bursts
  *   f 7  projects (dark)     book and atom form, pages turning
  *   f 8  about (light)       they burst
@@ -110,12 +109,14 @@ function explode(f: number) {
 }
 
 /**
- * The cube's crossing, always opposite the copy: +1 on the right for the
- * first solution, −1 on the left for the second and third.
+ * The cube zigzags, always opposite the copy: +1 on the right for the first
+ * and third solutions, −1 on the left for the second.
  */
 export const CUBE_CROSSING = [
   [3.15, 1],
   [3.85, -1],
+  [4.15, -1],
+  [4.85, 1],
 ] as const;
 /** Weight of the solution placement: on through the three beats. */
 export function solutionWeight(f: number) {
@@ -129,9 +130,12 @@ const CUBE_YAW = PI / 4;
 const yaw = [
   [1.7, LORENZ_YAW],
   [2.5, CUBE_YAW],
+  // Each crossing turns it once on its own axis, towards where it goes.
   [3.15, CUBE_YAW],
   [3.85, CUBE_YAW - 2 * PI],
-  [5.6, CUBE_YAW - 2 * PI],
+  [4.15, CUBE_YAW - 2 * PI],
+  [4.85, CUBE_YAW],
+  [5.6, CUBE_YAW],
   [6.5, 0],
 ] as const;
 const pitch = [

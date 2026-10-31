@@ -471,9 +471,8 @@ html.lenis body {
   min-height: 100svh;
   align-items: center;
 }
-/* The cube crosses right → left after the first solution: the copy follows
-   to the opposite side. */
-.solution:nth-child(n + 2) {
+/* The cube zigzags right, left, right: the copy takes the other side. */
+.solution:nth-child(2) {
   justify-content: flex-end;
 }
 .solution h2 {
@@ -668,7 +667,7 @@ html.lenis body {
     padding-bottom: 45svh;
   }
   .solution,
-  .solution:nth-child(n + 2) {
+  .solution:nth-child(2) {
     align-items: flex-start;
     justify-content: flex-start;
     padding-top: var(--section-pad);

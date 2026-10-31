@@ -30,6 +30,12 @@ const HERO: { heading: Timing; body: Timing; action: gsap.TweenVars } = {
   },
 };
 const START = "top bottom";
+/**
+ * Outside the hero, lines are scrubbed by the scroll: each rises from its mask
+ * as the block travels from the bottom edge to 60% of the viewport, and sinks
+ * back when scrolling up. The small lag smooths the wheel's steps.
+ */
+const SCRUB = { start: "top 98%", end: "top 60%", scrub: 0.6 } as const;
 const HEADINGS = "h1, h2, h3";
 const TEXT = `${HEADINGS}, p, dt, figcaption, .eyebrow`;
 const DYNAMIC = "details";
@@ -53,7 +59,7 @@ function textBlocks(blocks: HTMLElement[]) {
   return [...found];
 }
 
-function splitReveal(element: HTMLElement, timing: Timing) {
+function splitReveal(element: HTMLElement, timing: Timing, scrubbed: boolean) {
   return SplitText.create(element, {
     type: "lines",
     mask: "lines",
@@ -61,11 +67,18 @@ function splitReveal(element: HTMLElement, timing: Timing) {
     aria: "none",
     autoSplit: true,
     onSplit: (self) =>
-      gsap.from(self.lines, {
-        ...LINE,
-        ...timing,
-        scrollTrigger: { trigger: element, start: START },
-      }),
+      scrubbed
+        ? gsap.from(self.lines, {
+            ...LINE,
+            rotate: timing.rotate,
+            ease: "none",
+            scrollTrigger: { trigger: element, ...SCRUB },
+          })
+        : gsap.from(self.lines, {
+            ...LINE,
+            ...timing,
+            scrollTrigger: { trigger: element, start: START },
+          }),
   });
 }
 
@@ -81,7 +94,7 @@ export function revealText(blocks: HTMLElement[], hero: HTMLElement | null) {
       : heading
         ? HEADING
         : BODY;
-    return splitReveal(element, timing);
+    return splitReveal(element, timing, !inHero);
   });
   // .hero-action clips the button like Dala's CTA wrapper.
   // The button's CSS transform transition is paused while the tween runs, and

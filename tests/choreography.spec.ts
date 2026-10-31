@@ -36,16 +36,18 @@ test("each figure forms from a cloud while its dark section rises", () => {
   }
 });
 
-test("the cube forms right, turns left on its axis while crossing, then bursts", () => {
+test("the cube zigzags opposite the copy, turning at each crossing, then bursts", () => {
   expect(solutionWeight(3)).toBe(1);
   expect(solutionWeight(5)).toBe(1);
   expect(track(3, CUBE_CROSSING)).toBe(1);
   expect(track(3.5, CUBE_CROSSING)).toBeCloseTo(0);
-  // Opposite the copy, which sits on the right for solutions two and three.
+  // A full zigzag, opposite the copy: right, left, right.
   expect(track(4, CUBE_CROSSING)).toBe(-1);
-  expect(track(5, CUBE_CROSSING)).toBe(-1);
-  const turn = pose(3.85, "desktop").rotation[1] - pose(3.15, "desktop").rotation[1];
-  expect(turn).toBeCloseTo(-2 * Math.PI);
+  expect(track(5, CUBE_CROSSING)).toBe(1);
+  const left = pose(3.85, "desktop").rotation[1] - pose(3.15, "desktop").rotation[1];
+  const right = pose(4.85, "desktop").rotation[1] - pose(4.15, "desktop").rotation[1];
+  expect(left).toBeCloseTo(-2 * Math.PI);
+  expect(right).toBeCloseTo(2 * Math.PI);
   expect(pose(5, "desktop").explode).toBe(0);
   expect(pose(5.6, "desktop").explode).toBe(1);
 });
