@@ -34,7 +34,8 @@ import { createSimulation } from "./simulation";
 import {
   MOBILE_FIGURE_Y,
   pose as poseAt,
-  ramp,
+  SOLUTION_SIDES,
+  solutionWeight as solutionWeightAt,
   track,
   type Layout,
 } from "./timeline";
@@ -54,10 +55,8 @@ const FRAME_FLOOR_MS = STEP * 1000 * 0.75;
 // Share of the viewport the whole scene fills: the header covers the top and
 // the footer's text the bottom, and the couple must clear both.
 const SCENE_MARGIN = 0.78;
-// Desktop: the opening scene takes this share of the width, right of the copy,
-// at this distance (world units) from the right edge.
-const SCENE_SIDE_SHARE = 0.56;
-const SCENE_EDGE = 0.35;
+// Desktop: the closing landscape takes this share of the width.
+const SCENE_SIDE_SHARE = 0.78;
 
 /** Size and line strength blended between the two forms around `progress`. */
 function formLook(progress: number) {
@@ -244,14 +243,14 @@ export function createParticleRenderer(
     const progress = read().progress;
     // The first frame jumps straight to the pose.
     const targetPose = poseAt(progress, layout);
-    // Saturn's broad rings fit the reading column or the phone's full width.
+    // Saturn's broad rings fill most of its column or the phone's full width.
     const saturnWeight = Math.max(
       0,
       1 - Math.abs(targetPose.progress - FORM.saturn),
     );
     const saturnFit = Math.min(
       targetPose.factor,
-      (extent.x * (layout === "desktop" ? 0.44 : 0.86)) / 2.05,
+      (extent.x * (layout === "desktop" ? 0.6 : 0.98)) / 2.05,
     );
     targetPose.factor += (saturnFit - targetPose.factor) * saturnWeight;
     if (layout !== "desktop") {
@@ -262,11 +261,17 @@ export function createParticleRenderer(
       // Account for perspective at the nearest point of the bounding sphere.
       const diameter = Math.min(extent.x * 0.84, extent.y * 0.34);
       const fit = diameter / (radius * (2 + diameter / 10));
-      targetPose.factor = Math.min(targetPose.factor, fit);
-    } else if (
-      targetPose.progress < FORM.bookAtom ||
-      targetPose.progress >= FORM.tree
-    ) {
+      // Book and atom are placed and scaled on their own to fill the screen,
+      // and Saturn fits the width above; the atlas radius would shrink both
+      // back to a thumbnail.
+      const ownScale = Math.max(
+        0,
+        1 - Math.abs(targetPose.progress - FORM.bookAtom),
+        saturnWeight,
+      );
+      const fitted = Math.min(targetPose.factor, fit);
+      targetPose.factor = fitted + (targetPose.factor - fitted) * ownScale;
+    } else if (targetPose.progress < FORM.bookAtom) {
       // Fit the tilted silhouette vertically after lowering it. Sampling the
       // dense mesh avoids shrinking the desktop forms to a bounding sphere.
       fitRotation.makeRotationFromEuler(
@@ -297,21 +302,17 @@ export function createParticleRenderer(
         }
       }
     }
-    // The three service beats reserve half the screen for copy, or stack on tablets/phones.
-    const solutionWeight = ramp(progress, 5.7, 6) - ramp(progress, 6.4, 6.7);
+    // The three service beats: the cube crosses to the side opposite the
+    // copy on every screen; stacked screens keep it below the copy.
+    const solutionWeight = solutionWeightAt(progress);
     if (solutionWeight > 0) {
       const side = layout === "desktop";
-      const direction = track(progress, [
-        [6.04, 1],
-        [6.16, -1],
-        [6.24, -1],
-        [6.36, 1],
-      ]);
-      const x = side ? extent.x * 0.25 * direction : 0;
+      const direction = track(progress, SOLUTION_SIDES);
+      const x = extent.x * (side ? 0.25 : 0.2) * direction;
       const y = side ? -0.4 : MOBILE_FIGURE_Y;
       const fit = Math.min(
         targetPose.factor,
-        (extent.x * (side ? 0.4 : 0.86)) / 1.5,
+        (extent.x * (side ? 0.4 : 0.55)) / 1.5,
         (extent.y * (side ? 0.65 : 0.3)) / 1.5,
       );
       targetPose.offset[0] += (x - targetPose.offset[0]) * solutionWeight;
@@ -372,21 +373,16 @@ export function createParticleRenderer(
     publish("factor", factor);
   }
   /**
-   * Where the opening scene stands, as `object-fit: contain` in the free area:
-   * on desktop the right 56% beside the copy, hugging the right edge;
-   * on smaller screens the whole width, below the copy.
+   * Where the closing landscape stands, as `object-fit: contain`, centred:
+   * most of the width on desktop, the whole width below the copy elsewhere.
    */
   function fitScene() {
     const side = layout === "desktop";
     const factor = Math.min(
       (extent.x * (side ? SCENE_SIDE_SHARE : SCENE_MARGIN)) / SCENE_WIDTH,
-      (extent.y * (side ? 0.62 : 0.34)) / SCENE_HEIGHT,
+      (extent.y * (side ? 0.66 : 0.34)) / SCENE_HEIGHT,
     );
-    return {
-      factor,
-      x: side ? extent.x / 2 - (SCENE_WIDTH * factor) / 2 - SCENE_EDGE : 0,
-      y: side ? -0.7 : -0.75,
-    };
+    return { factor, x: 0, y: side ? -0.35 : -0.75 };
   }
   /** Turn a group placed off-centre so it faces the camera, as if centred. */
   function face(

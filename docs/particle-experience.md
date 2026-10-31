@@ -369,3 +369,15 @@ A regressão está em tests/compact-scroll.spec.ts: abertura, permanência do Lo
 - A hero volta a abrir com o nó (estágio 0), sem a paisagem
 - A paisagem da casa e cachoeira toma o lugar da árvore em "Quem constrói": forma-se da chuva do livro e do átomo entre 9,75 e 10,85, fica completa até 11,1 e se desfaz na lâmpada até 12
 - A árvore continua no atlas, mas o atlas só passa por ela entre 10,88 e 11,04, enquanto a paisagem cobre o campo, então ela nunca aparece
+
+## Direção 4 — ferramenta de precisão (31/10/2026)
+
+- Página cinza-gelo (#E5E7EB) com títulos Barlow Condensed em caixa alta, corpo Inter e legendas IBM Plex Mono, carregadas por next/font
+- Seções claras são opacas e cobrem o campo; seções escuras são palcos transparentes com topo arredondado (64 px), e só nelas as figuras aparecem
+- Atlas reduzido a cinco formas: Lorenz, dado, livro e átomo, Saturno e a paisagem; saíram nó, treliça, rede neural, árvore e lâmpada
+- Todas as transformações acontecem por trás das seções claras, então cada seção escura abre com a figura completa
+- O dado alterna de lado nas três soluções (também no tablet e no celular) e dá uma volta de 360° com o scroll
+- Livro e átomo ocupam a largura do celular, um sobre o outro; Saturno cresce 35% no desktop e preenche a largura nas telas empilhadas
+- Os anéis de Saturno giram em volta do polo inclinado (movimento SPIN), o globo gira mais devagar
+- A paisagem fecha a página, centralizada
+- Testes da coreografia em tests/choreography.spec.ts

@@ -3,17 +3,19 @@
  * (stage index + scrolled fraction): sums of clamped linear ramps, the grammar
  * read from dala.craftedbygc.com, and keyframe tracks for placement.
  *
- *   f 0  hero            the trefoil knot
- *   f 1  manifesto       knot turns frontal and grows, left of the copy
- *   f 2  manifesto line  brief burst, then an organised current
- *   f 3–5 trajectory     Lorenz, geodesic truss, neural network (left)
- *   f 6–6.4 solutions     the cube alternates opposite the static copy
- *   f 7  projects title  the cube bursts and condenses into golden Saturn
- *   f 8–9 projects       book (top right) and atom (bottom left); a leaf per project
- *   f 10 process         both gather and rain down; the cloud becomes the landscape
- *   f 11 about          the landscape (house and waterfall) in the right column
- *   f 12 FAQ            the landscape becomes a light bulb
- *   f 13 contact        the bulb holds beside the invitation
+ * Light sections are opaque and cover the field; every change of form happens
+ * behind them, so each dark section opens on a complete figure.
+ *
+ *   f 0  hero (light)        the Lorenz waits, covered
+ *   f 1  trajectory (dark)   Lorenz, right of the copy
+ *   f 2  manifesto (light)   Lorenz → cube
+ *   f 3–5 solutions (dark)   the cube alternates sides and turns a full 360°
+ *   f 6  process (light)     cube → book and atom
+ *   f 7  projects (dark)     book and atom, pages turning
+ *   f 8  about (light)       book and atom → Saturn
+ *   f 9  FAQ (dark)          Saturn, rings spinning, left of the questions
+ *   f 10 contact (light)     Saturn → the landscape
+ *   f 11 closing (dark)      the landscape, centred
  *
  * Form k of the atlas is shown at u_progress = k. See docs/particle-experience.md.
  */
@@ -25,7 +27,7 @@ export type ParticlePose = {
   explodeMix: number; // 0 radial burst, 1 rain downwards
   seed: number;
   page: number;
-  scene: number; // opening landscape weight (its size follows the viewport)
+  scene: number; // landscape weight (its size follows the viewport)
   detail: number; // the landscape's detail layer, 0 → 1
   factor: number;
   offset: Vec3;
@@ -56,79 +58,58 @@ export function track(f: number, keys: readonly (readonly [number, number])[]) {
   return keys[keys.length - 1][1];
 }
 
-/**
- * Each form completes as its copy arrives. A centred block enters the viewport
- * (reveal at 85% of its height) about 0.44 stage before its anchor k, and its
- * lines have settled by k − 0.3. The tree (7) is skipped: the landscape covers
- * the field from 10.85 to 11.1, and only then does the atlas pass the tree on
- * its way to the bulb, so the tree is never seen.
- */
+/** Each morph runs inside a light section, while the field is covered. */
 function progress(f: number) {
   return (
-    ramp(f, 2.05, 2.65) + // Lorenz arrives before its copy
-    ramp(f, 3.4, 3.95) + // longer Lorenz hold, gradual truss arrival
-    ramp(f, 4.4, 4.95) + // neural network
-    ramp(f, 5.4, 5.95) + // cube
-    ramp(f, 6.7, 7.0) + // Saturn (7)
-    ramp(f, 7.15, 8.0) + // longer formation of book and atom, complete at 8
-    ramp(f, 10.88, 10.96) + // tree, hidden under the landscape
-    ramp(f, 10.96, 11.04) // bulb, revealed as the landscape leaves (11.1–12)
+    ramp(f, 2.1, 2.8) + // Lorenz → cube (manifesto)
+    ramp(f, 6.1, 6.8) + // cube → book and atom (process)
+    ramp(f, 8.1, 8.8) // book and atom → Saturn (about)
   );
 }
 
-function explode(f: number) {
-  return (
-    ramp(f, 1.15, 1.45) - // knot → brief cloud
-    ramp(f, 2.05, 2.65) + // cloud → Lorenz
-    ramp(f, 6.55, 6.7) - // cube bursts
-    ramp(f, 6.7, 7.0) + // … and reforms as Saturn
-    ramp(f, 9.45, 9.6) - // book and atom rain down
-    ramp(f, 9.62, 9.75) // … into the seed
-  );
+/** The three solution beats: the cube's side, +1 right of the copy, −1 left. */
+export const SOLUTION_SIDES = [
+  [3.3, 1],
+  [3.7, -1],
+  [4.3, -1],
+  [4.7, 1],
+] as const;
+/** Weight of the solution placement: on through the three beats. */
+export function solutionWeight(f: number) {
+  return ramp(f, 2.6, 2.95) - ramp(f, 5.55, 6.0);
 }
 
-// The trefoil reads at a glance in the hero, then turns fully frontal; the
-// Lorenz wings keep a slight yaw so their depth shows; the cube shows its
-// classic corner; everything after faces the camera.
-const HERO_YAW = -1.15;
+// The Lorenz wings keep a slight yaw so their depth shows; the cube shows its
+// classic corner and turns once around through the solutions.
 const LORENZ_YAW = 0.35;
+const CUBE_YAW = PI / 4;
 const yaw = [
-  [0, 0],
-  [0.85, HERO_YAW],
-  [1, -PI / 2],
-  [2.05, -PI / 2],
-  [2.65, LORENZ_YAW],
-  [5.4, LORENZ_YAW + 0.5],
-  [5.95, PI / 4],
-  [6.55, PI / 4],
-  [7.0, 0],
+  [2.1, LORENZ_YAW],
+  [2.8, CUBE_YAW],
+  [3.0, CUBE_YAW],
+  [5.5, CUBE_YAW + 2 * PI],
+  [6.1, CUBE_YAW + 2 * PI],
+  [6.8, 2 * PI],
 ] as const;
 const pitch = [
-  [5.4, 0],
-  [5.95, 0.5],
-  [6.55, 0.5],
-  [7.0, 0],
+  [2.1, 0],
+  [2.8, 0.5],
+  [5.5, 0.5],
+  [6.8, 0],
 ] as const;
 
 /** Shared beats; layouts differ in placement and size only. */
 function beats(f: number) {
   return {
     progress: progress(f),
-    explode: explode(f),
-    explodeMix: ramp(f, 8, 8.5),
-    seed: ramp(f, 9.62, 9.75),
-    page: ramp(f, 8.0, 8.5) + ramp(f, 9.0, 9.3),
-    // The landscape takes the tree's place in the about section.
-    scene: ramp(f, 9.75, 10.85) - ramp(f, 11.1, 12),
-    detail: ramp(f, 10.1, 10.85) - ramp(f, 11.1, 11.65),
+    explode: 0,
+    explodeMix: 0,
+    seed: 0,
+    page: ramp(f, 6.9, 7.4) + ramp(f, 7.3, 7.9),
+    scene: ramp(f, 10.1, 10.8),
+    detail: ramp(f, 10.3, 10.9),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
   };
-}
-
-/** Book and atom travel to the centre before they rain down. */
-function gather(f: number, at: Vec4, centre: Vec4): Vec4 {
-  const t = ramp(f, 9.3, 9.58);
-  return at.map((v, i) => v + (centre[i] - v) * t) as Vec4;
 }
 
 export function desktopPose(
@@ -136,138 +117,51 @@ export function desktopPose(
   layout: Layout = "desktop",
 ): ParticlePose {
   const narrow = layout === "tablet" ? 0.62 : 1;
+  // Each figure takes the column opposite its copy.
   const x = track(f, [
-    [0, 3],
-    [1, -4.5],
-    [1.15, -4.5],
-    [1.45, -0.4],
-    [2.05, -0.4],
-    [2.65, -2.5],
-    [5.4, -2.5],
-    [5.95, 2.6],
-    [6.4, 2.6],
-    [7.0, 3],
-    [7.35, 3],
-    [7.9, 0],
-    [9.75, 0],
-    // The tree and bulb share the right column.
-    [10.85, 4.0],
-    [11.1, 4.0],
-    [12.0, 3.1],
-    [12.6, 3.1],
-    [13.0, 3.1],
+    [2.1, 2.2],
+    [2.8, 0],
+    [8.1, 0],
+    [8.8, -3.1],
   ]);
+  // The Lorenz sits higher and smaller so both wings clear the fold.
   const y = track(f, [
-    [0, OBJECT_Y - 0.35],
-    [2.05, OBJECT_Y - 0.35],
-    [2.65, OBJECT_Y - 0.1],
-    [3.35, OBJECT_Y - 0.65],
-    [3.95, OBJECT_Y - 0.1],
-    [4.35, OBJECT_Y - 0.65],
-    [4.95, OBJECT_Y - 0.1],
-    [5.35, OBJECT_Y - 0.65],
-    [5.95, OBJECT_Y - 0.1],
-    [6.4, OBJECT_Y - 0.35],
-    [7.0, -0.45],
-    [7.35, -0.45],
-    [7.9, -0.75],
-    [10.85, -0.75],
-    [11.1, -0.75],
-    [12.0, -0.65],
-    [12.6, -0.65],
-    [13.0, -0.6],
+    [2.1, OBJECT_Y + 0.55],
+    [2.8, OBJECT_Y - 0.35],
+    [8.1, OBJECT_Y - 0.35],
+    [8.8, -0.45],
   ]);
+  // Saturn grows to fill its column.
   const factor =
     BASE_FACTOR[layout] *
-    (1 +
-      track(f, [
-        [0, 0],
-        [1, 0.23],
-        [1.15, 0.23],
-        [1.45, 0],
-      ])) *
-    // The tree fills more of the free column; the bulb returns to its own scale.
     track(f, [
-      [6.4, 1],
-      [7, 0.78],
-      [7.35, 0.78],
-      [7.9, 1],
-      [9.75, 1],
-      [10.85, 1.1],
-      [11.1, 1.1],
-      [12, 0.85],
-      [12.6, 0.85],
-      [13, 1],
+      [2.1, 0.82],
+      [2.8, 1],
+      [8.1, 1],
+      [8.8, 1.35],
     ]);
   return {
     ...beats(f),
     offset: [x * narrow, y, 0],
     factor,
-    book: gather(f, [4.1 * narrow, 1.1, 0, 1.0], [0.7, -0.3, 0, 0.9]),
-    atom: gather(f, [-3.35 * narrow, -1.35, 0, 1.15], [-0.7, -0.5, 0, 0.8]),
+    book: [3.9 * narrow, 0.95, 0, 1.05],
+    atom: [1.9 * narrow, -1.55, 0, 1.15],
   };
 }
 
 /**
- * Stacked screens keep copy above the figure. Its centre follows a shallow
- * diagonal descent within the reserved lower area; the renderer fits its bounds.
+ * Stacked screens keep copy above the figure, which fills the lower area;
+ * the renderer fits its bounds.
  */
 export const MOBILE_FIGURE_Y = -1.7;
 export function mobilePose(f: number): ParticlePose {
   return {
     ...beats(f),
-    offset: [
-      track(f, [
-        [0, 0],
-        [1, 0],
-        [2.05, 0.3],
-        [2.65, 0.15],
-        [3.35, -0.2],
-        [3.95, 0.15],
-        [4.35, -0.2],
-        [4.95, 0.15],
-        [5.35, -0.2],
-        [5.95, 0],
-      ]),
-      track(f, [
-        [0, MOBILE_FIGURE_Y],
-        [1, MOBILE_FIGURE_Y],
-        [1.45, MOBILE_FIGURE_Y],
-        [2.65, MOBILE_FIGURE_Y + 0.25],
-        [3.35, MOBILE_FIGURE_Y - 0.25],
-        [3.95, MOBILE_FIGURE_Y + 0.25],
-        [4.35, MOBILE_FIGURE_Y - 0.25],
-        [4.95, MOBILE_FIGURE_Y + 0.25],
-        [5.35, MOBILE_FIGURE_Y - 0.25],
-        [5.95, MOBILE_FIGURE_Y],
-        [7.35, MOBILE_FIGURE_Y],
-        // Book and atom use centres relative to the same lower frame.
-        [7.9, MOBILE_FIGURE_Y],
-        [9.3, MOBILE_FIGURE_Y],
-        [10.85, MOBILE_FIGURE_Y],
-        [12, MOBILE_FIGURE_Y],
-        [12.6, MOBILE_FIGURE_Y],
-        [13, MOBILE_FIGURE_Y],
-      ]),
-      0,
-    ],
-    factor:
-      BASE_FACTOR.mobile *
-      track(f, [
-        [0, 0.75],
-        [1, 0.78],
-        [1.45, 0.88],
-      ]) *
-      track(f, [
-        [9.75, 1],
-        [10.85, 1],
-        [11.1, 1],
-        [12, 0.78],
-        [12.6, 0.78],
-        [13, 1],
-      ]),
-    book: gather(f, [0.65, 0.45, 0, 0.6], [0.35, 0.35, 0, 0.55]),
-    atom: gather(f, [-0.65, -0.7, 0, 0.58], [-0.35, -0.3, 0, 0.5]),
+    offset: [0, MOBILE_FIGURE_Y, 0],
+    factor: BASE_FACTOR.mobile * 0.85,
+    // Book over atom, each about as wide as the screen.
+    book: [0, 0.95, 0, 1.35],
+    atom: [0, -1.25, 0, 1.25],
   };
 }
 
@@ -276,9 +170,7 @@ export function pose(f: number, layout: Layout) {
 }
 
 /** One beat per [data-particle-stage], in document order. */
-export const STAGE_PROGRESS = [
-  0, 1, 2, 3, 4, 5, 6, 6.2, 6.4, 7, 8, 9, 10, 11, 12, 13,
-] as const;
+export const STAGE_PROGRESS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 
 /** Section progress for a scroll position, interpolated between stage anchors. */
 export function sectionProgress(position: number, stops: readonly number[]) {

@@ -145,7 +145,7 @@ void main() {
     alpha=mix(1.,smoothstep(0.,.08,h)*(1.-smoothstep(.7,.92,h)),near);
   }
   // Water, river and smoke fade only as they follow their paths.
-  if(type>M_RING+.5) {
+  if(type>M_RING+.5&&type<M_SPIN-.5) {
     float sceneAlpha,glow;
     sceneAnimate(vec3(0.),m,u_clock,sceneAlpha,glow);
     alpha=mix(1.,sceneAlpha,near);

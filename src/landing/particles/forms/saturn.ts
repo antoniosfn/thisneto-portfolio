@@ -7,8 +7,8 @@ import {
   Matrix4,
   Vector3,
 } from "three";
-import { isBook } from "./catalog";
-import { budget, emptyForm, fill } from "./compose";
+import { MOTION, isBook } from "./catalog";
+import { budget, emptyForm, fill, type Motion } from "./compose";
 import { random } from "./hash";
 import { ramp } from "./palette";
 import { edgeFrame, samplePoints } from "./primitives";
@@ -17,6 +17,14 @@ import { merge, shuffle, strut } from "./sampling";
 const RADIUS = 0.43;
 const TILT = new Matrix4().makeRotationFromEuler(new Euler(0.46, -0.08, -0.12));
 const INVERSE = TILT.clone().invert();
+// Everything turns about the planet's tilted pole: rings faster than the globe.
+const POLE = new Vector3(0, 1, 0).applyMatrix4(TILT).normalize();
+const spin = (speed: number) => (): Motion => [
+  MOTION.SPIN,
+  POLE.x * speed,
+  POLE.y * speed,
+  POLE.z * speed,
+];
 const LIGHT = new Vector3(-0.4, 0.8, 1.2).normalize();
 const tone = (hex: string) => new Color().setStyle(hex, LinearSRGBColorSpace);
 const UMBER = tone("#a36a38"),
@@ -79,6 +87,7 @@ export function saturn(count: number, seed: number) {
         },
         emission: () => 0.04,
         rank: (i) => 0.05 + random(i, 31) * 0.38,
+        motion: spin(0.08),
       },
       {
         points: samplePoints(merge(edges), nGrid, seed + 1),
@@ -87,6 +96,7 @@ export function saturn(count: number, seed: number) {
         },
         emission: () => 0.12,
         rank: (i) => 0.15 + random(i, 32) * 0.3,
+        motion: spin(0.08),
         lines: { k: 2, maxLength: 0.04 },
       },
     ],
@@ -143,6 +153,7 @@ export function saturn(count: number, seed: number) {
         },
         emission: () => 0.18,
         rank: (_i, p) => 0.42 + Math.min(1, (p.length() - 0.59) / 0.39) * 0.5,
+        motion: spin(0.22),
       },
       {
         points: samplePoints(merge(rocks), nRocks, seed + 3),
@@ -151,6 +162,7 @@ export function saturn(count: number, seed: number) {
         },
         emission: () => 0.3,
         rank: (i) => 0.65 + random(i, 62) * 0.3,
+        motion: spin(0.22),
         lines: { k: 2, maxLength: 0.025 },
       },
     ],

@@ -7,16 +7,11 @@ import { random } from "./hash";
 
 /** Atlas order: progress k of the choreography shows form k. */
 export const FORM = {
-  knot: 0,
-  lorenz: 1,
-  truss: 2,
-  neural: 3,
-  cube: 4,
-  saturn: 5,
-  bookAtom: 6,
-  tree: 7,
-  bulb: 8,
-  finale: 9,
+  lorenz: 0,
+  cube: 1,
+  bookAtom: 2,
+  saturn: 3,
+  finale: 4,
 } as const;
 export const FORM_COUNT = Object.keys(FORM).length;
 
@@ -26,15 +21,10 @@ export const FORM_COUNT = Object.keys(FORM).length;
  * lines of light, as the references' wireframe mesh does.
  */
 export const FORM_LOOK: { size: number; lines: number }[] = [
-  { size: 1, lines: 1 }, // knot
   { size: 1, lines: 1 }, // lorenz
-  { size: 1, lines: 1 }, // truss
-  { size: 1, lines: 1 }, // neural
   { size: 1, lines: 1 }, // cube
-  { size: 0.62, lines: 1.6 }, // Saturn: fine facets and concentric rings
   { size: 0.82, lines: 1.3 }, // book and atom
-  { size: 0.8, lines: 1.4 }, // tree
-  { size: 0.66, lines: 1.7 }, // glass bulb, screw base and filament
+  { size: 0.62, lines: 1.6 }, // Saturn: fine facets and concentric rings
   // The closing scene: each region scales this (motion.w), from the couple's
   // fine strokes to the leaves' large triangles.
   { size: 0.8, lines: 1.2 }, // finale
@@ -64,6 +54,8 @@ export const MOTION = {
   SMOKE: 16,
   CLOUD: 17,
   GLOW: 18,
+  // Turns about the axis in yzw at |yzw| radians per second (Saturn).
+  SPIN: 19,
 } as const;
 
 /** Particles per side of the simulation texture: 128² = 16 384 particles. */

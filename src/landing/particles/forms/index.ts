@@ -3,25 +3,15 @@ import { FORM, FORM_COUNT } from "./catalog";
 import type { FormData } from "./compose";
 import { cube } from "./cube";
 import { finale } from "./finale";
-import { knot } from "./knot";
 import { lorenz } from "./lorenz";
-import { neural } from "./neural";
 import { saturn } from "./saturn";
-import { tree } from "./tree";
-import { truss } from "./truss";
-import { bulb } from "./bulb";
 
 /** Builders in atlas order (see FORM). Build-time only: run `npm run particles`. */
 export const FORM_BUILDERS: ((count: number, seed: number) => FormData)[] = [
-  knot,
   lorenz,
-  truss,
-  neural,
   cube,
-  saturn,
   bookAtom,
-  tree,
-  bulb,
+  saturn,
   finale,
 ];
 

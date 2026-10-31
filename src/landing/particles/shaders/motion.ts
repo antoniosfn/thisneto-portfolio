@@ -54,6 +54,7 @@ vec3 animate(vec3 p,vec4 m) {
     vec3 c=vec3(0.,m.z,m.w);
     return c+axisAngle(vec3(0,1,0),u_clock*.6)*(p-c);
   }
+  if(abs(type-M_SPIN)<.5) return axisAngle(normalize(m.yzw),u_clock*length(m.yzw))*p;
   if(type>M_RING+.5) {
     // The closing scene: water, river, smoke, clouds, glow (finale/shaders.ts).
     float alpha,glow;

@@ -1,52 +1,33 @@
-/* Manrope uses a heavier hierarchy without panels behind the text. */
-@font-face {
-  font-family: "Manrope";
-  src: url("/fonts/manrope.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 200 800;
-}
-
+/*
+ * Precision-tool direction: an ice-grey page carries condensed uppercase
+ * headlines and mono metadata. Light sections are opaque and own the text;
+ * dark sections are transparent stages with a 64px top radius that open onto
+ * the fixed particle field behind the page.
+ */
 :root {
-  --void: #000;
+  --paper: #e5e7eb;
+  --ink: #000;
+  --ash: #444;
+  --fog: #979797;
   --white: #fff;
-  --ash: #c7c7c7;
-  --mist: #f2f2f2;
-  --violet: #8052ff;
-  --amber: #ffb829;
-  --teal: #15846e;
-  --font-display: "Manrope", Arial, sans-serif;
-  --font-body: "Manrope", Arial, sans-serif;
-  --page: min(100% - 72px, 1280px);
-  --header-height: 92px;
-  color-scheme: dark;
+  --stage-ink: #f3f3f3;
+  --font-d: var(--font-display, "Arial Narrow"), "Arial Narrow", sans-serif;
+  --font-b: var(--font-body, Arial), Arial, sans-serif;
+  --font-m: var(--font-mono, "Courier New"), "Courier New", monospace;
+  --gutter: clamp(20px, 6.6vw, 96px);
+  --frame: clamp(8px, 1.7vw, 24px);
+  --stage-radius: clamp(32px, 4.5vw, 64px);
+  --section-pad: clamp(96px, 14vh, 160px);
+  --header-height: 76px;
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
 }
 
-h1,
-h2,
-h3,
-.wordmark,
-.button,
-.site-header nav a,
-.faq-list summary,
-.site-loader-name,
-.site-loader-count,
-.project-tags {
-  font-family: var(--font-display);
-}
-h1,
-h2,
-h3 {
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
 html {
-  background: var(--void);
+  background: var(--paper);
   scroll-behavior: smooth;
 }
 
@@ -54,13 +35,30 @@ body {
   margin: 0;
   min-width: 320px;
   overflow-x: hidden;
-  background: var(--void);
-  color: var(--white);
-  font-family: var(--font-body);
-  font-weight: 600;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-b);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   text-rendering: optimizeLegibility;
 }
 
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-d);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
 button,
 a,
 input,
@@ -81,27 +79,35 @@ img {
   display: block;
   max-width: 100%;
 }
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 ::selection {
-  color: var(--void);
-  background: var(--amber);
+  color: var(--white);
+  background: var(--ink);
 }
 :focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 5px;
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
 }
 
 .dala-site {
   position: relative;
   min-height: 100vh;
   isolation: isolate;
-  background: var(--void);
+  background: var(--paper);
 }
 
+/* Behind everything: only the transparent stages show it. */
 .particle-field {
   position: fixed;
+  z-index: -3;
   inset: 0;
   width: 100%;
   height: 100%;
+  background: #000;
   pointer-events: none;
 }
 
@@ -113,7 +119,7 @@ html.is-loading {
   position: fixed;
   z-index: 100;
   inset: 0;
-  background: var(--void);
+  background: #000;
   /* If the script never lifts it, the page still appears. */
   animation: site-loader-failsafe 400ms ease 14s forwards;
 }
@@ -132,17 +138,17 @@ html.is-loading {
   position: absolute;
   bottom: max(28px, 4vh);
   margin: 0;
-  color: var(--mist);
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
+  color: var(--stage-ink);
+  font-family: var(--font-m);
+  font-size: 13px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .site-loader-name {
-  left: max(24px, calc((100% - 1280px) / 2));
+  left: var(--gutter);
 }
 .site-loader-count {
-  right: max(24px, calc((100% - 1280px) / 2));
+  right: var(--gutter);
   font-variant-numeric: tabular-nums;
 }
 @keyframes site-loader-failsafe {
@@ -160,11 +166,6 @@ html.is-loading {
   white-space: nowrap;
 }
 
-.particle-field {
-  z-index: -3;
-  background: #000;
-}
-
 .reading-progress {
   position: fixed;
   z-index: 50;
@@ -174,7 +175,7 @@ html.is-loading {
   height: 2px;
   transform: scaleX(0);
   transform-origin: left;
-  background: linear-gradient(90deg, var(--violet), var(--amber), var(--teal));
+  background: var(--ink);
   pointer-events: none;
   will-change: transform;
 }
@@ -186,184 +187,14 @@ html.is-loading {
   left: 12px;
   padding: 12px 18px;
   transform: translateY(-160%);
-  border-radius: 999px;
-  background: var(--white);
-  color: var(--void);
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--white);
 }
-
 .skip-link:focus {
   transform: translateY(0);
 }
 
-.site-header {
-  position: fixed;
-  z-index: 30;
-  top: 0;
-  left: 50%;
-  display: grid;
-  width: var(--page);
-  height: var(--header-height);
-  transform: translateX(-50%);
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 36px;
-}
-
-/* Dala's .header__bg: a full-width band that grows from the top on scroll;
-   the inner layer blurs 20px over a 0.1 → 0.5 black gradient, overscaled
-   1.1× from the bottom so its blurred edge stays hidden. */
-.header-backdrop {
-  position: fixed;
-  z-index: 29;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: var(--header-height);
-  overflow: hidden;
-  pointer-events: none;
-  transform: scaleY(0);
-  transform-origin: center top;
-}
-.header-backdrop > div {
-  height: 100%;
-  background: linear-gradient(360deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1));
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  transform: scaleY(1.1);
-  transform-origin: center bottom;
-}
-
-.wordmark {
-  display: inline-flex;
-  width: max-content;
-  align-items: center;
-  gap: 10px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.brand-mark {
-  display: inline-block;
-  width: 26px;
-  height: 26px;
-  color: var(--white);
-}
-.brand-mark svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.brand-mark .mark-seed {
-  fill: var(--amber);
-}
-.brand-mark .mark-node {
-  fill: var(--violet);
-}
-
-.site-header nav {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-.site-header nav a {
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.site-header nav a {
-  color: var(--ash);
-  transition: color 180ms ease;
-}
-.site-header nav a:hover {
-  color: var(--white);
-}
-.header-cta {
-  justify-self: end;
-}
-
-.button {
-  display: inline-flex;
-  min-height: 52px;
-  width: max-content;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 13px 18px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  transition:
-    transform 200ms ease,
-    background 200ms ease;
-}
-
-.button:hover {
-  transform: translateY(-2px);
-}
-.button-primary {
-  background: var(--violet);
-  color: var(--white);
-}
-.button-primary:hover {
-  background: #9370ff;
-}
-
-main,
-.site-footer {
-  position: relative;
-  z-index: 2;
-}
-.scene {
-  width: var(--page);
-  margin-inline: auto;
-  scroll-margin-top: 110px;
-}
-
-.hero {
-  position: relative;
-  display: grid;
-  min-height: 128vh;
-  padding-top: max(150px, 18vh);
-  grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.72fr);
-  align-content: start;
-  gap: 8vw;
-}
-
-.hero-copy {
-  max-width: 770px;
-}
-.hero h1,
-.section-heading h2,
-.section-split h2,
-.profile-copy h2,
-.contact h2 {
-  margin: 0;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
-
-.hero h1 {
-  font-size: clamp(62px, 8.1vw, 124px);
-  line-height: 0.82;
-}
-.hero h1 span {
-  display: block;
-}
-.hero-intro {
-  align-self: center;
-  max-width: 430px;
-  margin-top: 21vh;
-}
-/* Mask for the CTA rising from below; padding keeps the focus ring visible. */
-.hero-action {
-  overflow: hidden;
-  margin: -6px;
-  padding: 6px;
-}
 /* Lenis drives the smoothed scroll; native smooth scrolling would fight it. */
 html.lenis,
 html.lenis body {
@@ -376,458 +207,496 @@ html.lenis body {
   overflow: clip;
 }
 
-.hero-intro > p,
-.section-split > div > p,
-.profile-copy > p {
-  margin: 0 0 30px;
-  color: var(--mist);
-  font-size: clamp(17px, 1.5vw, 21px);
-  font-weight: 600;
-  line-height: 1.55;
-  text-wrap: pretty;
+/* ---------- Header: a light instrument bar floating over every section */
+.header-backdrop {
+  display: none;
 }
-
-.manifesto,
-.business,
-.profile,
-.faq,
-.contact {
-  padding-block: 22vh;
-}
-.manifesto {
-  min-height: 190vh;
-}
-
-.section-split {
-  display: grid;
-  min-height: 84vh;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.55fr);
-  align-items: center;
-  gap: 9vw;
-}
-
-.section-split h2,
-.section-heading h2,
-.profile-copy h2 {
-  font-size: clamp(54px, 7vw, 110px);
-  line-height: 0.92;
-}
-
-.manifesto-line {
+.site-header {
+  position: fixed;
+  z-index: 30;
+  top: 12px;
+  left: var(--frame);
+  right: var(--frame);
   display: flex;
-  min-height: 72vh;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin: 0;
-  color: var(--white);
-  font-size: clamp(38px, 5.8vw, 96px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  min-height: 56px;
+  padding: 8px 8px 8px 20px;
+  border-radius: 12px;
+  background: var(--paper);
 }
-
-.manifesto-line i {
-  color: var(--violet);
-  font-style: normal;
-}
-.section-heading {
-  max-width: 980px;
-  margin-bottom: 18vh;
-}
-.journey,
-.work,
-.method {
-  padding-block: 20vh;
-}
-.chapter,
-.project,
-.method-step {
-  position: relative;
-  display: grid;
-  min-height: 100vh;
-  align-items: center;
-}
-.chapter {
-  grid-template-columns: 1fr 0.34fr;
-  gap: 5vw;
-}
-.chapter-copy {
-  max-width: 720px;
-}
-
-.chapter h3,
-.project h3,
-.method-step h3 {
-  margin: 0 0 30px;
-  font-size: clamp(42px, 5.3vw, 82px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.98;
-  text-wrap: balance;
-}
-
-.chapter-copy > p,
-.project-copy > p,
-.method-step > p {
-  max-width: 630px;
-  margin: 0 0 30px;
-  color: var(--mist);
-  font-size: clamp(17px, 1.4vw, 20px);
-  line-height: 1.55;
-}
-
-.chapter-symbol {
-  justify-self: end;
-  color: rgb(255 255 255 / 16%);
-  font-size: clamp(80px, 13vw, 210px);
-  font-weight: 300;
-}
-
-/* Static service copy leaves the opposite column to the particle figure. */
-.solution {
-  display: flex;
-  min-height: 112vh;
-  align-items: center;
-}
-.solution-copy {
-  width: 44%;
-  min-width: 0;
-  container-type: inline-size;
-}
-.solution:nth-child(even) .solution-copy {
-  margin-left: auto;
-}
-.solution h2 {
-  margin: 0 0 28px;
-  font-size: clamp(42px, 14cqw, 84px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.02;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-}
-.solution p {
-  max-width: 32ch;
-  margin: 0;
-  color: var(--mist);
-  font-size: clamp(18px, 1.5vw, 22px);
-  line-height: 1.5;
-}
-
-.project {
-  grid-template-columns: minmax(0, 1fr);
-}
-.project-copy {
-  max-width: 850px;
-}
-.faq-list details {
-  border-top: 1px solid rgb(255 255 255 / 18%);
-}
-.faq-list summary {
-  cursor: pointer;
-  list-style: none;
-}
-.faq-list summary::-webkit-details-marker {
-  display: none;
-}
-.faq-list details[open] summary i {
-  transform: rotate(45deg);
-}
-.faq-list details > p {
-  color: var(--mist);
-  line-height: 1.65;
-}
-
-.method-steps {
-  display: grid;
-}
-.method-step {
-  min-height: 74vh;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 4vw;
-}
-.method-step h3 {
-  margin: 0;
-  font-size: clamp(34px, 4.2vw, 62px);
-}
-.method-step p {
-  margin: 0;
-}
-.method-step small {
-  line-height: 1.55;
-}
-
-.profile {
-  display: grid;
-  min-height: 130vh;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
-  align-items: center;
-  gap: 8vw;
-}
-
-.profile-portrait {
-  margin: 0;
-}
-.profile-portrait img {
-  width: 100%;
-  aspect-ratio: 0.82;
-  border-radius: 24px;
-  object-fit: cover;
-  filter: saturate(0.78) contrast(1.08);
-}
-.profile-copy {
-  max-width: 760px;
-}
-.profile-copy h2 {
-  margin-bottom: 38px;
-}
-.profile-links {
-  display: flex;
-  gap: 28px;
-}
-.profile-links a,
-.text-link {
+.wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--white);
-  text-decoration: underline;
-  text-decoration-color: rgb(255 255 255 / 28%);
-  text-underline-offset: 6px;
+  gap: 10px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
-
-.faq {
-  min-height: 150vh;
+.brand-mark {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
 }
-.faq-list {
-  max-width: 940px;
-  margin-left: auto;
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
 }
-.faq-list details:last-child {
-  border-bottom: 1px solid rgb(255 255 255 / 18%);
+.brand-mark .mark-seed {
+  fill: var(--ink);
 }
-.faq-list summary {
-  display: grid;
-  font-weight: 700;
-  padding: 30px 0;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 24px;
-  font-size: clamp(19px, 2vw, 28px);
+.brand-mark .mark-node {
+  fill: currentColor;
 }
-.faq-list summary i {
-  font-size: 26px;
-  font-style: normal;
-  transition: transform 180ms ease;
-}
-.faq-list details > p {
-  max-width: 700px;
-  margin: 0;
-  padding: 0 0 30px;
-}
-
-.contact {
+.site-header nav {
   display: flex;
-  min-height: 128vh;
-  padding-top: 24vh;
-  flex-direction: column;
-  justify-content: center;
+  gap: 4px;
 }
-.contact h2 {
-  max-width: 1120px;
-  font-size: clamp(58px, 9vw, 138px);
-  line-height: 0.88;
-}
-.contact-actions {
-  display: flex;
-  margin-top: 70px;
-  align-items: center;
-  gap: 34px;
-}
-
-.site-footer {
-  display: grid;
-  width: var(--page);
-  min-height: 240px;
-  margin-inline: auto;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 40px;
+.site-header nav a {
+  padding: 8px 14px;
+  border-radius: 8px;
   color: var(--ash);
-  font-size: 16px;
+  font-size: 15px;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+.site-header nav a:hover {
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.site-footer p {
-  max-width: 360px;
-  margin: 0;
-  line-height: 1.5;
+/* ---------- Buttons and labels */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
 }
-.site-footer .wordmark {
+.button:hover {
+  transform: translateY(-2px);
+}
+.button:active {
+  transform: translateY(0);
+}
+.button-primary {
+  background: var(--ink);
   color: var(--white);
+}
+.button-primary:hover {
+  background: #222;
+}
+.button-secondary {
+  border-color: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+}
+.button-secondary:hover {
+  border-color: var(--ink);
+}
+.tone-dark .button-primary {
+  background: var(--white);
+  color: var(--ink);
+}
+.tone-dark .button-secondary {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--white);
+}
+.eyebrow,
+.project-tags,
+.manifesto-line {
+  font-family: var(--font-m);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  margin-bottom: 20px;
+  color: var(--ash);
+}
+.tone-dark .eyebrow {
+  color: var(--fog);
 }
 .reveal {
   will-change: auto;
 }
 
+/* ---------- Section tones */
+.tone-light {
+  position: relative;
+  z-index: 1;
+  padding: var(--section-pad) var(--gutter);
+  background: var(--paper);
+}
+.tone-dark {
+  position: relative;
+  padding: var(--frame) var(--frame) 0;
+  overflow: clip;
+  color: var(--stage-ink);
+}
+/* The stage is a hole in the page: its spread shadow paints the gutters. */
+.stage {
+  position: relative;
+  min-height: 100svh;
+  padding: var(--section-pad) calc(var(--gutter) - var(--frame));
+  border-radius: var(--stage-radius) var(--stage-radius) 0 0;
+  box-shadow: 0 0 0 100vmax var(--paper);
+}
+.stage p {
+  color: rgba(243, 243, 243, 0.72);
+}
+.stage-copy,
+.solution-copy {
+  width: min(46%, 620px);
+}
+
+/* ---------- Hero */
+.hero {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: calc(var(--header-height) + 64px);
+}
+.hero h1 {
+  font-size: clamp(64px, 10.4vw, 156px);
+}
+.hero h1 span {
+  display: block;
+}
+.hero-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-top: 40px;
+}
+.hero-intro > p {
+  max-width: 460px;
+  color: var(--ash);
+  font-size: 20px;
+  line-height: 1.4;
+}
+.hero-action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  overflow: hidden;
+  padding: 4px;
+}
+
+/* ---------- Trajectory (Lorenz, right) */
+.journey .stage,
+.work .stage,
+.faq .stage {
+  display: flex;
+  align-items: center;
+}
+.journey h2,
+.work h2,
+.faq h2 {
+  font-size: clamp(48px, 5.6vw, 80px);
+}
+.chapter-list {
+  display: grid;
+  gap: 36px;
+}
+.chapter h3,
+.project h3 {
+  margin-bottom: 10px;
+  font-size: clamp(30px, 2.8vw, 40px);
+}
+.chapter p,
+.project p {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* ---------- Manifesto */
+.manifesto {
+  display: grid;
+  gap: 56px;
+}
+.section-split h2,
+.section-heading h2 {
+  font-size: clamp(56px, 8.9vw, 128px);
+}
+.section-split > p:not(.eyebrow) {
+  max-width: 640px;
+  margin-top: 28px;
+  color: var(--ash);
+  font-size: 22px;
+  line-height: 1.45;
+}
+.manifesto-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--ash);
+  font-size: 14px;
+}
+.manifesto-line i {
+  font-style: normal;
+}
+
+/* ---------- Solutions (cube alternating) */
+.business .stage {
+  padding-block: 0;
+}
+.solution {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+}
+.solution:nth-child(2) {
+  justify-content: flex-end;
+}
+.solution h2 {
+  font-size: clamp(48px, 5.2vw, 76px);
+}
+.solution-copy > p:not(.eyebrow) {
+  max-width: 520px;
+  margin-top: 20px;
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+/* ---------- Process */
+.section-heading {
+  margin-bottom: 72px;
+}
+.method-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.method-step {
+  padding-top: 20px;
+  border-top: 1px solid var(--ink);
+}
+.method-number {
+  display: block;
+  margin-bottom: 20px;
+  font-family: var(--font-d);
+  font-size: clamp(72px, 7vw, 104px);
+  font-weight: 700;
+  line-height: 0.9;
+}
+.method-step h3 {
+  margin-bottom: 12px;
+  font-size: 40px;
+}
+.method-step p {
+  max-width: 360px;
+  color: var(--ash);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* ---------- Projects (book and atom, right) */
+.project-list {
+  display: grid;
+  gap: 32px;
+  margin-top: 40px;
+}
+.project {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.project-tags {
+  margin-top: 12px;
+  color: var(--fog) !important;
+}
+
+/* ---------- About */
+.profile {
+  display: grid;
+  grid-template-columns: minmax(240px, 360px) 1fr;
+  align-items: center;
+  gap: clamp(40px, 6vw, 96px);
+}
+.profile-portrait {
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 9 / 11;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.08);
+}
+.profile-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+/* ---------- FAQ (Saturn, left) */
+.faq .stage-copy {
+  margin-left: auto;
+}
+.faq-list {
+  margin-top: 40px;
+}
+.faq-list details {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.faq-list summary {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  cursor: pointer;
+  color: var(--white);
+  font-size: 20px;
+  font-weight: 500;
+  list-style: none;
+}
+.faq-list summary::-webkit-details-marker {
+  display: none;
+}
+.faq-list summary i {
+  font-style: normal;
+  transition: transform 200ms ease;
+}
+.faq-list details[open] summary i {
+  transform: rotate(45deg);
+}
+.faq-list details > p {
+  max-width: 560px;
+  padding-bottom: 24px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* ---------- Contact */
+.contact h2 {
+  font-size: clamp(64px, 10vw, 148px);
+}
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+/* ---------- Closing (landscape, centred) */
+.closing .stage {
+  display: flex;
+  min-height: 110svh;
+  align-items: flex-end;
+  padding-bottom: 40px;
+}
+.site-footer {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--fog);
+  font-family: var(--font-m);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.site-footer .wordmark {
+  color: var(--white);
+  font-family: var(--font-b);
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.site-footer .mark-seed {
+  fill: var(--white);
+}
+
+/* ---------- Stacked: tablets and phones keep copy above the figure */
 @media (max-width: 1099px) {
   :root {
-    --page: min(100% - 48px, 1280px);
+    --header-height: 64px;
   }
   .site-header {
-    grid-template-columns: 1fr auto;
+    min-height: 52px;
+    padding-left: 16px;
   }
   .site-header nav {
     display: none;
   }
-  .hero {
-    grid-template-columns: 1fr;
+  .stage-copy,
+  .solution-copy {
+    width: min(100%, 680px);
+    margin-inline: auto;
   }
-  .hero-copy {
-    max-width: 720px;
-  }
-  .hero-intro {
-    width: min(100%, 470px);
-    margin-top: 12vh;
+  .faq .stage-copy {
     margin-left: auto;
   }
-  .section-split,
-  .profile {
+  /* The figure settles in the lower area, under the copy. */
+  .journey .stage,
+  .work .stage,
+  .faq .stage {
+    align-items: flex-start;
+    padding-bottom: 62svh;
+  }
+  .solution,
+  .solution:nth-child(2) {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: var(--section-pad);
+  }
+  .method-steps {
     grid-template-columns: 1fr;
   }
-  .section-split {
-    align-content: center;
-  }
-  .section-split > div {
-    width: min(100%, 520px);
-    margin-left: auto;
-  }
-  .manifesto-line {
-    flex-wrap: wrap;
-  }
-  .chapter {
-    grid-template-columns: 1fr;
-  }
-  .chapter-symbol {
-    position: absolute;
-    right: 0;
-    z-index: -1;
-  }
-  .project {
-    grid-template-columns: 0.24fr 1fr;
-  }
-  .method-step {
-    grid-template-columns: 0.16fr 0.58fr 1fr;
-  }
-  .method-step small {
-    display: none;
-  }
   .profile {
-    gap: 12vh;
+    grid-template-columns: 1fr;
   }
   .profile-portrait {
-    width: min(72vw, 480px);
+    max-width: 280px;
+  }
+  .hero-intro {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .button {
+    min-height: 48px;
   }
 }
 
 @media (max-width: 680px) {
-  :root {
-    --page: calc(100% - 36px);
-    --header-height: 76px;
-  }
-  .site-header {
-    gap: 14px;
-  }
-  .header-cta {
-    min-height: 44px;
-    padding: 10px 16px;
-    font-size: 15px;
-  }
-  .header-cta span {
-    display: none;
-  }
-  .wordmark > span:last-child {
-    max-width: 70px;
-    line-height: 1;
-  }
-  .hero {
-    min-height: 145vh;
-    padding-top: 138px;
-  }
   .hero h1 {
-    font-size: clamp(54px, 17vw, 84px);
-    line-height: 0.87;
+    font-size: clamp(52px, 15vw, 80px);
   }
-  .hero-intro {
-    margin-top: 18vh;
+  .hero-intro > p,
+  .section-split > p:not(.eyebrow) {
+    font-size: 18px;
   }
-  .manifesto,
-  .business,
-  .profile,
-  .faq,
-  .contact,
-  .journey,
-  .work,
-  .method {
-    padding-block: 16vh;
-  }
-  .section-split {
-    min-height: 110vh;
-    gap: 14vh;
-  }
-  .manifesto-line {
-    min-height: 85vh;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-  }
-  .manifesto-line i {
-    transform: rotate(90deg);
-  }
-  .section-heading {
-    margin-bottom: 14vh;
-  }
-  .section-heading h2,
-  .section-split h2,
-  .profile-copy h2 {
-    font-size: clamp(46px, 14vw, 72px);
-  }
-  .chapter,
-  .project,
-  .method-step {
-    min-height: 92vh;
-    grid-template-columns: 1fr;
-    align-content: center;
-    gap: 32px;
-  }
-  .chapter-symbol {
-    bottom: 12vh;
-  }
-  .method-step {
-    min-height: 72vh;
-  }
-  .profile {
-    min-height: 150vh;
-  }
-  .profile-portrait {
-    width: 100%;
+  .chapter-list {
+    gap: 24px;
   }
   .faq-list summary {
-    padding: 24px 0;
-    gap: 16px;
-  }
-  .contact h2 {
-    font-size: clamp(52px, 16vw, 82px);
-  }
-  .contact-actions {
-    align-items: flex-start;
-    flex-direction: column;
+    font-size: 18px;
   }
   .site-footer {
-    min-height: 300px;
-    padding-block: 60px;
-    grid-template-columns: 1fr;
-    gap: 22px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -835,14 +704,15 @@ html.lenis body {
   .particle-field,
   .reading-progress,
   .site-header,
-  .header-backdrop {
+  .site-loader {
     display: none;
   }
-  .scene,
-  .chapter,
-  .project,
-  .method-step,
-  .contact {
+  .stage {
+    min-height: auto;
+    box-shadow: none;
+    background: #000;
+  }
+  .solution {
     min-height: auto;
     padding-block: 48px;
   }
@@ -850,409 +720,5 @@ html.lenis body {
     transform: none !important;
     opacity: 1 !important;
     visibility: visible !important;
-  }
-}
-
-/* Reference rhythm: the form owns the right side; prose follows the headline. */
-.hero {
-  min-height: 112svh;
-  grid-template-columns: 1fr 1fr;
-  gap: 36px;
-}
-.hero-copy {
-  grid-column: 1 / -1;
-}
-.hero h1 {
-  font-size: clamp(62px, 7.3vw, 110px);
-  line-height: 0.95;
-}
-.hero-intro {
-  grid-column: 1;
-  margin-top: 24px;
-  max-width: 460px;
-}
-.manifesto {
-  min-height: 110vh;
-}
-.section-split {
-  min-height: 52vh;
-}
-.manifesto-line {
-  min-height: 30vh;
-}
-.chapter {
-  /* Each figure holds while its chapter is read; changes are spaced out. */
-  min-height: 112vh;
-}
-.method-step {
-  min-height: 42vh;
-}
-.faq {
-  min-height: auto;
-}
-.contact {
-  min-height: 90vh;
-}
-@media (min-width: 1100px) {
-  .hero {
-    padding-top: max(126px, 14vh);
-    gap: 24px;
-  }
-  .hero h1 {
-    font-size: clamp(62px, 6.2vw, 94px);
-  }
-  .hero-intro {
-    margin-top: 0;
-  }
-  .hero-intro > p {
-    font-size: 18px;
-    margin-bottom: 24px;
-  }
-  .manifesto .section-split {
-    grid-template-columns: 1fr minmax(0, 1fr);
-    align-content: center;
-    gap: 28px 8vw;
-    min-height: 78vh;
-  }
-  .manifesto .section-split > h2,
-  .manifesto .section-split > div {
-    grid-column: 2;
-  }
-  .manifesto .section-split h2 {
-    font-size: clamp(48px, 5vw, 76px);
-  }
-  /* Dala's bulb beat keeps its copy in the right column (from 2/3 of the
-     viewport); the bulb occupies the left half. */
-  .journey .section-heading {
-    max-width: 40%;
-    margin-left: auto;
-  }
-  .journey .section-heading h2 {
-    font-size: clamp(48px, 5vw, 76px);
-  }
-  .journey .chapter {
-    grid-template-columns: 1fr;
-    padding-left: 60%;
-    align-content: center;
-    gap: 28px;
-  }
-  .journey .chapter-symbol {
-    display: none;
-  }
-  /* Projects: the book hangs top right and the atom bottom left, so the copy
-     takes the free lower right. */
-  .work .section-heading {
-    max-width: 44%;
-  }
-  .work .project {
-    align-items: end;
-    padding-left: 52%;
-    padding-bottom: 10vh;
-  }
-  /* Process, about and FAQ: the tree stands right, the copy keeps the left. */
-  .method .section-heading,
-  .method-steps,
-  .faq .section-heading,
-  .faq-list {
-    max-width: 42%;
-    margin-left: 0;
-  }
-  .method-step {
-    grid-template-columns: 1fr;
-    align-content: center;
-    gap: 14px;
-  }
-  .method-step h3 {
-    font-size: clamp(34px, 3.4vw, 52px);
-  }
-  /* Sections are centred blocks: narrowed ones must hug the left edge. */
-  .profile {
-    width: min(var(--page), 42%);
-    margin-left: calc((100% - var(--page)) / 2);
-    grid-template-columns: 170px minmax(0, 1fr);
-    gap: 3vw;
-  }
-  .profile-copy h2 {
-    margin-bottom: 24px;
-    font-size: clamp(32px, 3.2vw, 48px);
-  }
-  /* Contact: the closing scene sits right of the copy, never behind it. */
-  .contact {
-    width: min(var(--page), 32%);
-    margin-left: calc((100% - var(--page)) / 2);
-  }
-  .contact h2 {
-    font-size: clamp(40px, 4.6vw, 72px);
-    line-height: 0.95;
-  }
-  .contact-actions {
-    margin-top: 40px;
-    flex-wrap: wrap;
-    gap: 22px;
-  }
-}
-
-.project-tags {
-  margin-top: 8px !important;
-  color: var(--amber) !important;
-  font-size: 18px !important;
-  font-weight: 800;
-}
-
-/* Size display text against its reading column, including after SplitText. */
-.hero-copy,
-.section-heading {
-  container-type: inline-size;
-  min-width: 0;
-}
-.hero h1 {
-  font-size: clamp(32px, 12cqw, 94px);
-  line-height: 1.04;
-}
-.section-heading h2 {
-  font-size: clamp(34px, 16cqw, 100px);
-  line-height: 1.06;
-}
-.hero h1,
-.section-heading h2,
-.chapter h3,
-.project h3,
-.profile-copy h2 {
-  overflow-wrap: anywhere;
-}
-.hero-intro {
-  max-width: 440px;
-  min-width: 0;
-}
-.hero-intro > p {
-  text-wrap: pretty;
-}
-.hero-action .button {
-  max-width: 100%;
-  white-space: normal;
-}
-
-/* Tablet and phone share one centred reading column, below each figure. */
-@media (max-width: 1099px) {
-  main,
-  .site-footer {
-    text-align: center;
-  }
-  .hero,
-  .section-split,
-  .chapter,
-  .project,
-  .method-step,
-  .profile {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .hero-copy,
-  .hero-intro,
-  .section-heading,
-  .section-split > h2,
-  .section-split > div,
-  .chapter-copy,
-  .project-copy,
-  .solution-copy,
-  .profile-copy,
-  .faq-list,
-  .contact h2 {
-    width: 100%;
-    max-width: 680px;
-    margin-inline: auto;
-    min-width: 0;
-  }
-  .hero {
-    gap: 24px;
-    padding-top: max(126px, 14svh);
-  }
-  .hero h1 {
-    font-size: clamp(40px, 8cqw, 64px);
-  }
-  .hero-intro {
-    margin-top: max(300px, 48svh);
-    padding-bottom: 64px;
-  }
-  .hero-intro > p,
-  .section-split p,
-  .chapter-copy > p,
-  .project-copy > p,
-  .solution p,
-  .profile-copy > p,
-  .method-step > p {
-    max-width: 44ch;
-    margin-inline: auto;
-    font-size: clamp(17px, 1.9vw, 20px);
-    line-height: 1.6;
-  }
-  .section-heading h2,
-  .section-split h2 {
-    font-size: clamp(36px, 7vw, 68px);
-    line-height: 1.08;
-  }
-  .chapter h3,
-  .project h3,
-  .solution h2,
-  .profile-copy h2 {
-    font-size: clamp(38px, 6.5vw, 60px);
-    line-height: 1.08;
-  }
-  .manifesto-line {
-    align-items: center;
-    justify-content: center;
-  }
-  .chapter-symbol {
-    display: none;
-  }
-  .solution {
-    padding-top: 52svh;
-    align-items: flex-start;
-  }
-  .solution:nth-child(even) .solution-copy {
-    margin-inline: auto;
-    text-align: center;
-  }
-  .solution h2 {
-    font-size: clamp(42px, 6.5vw, 60px);
-  }
-  .method-step {
-    gap: 16px;
-    align-content: center;
-  }
-  .profile {
-    gap: 28px;
-    align-content: center;
-    min-height: 112svh;
-  }
-  .profile-portrait {
-    width: min(44vw, 200px);
-    margin-inline: auto;
-  }
-  .profile-links,
-  .contact-actions {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-  .profile-links a,
-  .text-link {
-    min-height: 44px;
-    justify-content: center;
-  }
-  .faq-list summary {
-    min-height: 64px;
-    padding: 22px 0 22px 40px;
-    grid-template-columns: minmax(0, 1fr) 24px;
-    gap: 16px;
-    font-size: clamp(20px, 2.4vw, 25px);
-  }
-  .faq-list details > p {
-    margin-inline: auto;
-    max-width: 54ch;
-  }
-  .contact h2 {
-    font-size: clamp(44px, 8vw, 72px);
-    line-height: 1.06;
-  }
-  .contact-actions {
-    margin-top: 32px;
-  }
-  .site-footer {
-    min-height: 180px;
-    padding-block: 48px;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    gap: 16px;
-  }
-}
-
-/* Compact scroll rhythm; full forms live below the stacked reading area. */
-.hero {
-  min-height: 100svh;
-}
-.manifesto,
-.business,
-.profile,
-.faq,
-.contact,
-.journey,
-.work,
-.method {
-  padding-block: clamp(56px, 8svh, 88px);
-}
-.manifesto {
-  min-height: auto;
-}
-.manifesto .section-split {
-  min-height: 54svh;
-}
-.manifesto-line {
-  min-height: 24svh;
-}
-.section-heading {
-  margin-bottom: clamp(32px, 6svh, 64px);
-}
-.chapter,
-.solution {
-  min-height: 78svh;
-}
-.project {
-  min-height: 76svh;
-}
-.method-step {
-  min-height: 30svh;
-}
-.profile {
-  min-height: 74svh;
-}
-.contact {
-  min-height: 68svh;
-}
-
-@media (max-width: 1099px) {
-  .hero {
-    min-height: 100svh;
-    gap: 20px;
-  }
-  .hero-intro {
-    margin-top: clamp(240px, 38svh, 360px);
-    padding-bottom: 40px;
-  }
-  .manifesto .section-split {
-    min-height: 42svh;
-    gap: 24px;
-    align-content: start;
-  }
-  .manifesto-line {
-    min-height: 18svh;
-  }
-  .chapter,
-  .solution,
-  .project {
-    min-height: 78svh;
-    padding-block: 5svh 36svh;
-    align-content: start;
-    align-items: start;
-  }
-  .solution {
-    padding-top: 5svh;
-  }
-  .chapter h3,
-  .project h3,
-  .solution h2 {
-    margin-bottom: 18px;
-  }
-  .method-step {
-    min-height: 26svh;
-  }
-  .profile {
-    min-height: auto;
-    padding-bottom: 36svh;
-  }
-  .contact {
-    min-height: 64svh;
-    justify-content: start;
-    padding-bottom: 34svh;
   }
 }

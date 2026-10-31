@@ -16,7 +16,8 @@ function mat3(euler: readonly [number, number, number]) {
 export const constants = /* glsl */ `
 const float GRID=${float(GRID)};
 const int FORMS=${FORM_COUNT};
-const int TREE=${FORM.tree};
+// The tree left the atlas; -1 keeps its seed and growth hooks inert.
+const int TREE=-1;
 const float FINALE=${float(FORM.finale)};
 const float PI=3.14159265;
 ${Object.entries(MOTION)
