@@ -108,6 +108,7 @@ export function createParticleRenderer(
     u_explodeMix: { value: 0 },
     u_seed: { value: 0 },
     u_page: { value: 0 },
+    u_solve: { value: 0 },
     u_factor: { value: 4.35 },
     u_show: { value: 0 },
     u_clock: { value: 0 },
@@ -333,6 +334,7 @@ export function createParticleRenderer(
     shared.u_explodeMix.value = pose.explodeMix;
     shared.u_seed.value = pose.seed;
     shared.u_page.value = pose.page;
+    shared.u_solve.value = pose.solve;
     shared.u_factor.value = factor;
     // Book and atom are placed in world units; the field frame is ÷ factor.
     const f = Math.max(0.01, factor);

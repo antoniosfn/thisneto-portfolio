@@ -4,6 +4,25 @@
  * which read the simulated positions, move with it.
  */
 import { sceneMotion } from "../finale/shaders";
+import { CUBE_SCRAMBLE } from "../forms/catalog";
+
+const AXES = ["vec3(1,0,0)", "vec3(0,1,0)", "vec3(0,0,1)"];
+const COMPONENT = ["x", "y", "z"];
+/**
+ * The scramble, unrolled: move i turns its layer by a_i of its angle, where
+ * a_i = clamp(n·(1 − u_solve) − i, 0, 1), so solving undoes the last move
+ * first and only one layer is ever mid-turn. Whole turns snap the cell back
+ * onto the grid.
+ */
+const scramble = CUBE_SCRAMBLE.map(
+  ([axis, layer, turns], i) => /* glsl */ `
+  a=clamp(n-${i}.,0.,1.);
+  if(a>0.&&abs(g.${COMPONENT[axis]}-(${layer}.))<.5) {
+    r=axisAngle(${AXES[axis]},${(turns * Math.PI) / 2}*a);
+    p=r*p; g=r*g;
+    if(a>=1.) g=floor(g+.5);
+  }`,
+).join("");
 
 export const motion = /* glsl */ `
 uniform vec4 u_book; // xyz centre, w scale, in the field frame
@@ -13,6 +32,8 @@ uniform mat3 u_atomFace;
 uniform float u_page; // 0 → 2: one leaf turned per project
 // Continuous clock for movement along each element's own path.
 uniform float u_clock;
+// The puzzle: 0 fully scrambled, 1 solved.
+uniform float u_solve;
 
 vec3 bookPlace(vec3 p) { return u_bookFace*BOOK_TILT*p*u_book.w+u_book.xyz; }
 vec3 atomPlace(vec3 p) { return u_atomFace*p*u_atom.w+u_atom.xyz; }
@@ -38,6 +59,12 @@ vec3 spark(vec4 m) {
 
 ${sceneMotion}
 
+vec3 cubie(vec3 p,vec3 g) {
+  float n=${CUBE_SCRAMBLE.length}.*(1.-u_solve), a;
+  mat3 r;${scramble}
+  return p;
+}
+
 vec3 animate(vec3 p,vec4 m) {
   float type=m.x;
   if(type<.5) return p;
@@ -54,6 +81,7 @@ vec3 animate(vec3 p,vec4 m) {
     vec3 c=vec3(0.,m.z,m.w);
     return c+axisAngle(vec3(0,1,0),u_clock*.6)*(p-c);
   }
+  if(abs(type-M_CUBIE)<.5) return cubie(p,m.yzw);
   if(abs(type-M_SPIN)<.5) return axisAngle(normalize(m.yzw),u_clock*length(m.yzw))*p;
   if(type>M_RING+.5) {
     // The closing scene: water, river, smoke, clouds, glow (finale/shaders.ts).

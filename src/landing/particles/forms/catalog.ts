@@ -56,7 +56,26 @@ export const MOTION = {
   GLOW: 18,
   // Turns about the axis in yzw at |yzw| radians per second (Saturn).
   SPIN: 19,
+  // A cubie of the puzzle: yzw is its grid cell, scrambled by CUBE_SCRAMBLE.
+  CUBIE: 20,
 } as const;
+
+/**
+ * The puzzle's scramble, applied in order to the solved cube: [axis (0 x,
+ * 1 y, 2 z), layer (−1, 0, 1), quarter turns]. Solving undoes the last move
+ * first. R U F' D2 L B' U' R2 F.
+ */
+export const CUBE_SCRAMBLE: readonly (readonly [number, number, number])[] = [
+  [0, 1, 1],
+  [1, 1, 1],
+  [2, 1, -1],
+  [1, -1, 2],
+  [0, -1, -1],
+  [2, -1, 1],
+  [1, 1, -1],
+  [0, 1, 2],
+  [2, 1, 1],
+];
 
 /** Particles per side of the simulation texture: 128² = 16 384 particles. */
 export const SIDE = 128;

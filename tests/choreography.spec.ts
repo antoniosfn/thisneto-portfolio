@@ -76,3 +76,14 @@ test("the Lorenz holds whole right of the copy and fragments on either side", ()
   expect(pose(0.5, "desktop").explode).toBe(1);
   expect(pose(1.5, "desktop").explode).toBe(1);
 });
+
+test("the puzzle arrives scrambled and is solved across the zigzag", () => {
+  for (const layout of LAYOUTS) {
+    expect(pose(3, layout).solve).toBe(0);
+    expect(pose(4, layout).solve).toBeCloseTo(0.5);
+    expect(pose(5, layout).solve).toBe(1);
+    // Scrolling back scrambles it again.
+    expect(pose(3.5, layout).solve).toBeGreaterThan(0);
+    expect(pose(3.5, layout).solve).toBeLessThan(0.5);
+  }
+});

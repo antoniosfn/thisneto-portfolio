@@ -1,17 +1,27 @@
-import { BufferGeometry, Matrix4, Quaternion, Vector3 } from "three";
+import { BufferGeometry, Color, LinearSRGBColorSpace, Vector3 } from "three";
+import { MOTION } from "./catalog";
 import { meshForm } from "./mesh-form";
-import { BLUE, GOLD, TEAL, VIOLET, ramp } from "./palette";
 import { assemble, strut } from "./sampling";
 
 /**
- * Desafios: a 3×3×3 puzzle caught mid-move. The top layer is turned 30° about
- * the vertical axis; every cubie stays aligned with a uniform gap. Only the
- * puzzle's outer surface grid is drawn (180 cubie edges), so the turn shows as
- * the offset seam down the sides.
+ * Desafios: a 3×3×3 puzzle, solved in the atlas. Each face carries one colour,
+ * as the original. The shader scrambles it with CUBE_SCRAMBLE and undoes the
+ * moves one by one as the solutions scroll by (motion CUBIE).
  */
 const CUBIE = 0.9;
 const PITCH = 1.04; // centre spacing: 0.14 gap between cubies
-const TWIST = Math.PI / 6;
+// The meshForm scale: grid coordinates are read back from the final points.
+const SCALE = 0.6;
+const tone = (hex: string) => new Color().setStyle(hex, LinearSRGBColorSpace);
+// Stickers by outward axis and sign: R/L, U/D, F/B.
+const FACE: Record<string, Color> = {
+  "0,1": tone("#e8343a"), // right: red
+  "0,-1": tone("#ff8a1f"), // left: orange
+  "1,1": tone("#f4f4f0"), // up: white
+  "1,-1": tone("#ffd51c"), // down: yellow
+  "2,1": tone("#1fbf5b"), // front: green
+  "2,-1": tone("#2a62ff"), // back: blue
+};
 
 export function cube(count: number, seed: number) {
   const parts: BufferGeometry[] = [];
@@ -28,12 +38,9 @@ export function cube(count: number, seed: number) {
       .filter((b) => Math.abs(a.distanceTo(b) - CUBIE) < 1e-6)
       .map((b) => [a, b] as const),
   );
-  const twist = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), TWIST);
-  const still = new Quaternion();
   for (let x = -1; x <= 1; x++)
     for (let y = -1; y <= 1; y++)
       for (let z = -1; z <= 1; z++) {
-        const turned = y === 1;
         // Outward faces of this cubie on the puzzle's outer surface: [axis, sign].
         const outward: (readonly [number, number])[] = [];
         if (x) outward.push([0, x]);
@@ -47,32 +54,39 @@ export function cube(count: number, seed: number) {
               a.getComponent(axis) === side && b.getComponent(axis) === side
             );
           });
-        const rotation = turned ? twist : still;
-        const at = new Vector3(x, y, z)
-          .multiplyScalar(PITCH)
-          .applyQuaternion(rotation);
-        const placement = new Matrix4().compose(
-          at,
-          rotation,
-          new Vector3(1, 1, 1),
-        );
+        const at = new Vector3(x, y, z).multiplyScalar(PITCH);
         for (const [a, b] of edges)
           if (onSurface(a, b))
-            parts.push(strut(a, b, 0.02).applyMatrix4(placement));
+            parts.push(strut(a, b, 0.02).translate(at.x, at.y, at.z));
       }
-  const { geometry, fit } = assemble(parts);
-  // Lowest point of the turned layer, in the fitted frame.
-  const seam = fit(new Vector3(0, PITCH - half - 0.02, 0)).y;
-  return meshForm(
-    "cube",
-    geometry,
-    count,
-    seed,
-    0.6,
-    (p, _n, _uv, out) => {
-      // The layer being turned is the move: gold. The body runs teal → violet.
-      if (p.y > seam) out.copy(GOLD);
-      else ramp([TEAL, BLUE, VIOLET], (p.x - p.z) * 0.4 + 0.5, out);
-    },
-  );
+  const { geometry, scale } = assemble(parts);
+  const pitch = PITCH * scale;
+  const grid = (p: Vector3) =>
+    new Vector3(
+      Math.round(p.x / pitch),
+      Math.round(p.y / pitch),
+      Math.round(p.z / pitch),
+    );
+  const form = meshForm("cube", geometry, count, seed, SCALE, (p, _n, _uv, out) => {
+    // The sticker: the outward face this point sits furthest towards.
+    const g = grid(p);
+    const local = p.clone().sub(g.clone().multiplyScalar(pitch));
+    let best = -Infinity,
+      key = "1,1";
+    for (let axis = 0; axis < 3; axis++) {
+      const sign = g.getComponent(axis);
+      if (!sign) continue;
+      const reach = sign * local.getComponent(axis);
+      if (reach > best) (best = reach), (key = `${axis},${sign}`);
+    }
+    out.copy(FACE[key]);
+  });
+  // Each particle remembers its cubie, so the shader turns whole layers.
+  form.motion = new Float32Array(count * 4);
+  const p = new Vector3();
+  for (let i = 0; i < count; i++) {
+    const g = grid(p.fromArray(form.points, i * 3).divideScalar(SCALE));
+    form.motion.set([MOTION.CUBIE, g.x, g.y, g.z], i * 4);
+  }
+  return form;
 }

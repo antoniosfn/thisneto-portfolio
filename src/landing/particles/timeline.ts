@@ -10,8 +10,9 @@
  *   f 0  hero (light)        cloud, covered
  *   f 1  trajectory (dark)   the Lorenz forms, filling the stage
  *   f 2  manifesto (light)   the Lorenz bursts
- *   f 3–5 solutions (dark)   the cube zigzags opposite the copy (right, left,
- *                            right), turning once on its axis at each crossing
+ *   f 3–5 solutions (dark)   the puzzle arrives scrambled and zigzags opposite
+ *                            the copy (right, left, right); each crossing turns
+ *                            it on its axis and solves half of it
  *   f 6  process (light)     the cube bursts
  *   f 7  projects (dark)     book and atom form, pages turning
  *   f 8  about (light)       they burst
@@ -29,6 +30,7 @@ export type ParticlePose = {
   explodeMix: number; // 0 radial burst, 1 rain downwards
   seed: number;
   page: number;
+  solve: number; // the puzzle: 0 scrambled, 1 solved
   scene: number; // landscape weight (its size follows the viewport)
   detail: number; // the landscape's detail layer, 0 → 1
   factor: number;
@@ -153,6 +155,11 @@ function beats(f: number) {
     explodeMix: 0,
     seed: 0,
     page: ramp(f, 7.0, 7.3) + ramp(f, 7.2, 7.4),
+    // The puzzle arrives scrambled and is half solved by the second solution,
+    // solved by the third: each crossing undoes half of the moves.
+    solve:
+      0.5 * ramp(f, CUBE_CROSSING[0][0], CUBE_CROSSING[1][0]) +
+      0.5 * ramp(f, CUBE_CROSSING[2][0], CUBE_CROSSING[3][0]),
     scene: ramp(f, ...FORMS.landscape),
     detail: ramp(f, FORMS.landscape[0] + 0.2, FORMS.landscape[1]),
     rotation: [track(f, pitch), track(f, yaw), 0] as Vec3,
