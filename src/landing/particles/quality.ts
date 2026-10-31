@@ -1,6 +1,7 @@
 /**
- * Pixel ratio that keeps the field fluid. It starts sharp (up to 2 on dense
- * screens; 1.5 on phones, whose GPUs are smaller) and steps down while the
+ * Pixel ratio that keeps the field fluid. It starts at 1.5 at most, on every
+ * screen: with 4× multisampling the soft particles look the same as at 2, for
+ * ~44% fewer pixels through the bloom chain. It steps down while the
  * average frame stays above budget. It never steps back up, so the field
  * does not oscillate between sharp and soft.
  */
@@ -17,8 +18,8 @@ export class AdaptiveQuality {
   private index: number;
   private best = Infinity;
 
-  constructor(devicePixelRatio: number, mobile: boolean) {
-    const start = Math.min(devicePixelRatio, mobile ? 1.5 : 2);
+  constructor(devicePixelRatio: number) {
+    const start = Math.min(devicePixelRatio, 1.5);
     this.index = STEPS.findIndex((step) => step <= start + 1e-6);
     if (this.index < 0) this.index = STEPS.length - 1;
   }

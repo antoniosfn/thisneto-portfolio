@@ -48,6 +48,9 @@ const SCALE = { desktop: 1.55, tablet: 1.5, mobile: 1.5 } as const;
 // Pyramid extent in world units, calibrated to Dala's 10–14 px particles.
 const PARTICLE_SIZE = 0.06;
 const CENTER = new Vector2();
+// Three quarters of a 60 Hz frame: 120 Hz renders every other vsync (60 fps),
+// 144 Hz every other (72 fps), and 60–75 Hz screens never skip one.
+const FRAME_FLOOR_MS = STEP * 1000 * 0.75;
 // Share of the viewport the whole scene fills: the header covers the top and
 // the footer's text the bottom, and the couple must clear both.
 const SCENE_MARGIN = 0.78;
@@ -92,10 +95,7 @@ export function createParticleRenderer(
   renderer.setClearColor(0x000000, 1);
   // Display-space pipeline: no sRGB encoding on output, as in Dala's renderer.
   renderer.outputColorSpace = LinearSRGBColorSpace;
-  const quality = new AdaptiveQuality(
-    window.devicePixelRatio || 1,
-    innerWidth < MOBILE_WIDTH,
-  );
+  const quality = new AdaptiveQuality(window.devicePixelRatio || 1);
   // One set of uniform objects, shared by every pass that reads the field.
   const shared = {
     t_position: { value: textures.position },
@@ -430,6 +430,12 @@ export function createParticleRenderer(
     pendingFrame = 0;
     if (disposed || lost || document.hidden) return;
     const now = performance.now();
+    // The simulation and every ease run at 60 Hz, so 120/144 Hz screens
+    // would render frames identical in motion at twice the GPU cost.
+    if (previousTime !== undefined && now - previousTime < FRAME_FLOOR_MS) {
+      requestDraw();
+      return;
+    }
     const raw = previousTime === undefined ? STEP * 1000 : now - previousTime;
     const delta = Math.min(raw / 1000, 0.1);
     previousTime = now;
