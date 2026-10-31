@@ -164,8 +164,8 @@ function fill(f: number) {
 }
 
 /** Where the Lorenz stands on desktop (field offset) and its scale. */
-const LORENZ_AT = [2.4, -0.35] as const;
-const LORENZ_SCALE = 1.05;
+const LORENZ_AT = [1.9, -0.3] as const;
+const LORENZ_SCALE = 1.4;
 
 /** Desktop and tablet: figures centred on their stage, copy over them. */
 export function desktopPose(

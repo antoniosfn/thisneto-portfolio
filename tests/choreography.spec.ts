@@ -64,7 +64,7 @@ test("figures are scaled to fill the stage", () => {
 test("the Lorenz holds whole right of the copy and fragments on either side", () => {
   for (const f of [0.9, 1, 1.1]) {
     expect(pose(f, "desktop").explode).toBe(0);
-    expect(pose(f, "desktop").offset[0]).toBeCloseTo(2.4);
+    expect(pose(f, "desktop").offset[0]).toBeCloseTo(1.9);
   }
   // Scrolling back up and scrolling on both break it into a cloud.
   expect(pose(0.5, "desktop").explode).toBe(1);
