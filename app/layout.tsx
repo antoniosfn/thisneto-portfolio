@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Barlow_Condensed, IBM_Plex_Mono, Inter } from "next/font/google";
 import "../src/landing/landing.css";
+import { SITE_URL } from "./site";
 
 // Precision-tool direction: condensed display, neutral body, mono metadata.
 const display = Barlow_Condensed({
@@ -17,6 +18,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
   title: "Antonio Neto | IA, automação e software",
   description:
     "IA e software para automatizar tarefas, conectar sistemas e encontrar respostas nos seus dados — fale sobre seu projeto com Antonio Neto",
@@ -24,6 +27,8 @@ export const metadata: Metadata = {
     title: "Antonio Neto | IA, automação e software",
     description:
       "Menos tarefas, mais tempo para crescer — IA e software para automatizar rotinas e conectar seus dados",
+    url: "/",
+    siteName: "Antonio Neto",
     locale: "pt_BR",
     type: "website",
   },
