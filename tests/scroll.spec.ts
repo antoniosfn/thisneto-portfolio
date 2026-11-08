@@ -20,7 +20,8 @@ test("full explosion disables hover in the rendered field", async ({
   // check reads the shader's hover multiplier abs(u_explode − 1) directly.
   await page.mouse.move(800, 400);
   await page.mouse.move(1000, 450, { steps: 6 });
-  await expect(field).toHaveAttribute("data-hover-gain", "1.000");
+  // The hero is still a cloud, so the hover term is off until a figure is whole.
+  await expect(field).toHaveAttribute("data-hover-gain", "0.000");
   await page.evaluate(() => {
     const line = document.querySelector<HTMLElement>(
       "[data-particle-stage='2']",

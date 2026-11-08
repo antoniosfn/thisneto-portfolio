@@ -38,6 +38,7 @@ Thumbs.db
 .superdesign/tmp/
 .next/
 out/
+deploy-bundle/
 .vite/
 *.tsbuildinfo
 test-results/

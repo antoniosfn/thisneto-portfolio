@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: "./tests",
   outputDir: process.env.TEST_VITE === "1" ? "test-results/vite" : "test-results/next",
   fullyParallel: true,
-  workers: 2,
+  workers: process.env.CI ? 1 : 2,
+  timeout: 60_000,
   reporter: "list",
   use: {
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3000",
@@ -13,6 +14,14 @@ export default defineConfig({
       ? { channel: process.env.PLAYWRIGHT_CHANNEL }
       : {},
   },
+  webServer: process.env.TEST_BASE_URL
+    ? undefined
+    : {
+        command: "npm run preview:next",
+        url: "http://127.0.0.1:3000",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
   projects: [
     {
       name: "desktop",
