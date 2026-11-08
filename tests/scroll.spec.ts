@@ -185,14 +185,24 @@ test("hover belongs to the figure: off the form nothing moves", async ({
     field,
     "a pointer over empty space must not touch the figure",
   ).toHaveAttribute("data-hover-hit", "0.000");
-  // Over the knot the ray meets its front surface.
-  await page.mouse.move(viewport.width * 0.73, viewport.height * 0.47, {
-    steps: 6,
-  });
-  await expect(
-    field,
-    "a pointer over the knot meets its surface",
-  ).toHaveAttribute("data-hover-hit", "1.000", { timeout: 5000 });
+  // The Lorenz sits to the right of the copy. The old fixed "knot" point
+  // (0.73, 0.47) misses that placement, so the ray is scanned across the
+  // right half. The corner above must still miss.
+  let hit = false;
+  for (const y of [0.35, 0.5, 0.65]) {
+    for (const x of [0.62, 0.76, 0.9]) {
+      await page.mouse.move(viewport.width * x, viewport.height * y, {
+        steps: 2,
+      });
+      await page.waitForTimeout(120);
+      if (Number(await field.getAttribute("data-hover-hit")) >= 1) {
+        hit = true;
+        break;
+      }
+    }
+    if (hit) break;
+  }
+  expect(hit, "a pointer over the Lorenz must meet its surface").toBe(true);
 });
 
 test("background is true black: no faint haze from bloom or vignette @visual", async ({
