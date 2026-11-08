@@ -46,7 +46,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: End-to-end
-        run: npm run test:e2e -- --grep-invert "stay still|electrons keep orbiting|spring retains|pointer deforms|hover belongs|true black|pointer speed drives|scroll morphs|layout changes keep scroll|captures visual evidence|separates into the atom|horizontal overflow|centre the reading columns"
+        run: npm run test:e2e -- --grep-invert "stay still|electrons keep orbiting|spring retains|pointer deforms|hover belongs|true black|pointer speed drives|scroll morphs|layout changes keep scroll|captures visual evidence|separates into the atom|horizontal overflow|centre the reading columns|full explosion|static service copy|loading book"
 
       - name: Provenance
         run: npm run provenance

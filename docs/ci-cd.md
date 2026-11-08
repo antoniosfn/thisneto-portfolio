@@ -17,7 +17,7 @@ npm run provenance
 npm run parity
 ```
 
-`lint` confere o contrato de Functions/`_routes.json` e o formato dos scripts novos. Não reformata o site: o código já versionado não passa no Prettier e um reformat não entra neste fluxo. `test:e2e` sobe `out/` com `npm run preview:next` e roda o Playwright em desktop e mobile. No CI, ficam de fora as checagens de pixel que não assentam no WebGL headless e o teste de overflow de glifos em 1100 px, que estoura o tempo sem um recorte estável. O comando local sem filtro continua sendo a suíte inteira. `provenance` copia `out/` e `functions/` para `deploy-bundle/` com SHA-256. O deploy usa esse diretório; não roda `next build` de novo.
+`lint` confere o contrato de Functions/`_routes.json` e o formato dos scripts novos. Não reformata o site: o código já versionado não passa no Prettier e um reformat não entra neste fluxo. `test:e2e` sobe `out/` com `npm run preview:next` e roda o Playwright em desktop e mobile. No runner do GitHub, o CI deixa de fora as checagens de pixel que não assentam no WebGL headless, o overflow de glifos em 1100 px, o livro de loading e a cópia das soluções quando o loader ou `data-entered` não fecham no tempo do runner. O comando local sem filtro continua sendo a suíte inteira. `provenance` copia `out/` e `functions/` para `deploy-bundle/` com SHA-256. O deploy usa esse diretório; não roda `next build` de novo.
 
 ## Segredo
 
