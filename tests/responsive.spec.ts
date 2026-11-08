@@ -101,7 +101,6 @@ test("the primary hero action fits common phone and tablet screens", async ({
   ]) {
     await page.setViewportSize(viewport);
     const button = page.locator(".hero-action .button-primary");
-    await button.scrollIntoViewIfNeeded();
     const box = await button.boundingBox();
     if (!box) throw new Error(`Hero action box at ${viewport.width}×${viewport.height}`);
     expect(box.x).toBeGreaterThanOrEqual(0);
