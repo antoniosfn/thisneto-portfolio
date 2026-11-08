@@ -10,9 +10,18 @@ export default defineConfig({
   use: {
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3000",
     trace: "retain-on-failure",
-    launchOptions: process.env.PLAYWRIGHT_CHANNEL
-      ? { channel: process.env.PLAYWRIGHT_CHANNEL }
-      : {},
+    launchOptions: {
+      ...(process.env.PLAYWRIGHT_CHANNEL
+        ? { channel: process.env.PLAYWRIGHT_CHANNEL }
+        : {}),
+      // A backgrounded runner throttles rAF and stretches GSAP. The page under
+      // test is the foreground tab.
+      args: [
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+      ],
+    },
   },
   webServer: process.env.TEST_BASE_URL
     ? undefined

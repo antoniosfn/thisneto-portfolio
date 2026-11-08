@@ -7,7 +7,7 @@ import {
   settleQuality,
 } from "./particle-helpers";
 
-test("complete figures and background stay still without input", async ({
+test("complete figures and background stay still without input @visual", async ({
   page,
 }) => {
   test.setTimeout(60000);
@@ -24,7 +24,7 @@ test("complete figures and background stay still without input", async ({
   ).toBeLessThan(0.0001);
 });
 
-test("electrons keep orbiting while the nucleus stays anchored", async ({
+test("electrons keep orbiting while the nucleus stays anchored @visual", async ({
   page,
 }, info) => {
   test.skip(
@@ -32,7 +32,7 @@ test("electrons keep orbiting while the nucleus stays anchored", async ({
     "Both layouts share the atom motion",
   );
   test.setTimeout(60000);
-  await page.goto("/?f=8");
+  await page.goto("/?f=7");
   await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20000 });
   await settleQuality(page);
   await page.addStyleTag({
@@ -41,7 +41,7 @@ test("electrons keep orbiting while the nucleus stays anchored", async ({
   });
   const field = page.locator(".particle-field");
   const view = page.viewportSize()!;
-  const atom = pose(8, "desktop");
+  const atom = pose(7, "desktop");
   const height = 2 * CAMERA_DISTANCE * Math.tan((CAMERA_FOV * Math.PI) / 360);
   const scale = view.height / height;
   const x = view.width / 2 + (atom.atom[0] + atom.offset[0]) * scale;

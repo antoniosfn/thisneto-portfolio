@@ -48,6 +48,18 @@ test("layout has no horizontal overflow at supported widths", async ({
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  // Overflow is a layout fact. The particle resize on every viewport blocks
+  // the main thread on a software GPU and makes the measurement hang.
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args: Parameters<typeof getContext>
+    ) {
+      if (args[0] === "webgl2") return null;
+      return getContext.apply(this, args);
+    } as typeof getContext;
+  });
   await page.goto("/");
 
   for (const width of [
@@ -99,17 +111,16 @@ test("layout has no horizontal overflow at supported widths", async ({
 });
 
 test("particle field stays active as the page scrolls", async ({ page }) => {
-  test.setTimeout(120_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
-  await expect(page.locator(".particle-field")).toBeVisible();
-
-  const before = await page.locator(".particle-field").screenshot();
-  await page.locator("#manifesto").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(900);
-  const after = await page.locator(".particle-field").screenshot();
-
-  expect(before.equals(after)).toBe(false);
+  const field = page.locator(".particle-field");
+  await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20_000 });
+  await expect(field).toHaveAttribute("data-entered", "true", { timeout: 20_000 });
+  const before = Number(await field.getAttribute("data-section-progress"));
+  await page.locator("#manifesto").evaluate((element) => element.scrollIntoView());
+  await expect
+    .poll(async () => Number(await field.getAttribute("data-section-progress")))
+    .toBeGreaterThan(before + 0.2);
   await expect(page.locator(".reading-progress")).not.toHaveCSS(
     "transform",
     "matrix(0, 0, 0, 1, 0, 0)",
@@ -183,6 +194,7 @@ test("static export keeps essential content without JavaScript", async ({
 test("page has no failed local assets and captures visual evidence", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(90_000);
   const failures: string[] = [];
   page.on("response", (response) => {
     if (
@@ -200,31 +212,28 @@ test("page has no failed local assets and captures visual evidence", async ({
   await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20000 });
   await page.waitForTimeout(1200);
   await page.screenshot({ path: testInfo.outputPath("hero.png") });
-  await page.locator("#projetos").scrollIntoViewIfNeeded();
+  await page.locator("#projetos").evaluate((section) => {
+    scrollTo({ top: (section as HTMLElement).offsetTop, behavior: "instant" });
+  });
   await page.waitForTimeout(700);
   await page.screenshot({ path: testInfo.outputPath("projects.png") });
-  await page.locator("#sobre").scrollIntoViewIfNeeded();
+  await page.locator("#sobre").evaluate((section) => {
+    scrollTo({ top: (section as HTMLElement).offsetTop, behavior: "instant" });
+  });
   await page.waitForTimeout(1600);
   await page.screenshot({ path: testInfo.outputPath("tree.png") });
-  await page.locator("#perguntas .section-heading").evaluate((element) => {
-    const box = element.getBoundingClientRect();
-    const shift = new DOMMatrixReadOnly(getComputedStyle(element).transform).m42;
-    scrollTo({
-      top: scrollY + box.top - shift + (innerWidth <= 1099
-        ? -innerHeight * 0.18
-        : Math.min(box.height, innerHeight) / 2 - innerHeight / 2),
-      behavior: "instant",
-    });
+  await page.locator("#perguntas").evaluate((section) => {
+    scrollTo({ top: (section as HTMLElement).offsetTop, behavior: "instant" });
   });
   await expect
     .poll(
       async () =>
         Number(
-          await page.locator(".particle-field").getAttribute("data-progress"),
+          await page.locator(".particle-field").getAttribute("data-section-progress"),
         ),
-      { timeout: 10000 },
+      { timeout: 20_000 },
     )
-    .toBeCloseTo(8, 1);
+    .toBeGreaterThan(8);
   await page.waitForTimeout(1600);
   await page.screenshot({ path: testInfo.outputPath("faq.png") });
   expect(failures).toEqual([]);

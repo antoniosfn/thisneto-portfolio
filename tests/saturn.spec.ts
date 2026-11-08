@@ -50,7 +50,7 @@ test("Saturn keeps the rings and globe assigned to the next two forms", ({}, tes
   expect(pose(9.15, "desktop").progress).toBe(FORM.saturn);
 });
 
-test("Saturn separates into the atom and book and reforms on reverse scroll", async ({
+test("Saturn separates into the atom and book and reforms on reverse scroll @visual", async ({
   page,
 }, testInfo) => {
   test.setTimeout(120000);
