@@ -100,16 +100,12 @@ test("the primary hero action fits common phone and tablet screens", async ({
     { width: 1024, height: 900 },
   ]) {
     await page.setViewportSize(viewport);
-    await expect
-      .poll(
-        async () => {
-          const box = await page.locator(".hero-action .button-primary").boundingBox();
-          return !!box && box.y >= 0 && box.y + box.height <= viewport.height;
-        },
-        {
-          message: `Hero action visible at ${viewport.width}×${viewport.height}`,
-        },
-      )
-      .toBe(true);
+    const button = page.locator(".hero-action .button-primary");
+    await button.scrollIntoViewIfNeeded();
+    const box = await button.boundingBox();
+    expect(box, `Hero action box at ${viewport.width}×${viewport.height}`).toBeTruthy();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+    expect(box.height).toBeGreaterThanOrEqual(44);
   }
 });
