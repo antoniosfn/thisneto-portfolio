@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,6 +15,8 @@ export function decideDeploy({ productionBranch, parityOk }) {
       branch: DEPLOY_BRANCH,
       environment: "preview",
       replacesProduction: false,
+      // A later PATCH of production_branch does not reclassify this upload.
+      promotesExistingDeployment: false,
     };
   }
   if (productionBranch === DEPLOY_BRANCH) {
@@ -27,9 +29,33 @@ export function decideDeploy({ productionBranch, parityOk }) {
       branch: DEPLOY_BRANCH,
       environment: "production",
       replacesProduction: true,
+      promotesExistingDeployment: false,
     };
   }
   throw new Error(`unexpected Pages production_branch: ${productionBranch}`);
+}
+
+export function assertTrustedRun(run, repository) {
+  if (run.name !== "CI") throw new Error("refusing a run that is not CI");
+  if (run.event !== "push")
+    throw new Error("refusing a run that was not a push");
+  if (run.head_branch !== "main")
+    throw new Error("refusing a run that is not main");
+  if (run.conclusion !== "success")
+    throw new Error("refusing a run that did not succeed");
+  if (run.head_repository?.full_name !== repository) {
+    throw new Error("refusing a run from another repository");
+  }
+  if (!run.head_sha) throw new Error("refusing a run without a commit SHA");
+  return run.head_sha;
+}
+
+export function assertFreshTip({ mode, artifactSha, mainSha }) {
+  if (mode === "push" && artifactSha !== mainSha) {
+    throw new Error(
+      `stale deploy: artifact ${artifactSha} is not origin/main ${mainSha}`,
+    );
+  }
 }
 
 const isEntry =
@@ -70,10 +96,12 @@ async function smoke(url) {
     body: new FormData(),
   });
   const type = contact.headers.get("content-type") || "";
-  if (
-    !type.includes("application/json") ||
-    ![400, 422, 503].includes(contact.status)
-  ) {
+  // Empty form: 503 without a Pages key, 422 before Resend when the key exists.
+  // 200 would mean a message was accepted. That must never happen here.
+  if (contact.status === 200 || !type.includes("application/json")) {
+    throw new Error(`smoke function failed: ${contact.status} ${type}`);
+  }
+  if (![422, 503].includes(contact.status)) {
     throw new Error(`smoke function failed: ${contact.status} ${type}`);
   }
 }
@@ -106,6 +134,63 @@ function runWrangler(args, cwd, outputDir) {
   });
 }
 
+function runtimeFacts(project) {
+  const production = project.deployment_configs?.production ?? {};
+  const preview = project.deployment_configs?.preview ?? {};
+  return {
+    compatibilityDate:
+      production.compatibility_date || project.compatibility_date || null,
+    productionSecretNames: Object.keys(production.env_vars || {}),
+    previewSecretNames: Object.keys(preview.env_vars || {}),
+  };
+}
+
+function assertRuntimeUnchanged(before, after) {
+  if (
+    before.compatibilityDate &&
+    after.compatibilityDate &&
+    before.compatibilityDate !== after.compatibilityDate
+  ) {
+    throw new Error(
+      `compatibility_date changed from ${before.compatibilityDate} to ${after.compatibilityDate}`,
+    );
+  }
+  if (
+    before.productionSecretNames.includes("RESEND_API_KEY") &&
+    !after.productionSecretNames.includes("RESEND_API_KEY")
+  ) {
+    throw new Error(
+      "deploy removed RESEND_API_KEY from the production environment",
+    );
+  }
+}
+
+async function githubRun(id) {
+  const token = process.env.GH_TOKEN;
+  const repository = process.env.GITHUB_REPOSITORY;
+  if (!token || !repository)
+    throw new Error("missing GitHub token or repository");
+  const response = await fetch(
+    `https://api.github.com/repos/${repository}/actions/runs/${id}`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/vnd.github+json",
+      },
+    },
+  );
+  if (!response.ok)
+    throw new Error(`CI run ${id} is not readable: ${response.status}`);
+  return response.json();
+}
+
+function mainTip() {
+  execFileSync("git", ["fetch", "origin", "main"], { stdio: "inherit" });
+  return execFileSync("git", ["rev-parse", "origin/main"], {
+    encoding: "utf8",
+  }).trim();
+}
+
 async function main() {
   const token = process.env.CLOUDFLARE_API_TOKEN;
   if (!token) {
@@ -114,7 +199,14 @@ async function main() {
     );
     process.exit(1);
   }
+  const mode = process.env.DEPLOY_MODE;
+  if (mode !== "push" && mode !== "promote" && mode !== "rollback") {
+    throw new Error(`refusing unknown DEPLOY_MODE ${mode || "(empty)"}`);
+  }
   const rollback = process.env.ROLLBACK_ID;
+  const promote = process.env.PROMOTE_RUN_ID;
+  if (rollback && promote)
+    throw new Error("rollback and promote are mutually exclusive");
   if (rollback) {
     if (!/^[0-9a-f-]{36}$/i.test(rollback)) {
       throw new Error("ROLLBACK_ID must be a Pages deployment UUID");
@@ -128,13 +220,27 @@ async function main() {
     return;
   }
 
+  let expected = process.env.EXPECTED_SHA;
+  if (mode === "promote") {
+    if (!promote) throw new Error("promote requires PROMOTE_RUN_ID");
+    expected = assertTrustedRun(
+      await githubRun(promote),
+      process.env.GITHUB_REPOSITORY,
+    );
+  }
   const bundle = join(process.cwd(), "deploy-bundle");
   const provenance = readJson(join(bundle, "provenance.json"));
-  const expected = process.env.EXPECTED_SHA;
   if (!expected || provenance.gitSha !== expected) {
     throw new Error(
-      `artifact sha ${provenance.gitSha} does not match EXPECTED_SHA ${expected}`,
+      `artifact sha ${provenance.gitSha} does not match the trusted run ${expected}`,
     );
+  }
+  if (mode === "push") {
+    assertFreshTip({
+      mode,
+      artifactSha: provenance.gitSha,
+      mainSha: mainTip(),
+    });
   }
   if (!existsSync(join(bundle, "functions/api/contato.ts"))) {
     throw new Error("artifact is missing functions/api/contato.ts");
@@ -153,6 +259,10 @@ async function main() {
   if (project.id !== "0812d498-5597-46c9-a277-6535de98c283") {
     throw new Error(`refusing unexpected Pages project id ${project.id}`);
   }
+  const before = runtimeFacts(project);
+  console.log(
+    `rollback target ${project.canonical_deployment?.id || "unknown"} compatibility=${before.compatibilityDate || "unknown"} production_secrets=${before.productionSecretNames.join(",") || "none"}`,
+  );
   const parity = existsSync(join(bundle, "parity-report.json"))
     ? readJson(join(bundle, "parity-report.json"))
     : { ok: false };
@@ -169,9 +279,9 @@ async function main() {
   console.log(
     `deploy plan environment=${plan.environment} production_branch=${project.production_branch} sha=${provenance.gitSha}`,
   );
-  if (plan.replacesProduction) {
+  if (!plan.replacesProduction) {
     console.log(
-      `current canonical deployment ${project.canonical_deployment?.id || "unknown"} is the rollback target`,
+      "preview upload only; changing production_branch later does not promote this deployment",
     );
   }
 
@@ -216,6 +326,11 @@ async function main() {
       `expected ${plan.environment} deployment, got ${detailed.environment}`,
     );
   }
+  const afterProject = await api(
+    token,
+    `/accounts/${ACCOUNT}/pages/projects/${PROJECT}`,
+  );
+  assertRuntimeUnchanged(before, runtimeFacts(afterProject));
   await smoke(detailed.url);
   console.log(
     `deployment ${detailed.deployment_id} ${detailed.environment} ${detailed.url}`,

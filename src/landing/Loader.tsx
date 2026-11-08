@@ -87,6 +87,10 @@ export default function Loader() {
       const overlay = overlayRef.current;
       const canvas = canvasRef.current;
       if (!overlay || !canvas || !contextSafe) return;
+      // Default lag smoothing treats a slow frame as a hitch and advances the
+      // exit by ~33ms. On a software GPU that freezes the loader past any
+      // reasonable wait. Real elapsed time is the clock this timeline needs.
+      gsap.ticker.lagSmoothing(0);
       // The counter and exit also work if a 2D canvas is unavailable.
       const context = canvas.getContext("2d");
       const fragments = createFragments();

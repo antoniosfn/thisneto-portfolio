@@ -46,7 +46,34 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: End-to-end
-        run: npm run test:e2e -- --grep-invert "stay still|electrons keep orbiting|spring retains|pointer deforms|hover belongs|true black|pointer speed drives|scroll morphs|layout changes keep scroll|captures visual evidence|separates into the atom|horizontal overflow|centre the reading columns|full explosion|static service copy|loading book"
+        run: npm run test:e2e -- --grep-invert "@visual"
+
+  visual:
+    name: visual
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Pixel comparisons
+        run: npm run test:e2e -- --grep "@visual"
 
       - name: Provenance
         run: npm run provenance
