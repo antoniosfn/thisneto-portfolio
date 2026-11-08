@@ -53,6 +53,7 @@ O Vite gera a versão React em `dist/`, com renderização no cliente. Para publ
 - `preview/`: entrada Vite para os mesmos componentes.
 - `public/`: apenas a foto, fonte e favicon usados pela nova página.
 - `docs/design-package.md`: direção criativa, funil e decisões de escopo.
+- `docs/site-architecture.md`: estrutura, stack, convenções e mecânica vigentes. Se este README, o pacote de design ou `docs/particle-experience.md` divergirem do código, prevalece esse arquivo.
 - `tests/`: testes funcionais em navegador.
 
 Arquivos estáticos antigos na raiz permanecem preservados, mas não participam dos novos builds. Não sirva a raiz com `serve .`: use os comandos acima para visualizar a nova versão. O snapshot anterior de `index.html` também está em `.local-tools/backups/`, ignorado pelo Git.

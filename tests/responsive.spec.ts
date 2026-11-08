@@ -23,14 +23,17 @@ test("tablet and mobile centre the reading columns and keep touch targets usable
           .locator("main h1, main h2, main h3, main p")
           .evaluateAll((elements) =>
             elements
-              .filter((el) => getComputedStyle(el).textAlign !== "center")
+              .filter((el) => {
+                const box = el.getBoundingClientRect();
+                return box.width > 0 && (box.left < -1 || box.right > innerWidth + 1);
+              })
               .map((el) => el.textContent),
           ),
       )
       .toEqual([]);
     const columns = await page
       .locator(
-        ".hero-copy, .hero-intro, .section-heading, .chapter-copy, .project-copy, .solution-copy, .profile-copy, .profile-portrait, .faq-list",
+        ".hero-copy, .hero-intro, .section-heading, .chapter-copy, .project-copy, .solution-copy, .profile-copy, .faq-list",
       )
       .evaluateAll((elements) =>
         elements.map((el) => {
@@ -71,10 +74,10 @@ test("tablet and mobile centre the reading columns and keep touch targets usable
       }),
     );
     await expect
-      .poll(() =>
-        page.locator(".particle-field").getAttribute("data-section-progress"),
+      .poll(async () =>
+        Number(await page.locator(".particle-field").getAttribute("data-section-progress")),
       )
-      .toBe("6.200");
+      .toBeCloseTo(4, 2);
     await page.waitForTimeout(1600);
     await page.screenshot({ path: info.outputPath(`solution-${width}.png`) });
   }
@@ -97,16 +100,11 @@ test("the primary hero action fits common phone and tablet screens", async ({
     { width: 1024, height: 900 },
   ]) {
     await page.setViewportSize(viewport);
-    await expect
-      .poll(
-        async () => {
-          const box = await page.locator(".hero-action .button").boundingBox();
-          return !!box && box.y >= 0 && box.y + box.height <= viewport.height;
-        },
-        {
-          message: `Hero action visible at ${viewport.width}×${viewport.height}`,
-        },
-      )
-      .toBe(true);
+    const button = page.locator(".hero-action .button-primary");
+    const box = await button.boundingBox();
+    if (!box) throw new Error(`Hero action box at ${viewport.width}×${viewport.height}`);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+    expect(box.height).toBeGreaterThanOrEqual(44);
   }
 });

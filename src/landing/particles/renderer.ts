@@ -27,6 +27,7 @@ import { createPyramidGeometry } from "./geometry";
 import { createHoverProbe } from "./hover";
 import { createLines } from "./lines";
 import { PointerMotion, STEP, createPose, easePose } from "./motion";
+import { advanceOpening } from "./opening";
 import { createPost } from "./post";
 import { AdaptiveQuality } from "./quality";
 import { particleFragment, particleVertex } from "./shaders/particle";
@@ -435,16 +436,19 @@ export function createParticleRenderer(
       return;
     }
     const raw = previousTime === undefined ? STEP * 1000 : now - previousTime;
-    const delta = Math.min(raw / 1000, 0.1);
     previousTime = now;
+    const wall = Math.max(0, raw) / 1000;
+    // Simulation catch-up stays capped. The opening flag uses wall time.
+    const delta = Math.min(wall, 0.1);
     const frames = Math.max(0, delta) / STEP;
     const seconds = time / 1000;
     applyPose(frames);
     // Time drives only each element's own path, without moving the whole figure
     shared.u_clock.value = seconds;
-    show = Math.min(1, show + Math.max(0, delta) / 1.2);
+    const opening = advanceOpening(show, wall);
+    show = opening.show;
     shared.u_show.value = show;
-    if (show === 1) canvas.dataset.entered = "true";
+    if (opening.entered) canvas.dataset.entered = "true";
     backdrop.update(pointer.target, pointer.isActive, frames);
     accumulator += Math.max(0, delta);
     let iterations = 0;

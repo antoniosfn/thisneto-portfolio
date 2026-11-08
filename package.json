@@ -11,7 +11,11 @@
     "preview": "vite preview --host 127.0.0.1",
     "preview:next": "vite preview --host 127.0.0.1 --outDir ../out --port 3000",
     "typecheck": "tsc --noEmit",
+    "lint": "node scripts/lint-site.mjs",
+    "test:unit": "node --test scripts/pages-contract.test.mjs",
     "test:e2e": "playwright test",
+    "provenance": "node scripts/write-provenance.mjs",
+    "parity": "node scripts/check-live-parity.mjs",
     "particles": "node --import ./scripts/ts-resolve.mjs scripts/build-particle-forms.mts",
     "finale": "node --import ./scripts/ts-resolve.mjs scripts/build-finale.mts"
   },
@@ -33,6 +37,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "prettier": "^3.9.9",
     "typescript": "^5.9.0",
-    "vite": "8.3.1"
+    "vite": "8.3.1",
+    "wrangler": "4.158.0"
   }
 }

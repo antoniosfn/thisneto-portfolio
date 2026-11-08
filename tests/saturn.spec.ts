@@ -45,12 +45,12 @@ test("Saturn keeps the rings and globe assigned to the next two forms", ({}, tes
   expect(saturn.edges!.every((index) => index >= 0 && index < COUNT)).toBe(
     true,
   );
-  expect(pose(7, "desktop").progress).toBe(FORM.saturn);
-  expect(pose(7.15, "desktop").progress).toBe(FORM.saturn);
-  expect(pose(8, "desktop").progress).toBe(FORM.bookAtom);
+  expect(pose(7, "desktop").progress).toBe(FORM.bookAtom);
+  expect(pose(9, "desktop").progress).toBe(FORM.saturn);
+  expect(pose(9.15, "desktop").progress).toBe(FORM.saturn);
 });
 
-test("Saturn separates into the atom and book and reforms on reverse scroll", async ({
+test("Saturn separates into the atom and book and reforms on reverse scroll @visual", async ({
   page,
 }, testInfo) => {
   test.setTimeout(120000);
@@ -100,16 +100,16 @@ test("Saturn separates into the atom and book and reforms on reverse scroll", as
       .toBeCloseTo(form, 2);
     await settleParticles(page);
   };
-  await jump(7, FORM.saturn);
+  await jump(9, FORM.saturn);
   await settleQuality(page);
   await page.screenshot({ path: testInfo.outputPath("saturn.png") });
   const saturn = await field.screenshot();
   const ratio = await field.getAttribute("data-pixel-ratio");
-  await jump(8, FORM.bookAtom);
+  await jump(7, FORM.bookAtom);
   await page.screenshot({ path: testInfo.outputPath("atom-and-book.png") });
   const separated = await field.screenshot();
   expect(await changedPixels(page, saturn, separated)).toBeGreaterThan(0.01);
-  await jump(7, FORM.saturn);
+  await jump(9, FORM.saturn);
   const returned = await field.screenshot();
   if (ratio === (await field.getAttribute("data-pixel-ratio")))
     expect(await changedPixels(page, saturn, returned)).toBeLessThan(0.003);

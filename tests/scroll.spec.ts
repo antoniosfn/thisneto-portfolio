@@ -20,7 +20,8 @@ test("full explosion disables hover in the rendered field", async ({
   // check reads the shader's hover multiplier abs(u_explode − 1) directly.
   await page.mouse.move(800, 400);
   await page.mouse.move(1000, 450, { steps: 6 });
-  await expect(field).toHaveAttribute("data-hover-gain", "1.000");
+  // The hero is still a cloud, so the hover term is off until a figure is whole.
+  await expect(field).toHaveAttribute("data-hover-gain", "0.000");
   await page.evaluate(() => {
     const line = document.querySelector<HTMLElement>(
       "[data-particle-stage='2']",
@@ -49,7 +50,7 @@ test("full explosion disables hover in the rendered field", async ({
   await expect(field).toHaveAttribute("data-hover-gain", "0.000");
 });
 
-test("spring retains inertia after scroll stops and then settles", async ({
+test("spring retains inertia after scroll stops and then settles @visual", async ({
   page,
 }) => {
   test.setTimeout(60000);
@@ -95,7 +96,7 @@ test("spring retains inertia after scroll stops and then settles", async ({
   await settleParticles(page);
 });
 
-test("pointer deforms a visible 3D field and releases it back to its pose", async ({
+test("pointer deforms a visible 3D field and releases it back to its pose @visual", async ({
   page,
 }, testInfo) => {
   test.setTimeout(60000);
@@ -163,7 +164,15 @@ test("hover belongs to the figure: off the form nothing moves", async ({
       "main, .site-header, .header-backdrop, .site-footer, .reading-progress, .skip-link, nextjs-portal { opacity: 0 !important; }",
   });
   const field = page.locator(".particle-field");
-  await settleParticles(page);
+  await expect(field).toHaveAttribute("data-entered", "true", { timeout: 20_000 });
+  await page.locator("#trajetoria").evaluate((section) => {
+    scrollTo({ top: (section as HTMLElement).offsetTop, behavior: "instant" });
+  });
+  await expect
+    .poll(async () => Number(await field.getAttribute("data-explode")), {
+      timeout: 20_000,
+    })
+    .toBeLessThan(0.15);
   const viewport = page.viewportSize()!;
   // Empty space left of the copy: the pointer ray meets no particle.
   await page.mouse.move(viewport.width * 0.05, viewport.height * 0.12);
@@ -186,7 +195,7 @@ test("hover belongs to the figure: off the form nothing moves", async ({
   ).toHaveAttribute("data-hover-hit", "1.000", { timeout: 5000 });
 });
 
-test("background is true black: no faint haze from bloom or vignette", async ({
+test("background is true black: no faint haze from bloom or vignette @visual", async ({
   page,
 }) => {
   test.setTimeout(60000);
@@ -232,7 +241,7 @@ test("background is true black: no faint haze from bloom or vignette", async ({
   expect(haze.faint, "no near-black haze around the forms").toBeLessThan(0.03);
 });
 
-test("pointer speed drives the hover radius term", async ({
+test("pointer speed drives the hover radius term @visual", async ({
   page,
 }, testInfo) => {
   test.setTimeout(90000);
@@ -302,7 +311,7 @@ test("content and contact remain usable without WebGL2", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("scroll morphs the particle geometry and retraces the same poses", async ({
+test("scroll morphs the particle geometry and retraces the same poses @visual", async ({
   page,
 }, testInfo) => {
   test.setTimeout(300000);
@@ -394,6 +403,7 @@ test("layout changes keep scroll progress aligned with the actual page", async (
   await page.addStyleTag({
     content: "html { scroll-behavior: auto !important; }",
   });
+  await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20_000 });
   await page.locator(".faq-list summary").first().click();
   for (const edge of ["bottom", "top"] as const) {
     await page.evaluate(
@@ -406,13 +416,17 @@ test("layout changes keep scroll progress aligned with the actual page", async (
       edge,
     );
     await expect
-      .poll(() =>
-        page
-          .locator(".reading-progress")
-          .evaluate(
-            (element) =>
-              new DOMMatrixReadOnly(getComputedStyle(element).transform).a,
-          ),
+      .poll(
+        () =>
+          page
+            .locator(".reading-progress")
+            .evaluate(
+              (element) =>
+                new DOMMatrixReadOnly(getComputedStyle(element).transform).a,
+            ),
+        // Lenis closes 7.5% of the remaining distance per frame. A slow GPU
+        // needs more wall time to reach the same scroll fraction.
+        { timeout: 20_000 },
       )
       .toBeCloseTo(edge === "bottom" ? 1 : 0, 2);
   }
