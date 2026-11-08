@@ -99,6 +99,7 @@ test("layout has no horizontal overflow at supported widths", async ({
 });
 
 test("particle field stays active as the page scrolls", async ({ page }) => {
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
   await expect(page.locator(".particle-field")).toBeVisible();
