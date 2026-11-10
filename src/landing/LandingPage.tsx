@@ -98,11 +98,28 @@ export default function LandingPage() {
           );
         });
       };
+      // `?f=` pins the field. The renderer owns data-section-progress then.
+      const pinnedField = Number(new URLSearchParams(location.search).get("f"));
+      const publishScrollProgress = !(
+        Number.isFinite(pinnedField) && pinnedField > 0
+      );
       const syncScroll = (self: ScrollTrigger) => {
         // Lenis writes the smoothed position to the window, so the pose follows
         // the eased scroll exactly as Dala's ASScroll.currentPos does.
         const position = self.scroll();
-        particleController.current.progress = sectionProgress(position, stops);
+        const next = sectionProgress(position, stops);
+        particleController.current.progress = next;
+        // The attribute is the scroll target, not a pixel. The draw loop
+        // publishes the same number, but a late GPU frame used to leave it at
+        // 0 after the scroll had already moved.
+        if (publishScrollProgress) {
+          const field = document.querySelector<HTMLElement>(".particle-field");
+          if (field) {
+            const text = next.toFixed(3);
+            if (field.dataset.sectionProgress !== text)
+              field.dataset.sectionProgress = text;
+          }
+        }
         if (progress.current)
           progress.current.style.transform = `scaleX(${self.progress})`;
         compactHeader(position > 1);
