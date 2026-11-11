@@ -308,7 +308,7 @@ export default function Loader() {
           </p>
         </div>
         <p ref={stallRef} className="site-loader-stall" hidden aria-live="polite">
-          Ainda a carregar…
+          Ainda carregando…
         </p>
       </div>
     </div>

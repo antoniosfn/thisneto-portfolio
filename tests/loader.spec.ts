@@ -41,7 +41,9 @@ test("the book loader names itself and leaves even if forms.bin never arrives", 
   await expect(loader).toHaveAttribute("aria-valuemax", "100");
   await expect(page.locator("#loader-status")).toHaveText("Carregando experiência…");
   await expect(loader.locator(".site-loader-count")).toHaveText(PERCENT);
-  await expect(loader.locator(".site-loader-stall")).toBeVisible({ timeout: 8_000 });
+  const stall = loader.locator(".site-loader-stall");
+  await expect(stall).toBeVisible({ timeout: 8_000 });
+  await expect(stall).toHaveText("Ainda carregando…");
   await expect(loader).toHaveCount(0, { timeout: 20_000 });
   await expect(page.locator("html")).not.toHaveClass(/is-loading/);
   await expect(
