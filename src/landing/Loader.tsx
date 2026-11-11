@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { loading } from "./loading";
+import { formatLoaderPercent, loading } from "./loading";
 import { bookStrokes } from "./loader-book";
 
 gsap.registerPlugin(useGSAP);
@@ -11,6 +11,9 @@ gsap.registerPlugin(useGSAP);
 const FRAGMENTS = 900;
 const MIN_VISIBLE_MS = 1200;
 const FAILSAFE_MS = 12000;
+/** If the integer has not moved, say so. The veil still lifts on its own. */
+const STALL_MS = 4000;
+const FORCE_REVEAL_MS = FAILSAFE_MS + 2000;
 type Phase = "loading" | "compressing" | "revealing" | "gone";
 type Fragment = {
   target: [number, number];
@@ -80,6 +83,8 @@ export default function Loader() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
+  const stallRef = useRef<HTMLParagraphElement>(null);
+  const closed = useRef(false);
   const [phase, setPhase] = useState<Phase>("loading");
 
   useGSAP(
@@ -103,50 +108,73 @@ export default function Loader() {
         bookH = Math.max(...ys) - minY;
       const extent = Math.max(bookW, bookH);
       const mounted = performance.now();
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      overlay.dataset.motion = reduced ? "reduced" : "full";
       document.documentElement.classList.add("is-loading");
       let target = 0,
         shown = 0,
-        last = mounted;
+        last = mounted,
+        lastLabel = "1%",
+        lastAdvance = mounted;
       let finished = false,
         leaving = false,
         disposed = false,
         frame = 0;
       const unsubscribe = loading.subscribe((progress, done) => {
-        target = progress;
+        target = Math.max(target, progress);
         finished = done;
       });
-      const failsafe = window.setTimeout(() => loading.finish(), FAILSAFE_MS);
+      let failsafe = 0;
+      let forceReveal = 0;
+      const lift = () => {
+        // A late GSAP call can set the phase back to "revealing" after this
+        // and leave the veil mounted. The ref wins over that state update.
+        closed.current = true;
+        if (disposed) return;
+        disposed = true;
+        cancelAnimationFrame(frame);
+        window.clearTimeout(failsafe);
+        window.clearTimeout(forceReveal);
+        unsubscribe();
+        document.documentElement.classList.remove("is-loading");
+        setPhase("gone");
+      };
+      failsafe = window.setTimeout(() => loading.finish(), FAILSAFE_MS);
+      // finish() only raises the target. If the draw loop has died, the veil
+      // would stay up on the last percent, so a later timer removes it.
+      forceReveal = window.setTimeout(lift, FORCE_REVEAL_MS);
       const beginExit = contextSafe(() => {
         leaving = true;
         setPhase("compressing");
-        // Keep the black veil opaque until the book has collapsed to its centre.
+        // Reduced motion keeps the book, then fades. Full motion collapses
+        // it to the centre before the page appears.
+        const compressAt = reduced ? 0.01 : 0.15;
+        const revealAt = reduced ? 0.08 : 0.8;
         gsap
-          .timeline({
-            onComplete: () => {
-              disposed = true;
-              cancelAnimationFrame(frame);
-              window.clearTimeout(failsafe);
-              unsubscribe();
-              document.documentElement.classList.remove("is-loading");
-              setPhase("gone");
-            },
-          })
-          .addLabel("compress", 0.15)
+          .timeline({ onComplete: lift })
+          .addLabel("compress", compressAt)
           .to(
             canvas,
-            { scale: 0.012, opacity: 0, duration: 0.65, ease: "expo.inOut" },
+            {
+              scale: reduced ? 1 : 0.012,
+              opacity: 0,
+              duration: reduced ? 0.2 : 0.65,
+              ease: "expo.inOut",
+            },
             "compress",
           )
-          .to(
-            ".site-loader-meta",
-            { opacity: 0, duration: 0.25 },
-            0,
-          )
-          .addLabel("reveal", 0.8)
-          .call(() => setPhase("revealing"), [], "reveal")
+          .to(".site-loader-meta", { opacity: 0, duration: reduced ? 0.15 : 0.25 }, 0)
+          .addLabel("reveal", revealAt)
+          .call(() => {
+            if (!closed.current) setPhase("revealing");
+          }, [], "reveal")
           .to(
             overlay,
-            { opacity: 0, duration: 0.95, ease: "power2.inOut" },
+            {
+              opacity: 0,
+              duration: reduced ? 0.2 : 0.95,
+              ease: "power2.inOut",
+            },
             "reveal",
           );
       });
@@ -155,13 +183,28 @@ export default function Loader() {
         if (disposed) return;
         const now = performance.now();
         // Follow real progress smoothly, independent of refresh rate.
-        shown += (target - shown) * (1 - 0.92 ** ((now - last) / 16.667));
+        // Never step backwards if a late report arrives out of order.
+        const follow = 1 - 0.92 ** ((now - last) / 16.667);
+        shown = Math.max(shown, shown + (target - shown) * follow);
         last = now;
-        if (target - shown < 0.002) shown = target;
-        if (counterRef.current)
-          counterRef.current.textContent = String(
-            Math.round(shown * 100),
-          ).padStart(3, "0");
+        if (target >= shown && target - shown < 0.002) shown = target;
+        const label = formatLoaderPercent(shown);
+        if (counterRef.current && counterRef.current.textContent !== label)
+          counterRef.current.textContent = label;
+        const value = label.slice(0, -1);
+        if (overlay.getAttribute("aria-valuenow") !== value)
+          overlay.setAttribute("aria-valuenow", value);
+        if (label !== lastLabel) {
+          lastLabel = label;
+          lastAdvance = now;
+          if (stallRef.current) stallRef.current.hidden = true;
+        } else if (
+          stallRef.current &&
+          !finished &&
+          now - lastAdvance >= STALL_MS
+        ) {
+          stallRef.current.hidden = false;
+        }
         if (
           finished &&
           shown >= 0.999 &&
@@ -193,7 +236,7 @@ export default function Loader() {
             `${Math.round(height * 0.46 + (bookH * unit) / 2)}px`,
           );
           const span = Math.max(width, height),
-            time = now / 1000;
+            time = reduced ? 0 : now / 1000;
           context.lineWidth = 0.8;
           for (const f of fragments) {
             const t = easeOut(
@@ -209,7 +252,7 @@ export default function Loader() {
             const x = t > 0 ? sx + (tx - sx) * t : tx,
               y = t > 0 ? sy + (ty - sy) * t : ty;
             const size = (1.4 + 2.4 * f.size) * (1 - 0.35 * (1 - t));
-            const angle = f.turn * (1 - t) + time * 0.15 * (1 - t * 0.8);
+            const angle = f.turn * (1 - t) + (reduced ? 0 : time * 0.15 * (1 - t * 0.8));
             // A faint outline of the book is there from the first frame.
             context.globalAlpha = t > 0 ? Math.min(1, 0.1 + t * 1.6) : 0.1;
             context.strokeStyle = f.color;
@@ -233,6 +276,7 @@ export default function Loader() {
         disposed = true;
         cancelAnimationFrame(frame);
         window.clearTimeout(failsafe);
+        window.clearTimeout(forceReveal);
         unsubscribe();
         document.documentElement.classList.remove("is-loading");
       };
@@ -240,25 +284,33 @@ export default function Loader() {
     { scope: overlayRef },
   );
 
-  if (phase === "gone") return null;
+  if (closed.current || phase === "gone") return null;
   return (
     <div
       ref={overlayRef}
       className="site-loader"
       data-phase={phase}
-      role="status"
-      aria-live="polite"
+      role="progressbar"
+      aria-valuemin={1}
+      aria-valuemax={100}
+      aria-valuenow={1}
+      aria-labelledby="loader-status"
     >
       <canvas ref={canvasRef} aria-hidden="true" />
-      <div className="site-loader-meta" aria-hidden="true">
-        <p className="site-loader-name">Antonio Neto</p>
-        <p className="site-loader-count">
-          <span ref={counterRef}>000</span>
+      <div className="site-loader-meta">
+        <p id="loader-status" className="site-loader-status">
+          Carregando experiência…
+        </p>
+        <div className="site-loader-row">
+          <p className="site-loader-name">Antonio Neto</p>
+          <p className="site-loader-count" aria-hidden="true">
+            <span ref={counterRef}>1%</span>
+          </p>
+        </div>
+        <p ref={stallRef} className="site-loader-stall" hidden aria-live="polite">
+          Ainda a carregar…
         </p>
       </div>
-      <span className="visually-hidden">
-        {phase === "loading" ? "Carregando o site" : "Conteúdo carregado"}
-      </span>
     </div>
   );
 }

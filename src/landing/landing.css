@@ -114,6 +114,13 @@ ol {
 /* The book compresses first, then the black veil fades to reveal the page. */
 html.is-loading {
   overflow: hidden;
+  /* If script never removes the class, scrolling comes back after the veil. */
+  animation: site-loader-unlock 0.01s linear 16s forwards;
+}
+@keyframes site-loader-unlock {
+  to {
+    overflow: visible;
+  }
 }
 .site-loader {
   position: fixed;
@@ -133,14 +140,15 @@ html.is-loading {
 .site-loader[data-phase="revealing"] {
   pointer-events: none;
 }
-/* Name and counter sit as one centred caption just under the book. */
+/* Caption under the book: what is loading, then the name and the percent. */
 .site-loader-meta {
   position: absolute;
   left: 50%;
-  top: calc(var(--book-bottom, 70%) + 32px);
+  top: calc(var(--book-bottom, 70%) + 28px);
   display: flex;
-  gap: 1.25em;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 0.45em;
+  align-items: center;
   transform: translateX(-50%);
   color: var(--stage-ink);
   font-family: var(--font-m);
@@ -148,16 +156,29 @@ html.is-loading {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+  text-align: center;
+}
+.site-loader-row {
+  display: flex;
+  gap: 1.25em;
+  align-items: baseline;
 }
 .site-loader-meta p {
   margin: 0;
+}
+.site-loader-status {
+  opacity: 0.82;
 }
 .site-loader-name {
   opacity: 0.6;
 }
 .site-loader-count {
-  min-width: 3ch;
+  min-width: 4ch;
   font-variant-numeric: tabular-nums;
+}
+.site-loader-stall {
+  opacity: 0.55;
+  letter-spacing: 0.08em;
 }
 @keyframes site-loader-failsafe {
   to {
