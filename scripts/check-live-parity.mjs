@@ -7,8 +7,25 @@ const liveOrigin = process.env.PARITY_ORIGIN || "https://tonin.tech";
 const bundle = join(root, "deploy-bundle");
 mkdirSync(bundle, { recursive: true });
 
+/** Drop the loading veil. Its copy is the change under test; production still
+ * serves the old counter, and the rest of the page must still match. */
+function stripLoader(html) {
+  const start = html.search(/<div[^>]*class="site-loader"/);
+  if (start < 0) return html;
+  const tags = /<\/?div\b[^>]*>/gi;
+  tags.lastIndex = start;
+  let depth = 0;
+  let match;
+  while ((match = tags.exec(html))) {
+    depth += match[0].startsWith("</") ? -1 : 1;
+    if (depth === 0)
+      return html.slice(0, start) + html.slice(match.index + match[0].length);
+  }
+  return html;
+}
+
 const visible = (html) =>
-  html
+  stripLoader(html)
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
@@ -89,6 +106,7 @@ const report = {
   assets,
   limits: [
     "Comparação do HTML visível e dos arquivos estáveis de public/. Não reconstrói o diff commit_dirty.",
+    "O véu .site-loader fica de fora: o contador muda de propósito e a produção ainda serve o texto antigo.",
     "Os bundles /_next/static mudam de hash a cada build do Next e não entram nesta igualdade.",
   ],
 };
