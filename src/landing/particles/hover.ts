@@ -62,7 +62,10 @@ export function createHoverProbe(
   const far = new Color(HOVER.far, 0, 0);
   const previous = new Color();
   const pixel = new Uint16Array(4);
-  let frame = 0,
+  // About five reads a second at 60 Hz (the old every-12th-frame cadence).
+  // Counting frames instead made a 1 Hz software raster wait twelve seconds.
+  const READ_GAP_MS = 200;
+  let lastRead = 0,
     reading = false,
     hit = false;
   return {
@@ -90,7 +93,8 @@ export function createHoverProbe(
       renderer.setClearColor(previous, alpha);
       if (!active) hit = false;
       // Asynchronous read-back (no pipeline stall), a few times per second.
-      else if (!reading && ++frame % 12 === 0) {
+      else if (!reading && performance.now() - lastRead >= READ_GAP_MS) {
+        lastRead = performance.now();
         reading = true;
         renderer
           .readRenderTargetPixelsAsync(target, 0, 0, 1, 1, pixel)
