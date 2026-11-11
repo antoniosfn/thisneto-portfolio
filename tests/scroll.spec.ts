@@ -185,14 +185,46 @@ test("hover belongs to the figure: off the form nothing moves", async ({
     field,
     "a pointer over empty space must not touch the figure",
   ).toHaveAttribute("data-hover-hit", "0.000");
-  // Over the knot the ray meets its front surface.
-  await page.mouse.move(viewport.width * 0.73, viewport.height * 0.47, {
-    steps: 6,
+  // The Lorenz sits to the right of the copy. The old fixed "knot" point
+  // (0.73, 0.47) misses that placement, so the ray is scanned across the
+  // right half. The corner above must still miss. The depth read-back is a
+  // few times a second and each Playwright round trip on CI waits out a
+  // whole software-GL frame, so the scan runs in the page and stops at the
+  // first cell that meets the surface. The centre cell is first.
+  const hit = await field.evaluate(async (canvas) => {
+    const aim = (x: number, y: number) => {
+      document.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          clientX: x * innerWidth,
+          clientY: y * innerHeight,
+          pointerType: "mouse",
+          isPrimary: true,
+        }),
+      );
+    };
+    const nextFrame = () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    const points: [number, number][] = [];
+    for (const y of [0.5, 0.35, 0.65])
+      for (const x of [0.76, 0.62, 0.9]) points.push([x, y]);
+    for (const [x, y] of points) {
+      aim(x, y);
+      // 200ms between reads, then one frame to publish. A slow frame still
+      // gets a second look after the deadline.
+      const deadline = performance.now() + 800;
+      do {
+        await nextFrame();
+        if (Number((canvas as HTMLElement).dataset.hoverHit) >= 1) return true;
+      } while (performance.now() < deadline);
+      await nextFrame();
+      if (Number((canvas as HTMLElement).dataset.hoverHit) >= 1) return true;
+    }
+    return false;
   });
-  await expect(
-    field,
-    "a pointer over the knot meets its surface",
-  ).toHaveAttribute("data-hover-hit", "1.000", { timeout: 5000 });
+  expect(hit, "a pointer over the Lorenz must meet its surface").toBe(true);
 });
 
 test("background is true black: no faint haze from bloom or vignette @visual", async ({

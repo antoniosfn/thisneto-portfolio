@@ -117,7 +117,14 @@ test("particle field stays active as the page scrolls", async ({ page }) => {
   await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20_000 });
   await expect(field).toHaveAttribute("data-entered", "true", { timeout: 20_000 });
   const before = Number(await field.getAttribute("data-section-progress"));
-  await page.locator("#manifesto").evaluate((element) => element.scrollIntoView());
+  // scrollIntoView follows `scroll-behavior: smooth` and can return before
+  // scrollY moves. An instant jump still has to advance section progress.
+  await page.locator("#manifesto").evaluate((element) => {
+    scrollTo({
+      top: (element as HTMLElement).offsetTop,
+      behavior: "instant",
+    });
+  });
   await expect
     .poll(async () => Number(await field.getAttribute("data-section-progress")))
     .toBeGreaterThan(before + 0.2);

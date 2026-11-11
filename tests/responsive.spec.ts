@@ -12,6 +12,21 @@ test("tablet and mobile centre the reading columns and keep touch targets usable
 }, info) => {
   test.skip(info.project.name !== "desktop", "Viewport matrix is covered once");
   test.setTimeout(120000);
+  // Centres, touch sizes, and section progress are layout and scroll
+  // math. On CI each WebGL resize makes the next evaluateAll wait out a
+  // longer frame (about 1s at 320px, about 3s at 1024px), and the four
+  // widths plus screenshots exhaust the 120s budget on the last pass.
+  // The overflow test already measures layout without the composer.
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args: Parameters<typeof getContext>
+    ) {
+      if (args[0] === "webgl2") return null;
+      return getContext.apply(this, args);
+    } as typeof getContext;
+  });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator(".site-loader")).toHaveCount(0, { timeout: 20000 });
